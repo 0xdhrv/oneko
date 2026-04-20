@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "oneko",
+  "homepage": "https://oneko.dhrv.pw",
+  "items": [
+    {
+      "name": "oneko",
+      "type": "registry:component",
+      "title": "Oneko",
+      "description": "Cursor-following cat sprite for React (client-only). Based on the oneko.js idea; mounts on document.body with optional bubbles, sounds, and tweakable motion.",
+      "author": "dhrv <https://oneko.dhrv.pw>",
+      "categories": ["visualization", "misc"],
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "components/oneko.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "docs": "Use with `dynamic(..., { ssr: false })` in Next.js App Router so the sprite only runs in the browser. Optional: add sound files under `public/cat-sounds/` (see the oneko repo) if you want full audio; the sprite sheet loads from the upstream oneko.js GIF URL by default."
+    }
+  ]
+}
