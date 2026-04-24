@@ -34,7 +34,7 @@ const geistPixelVariableClassName = [
 const siteUrl = getSiteUrl();
 const title = "Oneko playground";
 const description =
-  "Interactive desktop pet: tweak speed, sounds, bubbles, and pathfinding in the browser.";
+  "Interactive pixel cat: tweak speed, sounds, bubbles, and motion in the browser.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

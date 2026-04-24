@@ -7,8 +7,23 @@
 
 import { useEffect, useRef } from "react";
 
+export type CatActivityState =
+  | "idle"
+  | "moving"
+  | "sleeping"
+  | "scratchSelf"
+  | "tired"
+  | "alert"
+  | "scratchWallN"
+  | "scratchWallS"
+  | "scratchWallE"
+  | "scratchWallW"
+  | "freerun";
+
+type IdleActivityState = Exclude<CatActivityState, "idle" | "moving" | "freerun">;
+
 export interface CatLiveState {
-  state: string;
+  state: CatActivityState;
   posX: number;
   posY: number;
   velMag: number;
@@ -22,7 +37,7 @@ export interface CatLiveState {
   obstacleCount: number;
 }
 
-interface OnekoProps {
+export interface OnekoProps {
   persistPosition?: boolean;
   zIndex?: number;
   initialPos?: { x: number; y: number };
@@ -32,7 +47,7 @@ interface OnekoProps {
   rotationAmount?: number;
   idleThreshold?: number;
   meow?: boolean;
-  onStateChange?: (state: string) => void;
+  onStateChange?: (state: CatActivityState) => void;
   /** Probability per frame cat enters freerun mode (0–1). Default 0.06 */
   freerunChance?: number;
   /** Duration of freerun in frames. Default 40 */
@@ -74,6 +89,7 @@ interface PathPoint {
 }
 
 const TILE = 32;
+const DEFAULT_Z_INDEX = 2_147_483_646;
 
 const ORIGINAL_GIF_URL = "https://raw.githubusercontent.com/adryd325/oneko.js/main/oneko.gif";
 
@@ -87,7 +103,7 @@ const MIN_OBSTACLE_AREA = 500;
 const OBSTACLE_SELECTOR =
   "h1,h2,h3,h4,h5,h6,p,blockquote,a,button,img,svg,picture,video,nav,header,label,[role='button'],[data-oneko-obstacle]";
 
-// Grid / pathfinding config
+// Grid / route config
 const CELL_SIZE = 16;
 const SPRITE_RADIUS = 8;
 const PATH_RECALC_INTERVAL = 10;
@@ -201,7 +217,7 @@ const SLEEPING_MESSAGES = [
   "five more minutes...",
   "dreaming of fish",
   "according to my calculations... nap time",
-  "meow.exe has stopped working",
+  "nap.exe has stopped working",
   "the mouse will wait. it always does",
   "sleep is the best superpower",
   "do not wake the cat",
@@ -295,6 +311,15 @@ const FREERUN_MESSAGES = [
 ];
 const FREERUN_CHANCE = 0.06;
 const FREERUN_DURATION = 40;
+const DEFAULT_SPEED = 10;
+const DEFAULT_SCALE = 1;
+const DEFAULT_OPACITY = 1;
+const DEFAULT_ROTATION_AMOUNT = 15;
+const DEFAULT_IDLE_THRESHOLD_MS = 1000;
+const DEFAULT_VOLUME = 0.5;
+const DEFAULT_BUBBLE_CHANCE = 0.5;
+const DEFAULT_FOLLOW_DISTANCE = 20;
+const DEFAULT_ANIMATION_SPEED = 1;
 
 // Played once when the cat catches the laser dot
 const LASER_CATCH_POOL = ["/cat-sounds/Cat_eat1.ogg", "/cat-sounds/Cat_eat2.ogg"];
@@ -305,14 +330,14 @@ const HISS_POOL = [
   "/cat-sounds/Cat_hiss2.ogg",
   "/cat-sounds/Cat_hiss3.ogg",
 ];
-const SOUND_POOLS: Record<string, string[]> = {
+const SOUND_POOLS: Record<CatActivityState, string[]> = {
   idle: [
     "/cat-sounds/Cat_idle1.ogg",
     "/cat-sounds/Cat_idle2.ogg",
     "/cat-sounds/Cat_idle3.ogg",
     "/cat-sounds/Cat_idle4.ogg",
   ],
-  pathfinding: [
+  moving: [
     "/cat-sounds/Cat_baby_ambient1.ogg",
     "/cat-sounds/Cat_baby_ambient2.ogg",
     "/cat-sounds/Cat_baby_ambient3.ogg",
@@ -532,7 +557,7 @@ function smoothPath(rawPath: number[], cols: number): PathPoint[] {
   return result;
 }
 
-function runDijkstra(
+function findRoute(
   startIdx: number,
   goalIdx: number,
   grid: Uint8Array,
@@ -678,14 +703,14 @@ const IDLE_ANIMATION_DURATIONS: Record<string, number> = {
 
 export default function Oneko({
   persistPosition = true,
-  /** One below max so fixed UI (e.g. attribution link) can sit above the cat. */
-  zIndex = 2_147_483_646,
+  /** One below max so fixed UI can sit above the cat. */
+  zIndex = DEFAULT_Z_INDEX,
   initialPos,
-  speed = 10,
-  scale = 1,
-  opacity = 1,
-  rotationAmount = 15,
-  idleThreshold = 1000,
+  speed = DEFAULT_SPEED,
+  scale = DEFAULT_SCALE,
+  opacity = DEFAULT_OPACITY,
+  rotationAmount = DEFAULT_ROTATION_AMOUNT,
+  idleThreshold = DEFAULT_IDLE_THRESHOLD_MS,
   meow = true,
   onStateChange,
   freerunChance = FREERUN_CHANCE,
@@ -695,15 +720,20 @@ export default function Oneko({
   bubbleCooldown = BUBBLE_COOLDOWN_FRAMES,
   hueRotate = 0,
   liveStateRef,
-  bubbleChance = 0.5,
-  followDistance = 20,
-  animationSpeed = 1,
+  bubbleChance = DEFAULT_BUBBLE_CHANCE,
+  followDistance = DEFAULT_FOLLOW_DISTANCE,
+  animationSpeed = DEFAULT_ANIMATION_SPEED,
   bubbleText = "",
-  volume = 0.5,
+  volume = DEFAULT_VOLUME,
   laserPointer = false,
 }: OnekoProps) {
   const elRef = useRef<HTMLDivElement | null>(null);
-  const lastStateRef = useRef<string>("idle");
+  const lastStateRef = useRef<CatActivityState>("idle");
+  const onStateChangeRef = useRef(onStateChange);
+
+  useEffect(() => {
+    onStateChangeRef.current = onStateChange;
+  }, [onStateChange]);
 
   const defaultPos = {
     x: typeof window !== "undefined" ? window.innerWidth / 2 : 512,
@@ -719,12 +749,12 @@ export default function Oneko({
     mousePosY: initialPos?.y ?? defaultPos.y,
     frameCount: 0,
     idleTime: 0,
-    idleAnimation: null as string | null,
+    idleAnimation: null as IdleActivityState | null,
     idleAnimationFrame: 0,
     lastFrameTimestamp: 0,
     obstacleRects: [] as ObstacleRect[],
     lastObstacleRefresh: -OBSTACLE_INTERVAL,
-    // Grid / pathfinding
+    // Grid / route data
     grid: null as Uint8Array | null,
     gridCols: 0,
     gridRows: 0,
@@ -806,6 +836,21 @@ export default function Oneko({
     };
 
     const SVG_NS = "http://www.w3.org/2000/svg";
+    const debugColor = {
+      panelBg: "color-mix(in srgb, var(--background) 88%, transparent)",
+      panelBorder: "color-mix(in srgb, var(--border) 70%, transparent)",
+      panelText: "var(--foreground)",
+      panelSubtle: "var(--muted-foreground)",
+      controlBg: "color-mix(in srgb, var(--muted) 72%, transparent)",
+      controlBorder: "var(--border)",
+      accent: "var(--ring)",
+      accentStrong: "var(--primary)",
+      danger: "var(--destructive)",
+      dangerSoft: "color-mix(in srgb, var(--destructive) 30%, transparent)",
+      trail: "color-mix(in srgb, var(--ring) 60%, transparent)",
+      trailDot: "color-mix(in srgb, var(--ring) 76%, transparent)",
+      gridStroke: "color-mix(in srgb, var(--muted-foreground) 18%, transparent)",
+    };
 
     const createDebugSVG = () => {
       const svg = document.createElementNS(SVG_NS, "svg");
@@ -829,7 +874,7 @@ export default function Oneko({
       patternRect.setAttribute("width", String(CELL_SIZE));
       patternRect.setAttribute("height", String(CELL_SIZE));
       patternRect.setAttribute("fill", "none");
-      patternRect.setAttribute("stroke", "rgba(150,150,150,0.12)");
+      patternRect.setAttribute("stroke", debugColor.gridStroke);
       patternRect.setAttribute("stroke-width", "0.5");
       pattern.appendChild(patternRect);
       defs.appendChild(pattern);
@@ -932,9 +977,9 @@ export default function Oneko({
       hud.style.lineHeight = "1.6";
       hud.style.padding = "10px 14px";
       hud.style.borderRadius = "6px";
-      hud.style.backgroundColor = "rgba(12, 12, 12, 0.75)";
-      hud.style.border = "1px solid rgba(255, 255, 255, 0.06)";
-      hud.style.color = "rgba(210, 210, 210, 0.85)";
+      hud.style.backgroundColor = debugColor.panelBg;
+      hud.style.border = `1px solid ${debugColor.panelBorder}`;
+      hud.style.color = debugColor.panelText;
       hud.style.width = "190px";
       return hud;
     };
@@ -950,16 +995,16 @@ export default function Oneko({
         "font-size:11px",
         "line-height:1.6",
         "border-radius:6px",
-        "background:rgba(12,12,12,0.85)",
-        "border:1px solid rgba(255,255,255,0.06)",
-        "color:rgba(210,210,210,0.85)",
+        `background:${debugColor.panelBg}`,
+        `border:1px solid ${debugColor.panelBorder}`,
+        `color:${debugColor.panelText}`,
         "width:190px",
       ].join(";");
 
       const btnStyle = [
-        "background:rgba(255,255,255,0.08)",
-        "border:1px solid rgba(255,255,255,0.12)",
-        "color:rgba(210,210,210,0.9)",
+        `background:${debugColor.controlBg}`,
+        `border:1px solid ${debugColor.controlBorder}`,
+        `color:${debugColor.panelText}`,
         "border-radius:4px",
         "padding:2px 8px",
         "font-family:inherit",
@@ -968,9 +1013,9 @@ export default function Oneko({
       ].join(";");
 
       const selectStyle = [
-        "background:rgba(255,255,255,0.08)",
-        "border:1px solid rgba(255,255,255,0.12)",
-        "color:rgba(210,210,210,0.9)",
+        `background:${debugColor.controlBg}`,
+        `border:1px solid ${debugColor.controlBorder}`,
+        `color:${debugColor.panelText}`,
         "border-radius:4px",
         "padding:2px 4px",
         "font-family:inherit",
@@ -982,8 +1027,7 @@ export default function Oneko({
       const sectionLabel = (text: string) => {
         const d = document.createElement("div");
         d.textContent = text;
-        d.style.cssText =
-          "color:rgba(140,140,140,0.8);font-weight:bold;margin-top:8px;margin-bottom:3px;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;";
+        d.style.cssText = `color:${debugColor.panelSubtle};font-weight:bold;margin-top:8px;margin-bottom:3px;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;`;
         return d;
       };
 
@@ -1010,12 +1054,11 @@ export default function Oneko({
 
       const headerTitle = document.createElement("span");
       headerTitle.textContent = "controls";
-      headerTitle.style.cssText =
-        "font-weight:bold;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:rgba(140,140,140,0.8);";
+      headerTitle.style.cssText = `font-weight:bold;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:${debugColor.panelSubtle};`;
 
       const chevron = document.createElement("span");
       chevron.textContent = "▾";
-      chevron.style.cssText = "font-size:10px;color:rgba(140,140,140,0.8);";
+      chevron.style.cssText = `font-size:10px;color:${debugColor.panelSubtle};`;
 
       header.appendChild(headerTitle);
       header.appendChild(chevron);
@@ -1061,7 +1104,7 @@ export default function Oneko({
           stateRef.current.freerunTimer = 0;
         }
         followBtn.textContent = on ? "⛶ resume following" : "⛶ stop following";
-        followBtn.style.color = on ? "rgba(255,160,120,0.9)" : "rgba(210,210,210,0.9)";
+        followBtn.style.color = on ? debugColor.accentStrong : debugColor.panelText;
       });
       followBtn.style.width = "100%";
       body.appendChild(makeRow(followBtn));
@@ -1095,15 +1138,14 @@ export default function Oneko({
       const lockChk = document.createElement("input");
       lockChk.type = "checkbox";
       lockChk.title = "lock state (prevent auto-reset)";
-      lockChk.style.cssText = "cursor:pointer;accent-color:#a5d6a7;";
+      lockChk.style.cssText = `cursor:pointer;accent-color:${debugColor.accent};`;
       lockChk.addEventListener("change", () => {
         stateRef.current.stateLocked = lockChk.checked;
       });
 
       const lockLbl = document.createElement("label");
       lockLbl.title = "lock state";
-      lockLbl.style.cssText =
-        "display:flex;align-items:center;gap:3px;cursor:pointer;font-size:10px;color:rgba(165,214,167,0.9);white-space:nowrap;";
+      lockLbl.style.cssText = `display:flex;align-items:center;gap:3px;cursor:pointer;font-size:10px;color:${debugColor.accent};white-space:nowrap;`;
       lockLbl.appendChild(lockChk);
       lockLbl.append("lock");
 
@@ -1111,7 +1153,7 @@ export default function Oneko({
 
       const forceStateBtn = makeBtn("apply", () => {
         const s = stateRef.current;
-        const chosen = stateSelect.value;
+        const chosen = stateSelect.value as CatActivityState;
         s.idleAnimation = null;
         s.idleAnimationFrame = 0;
         s.freerunMode = false;
@@ -1128,7 +1170,7 @@ export default function Oneko({
           s.stateLocked = lockChk.checked;
         } else {
           s.idleTime = 200;
-          s.idleAnimation = chosen;
+          s.idleAnimation = chosen as IdleActivityState;
           s.idleAnimationFrame = 0;
           s.stateLocked = lockChk.checked;
         }
@@ -1147,9 +1189,9 @@ export default function Oneko({
       bubbleInput.type = "text";
       bubbleInput.placeholder = "custom text...";
       bubbleInput.style.cssText = [
-        "background:rgba(255,255,255,0.06)",
-        "border:1px solid rgba(255,255,255,0.12)",
-        "color:rgba(210,210,210,0.9)",
+        `background:${debugColor.controlBg}`,
+        `border:1px solid ${debugColor.controlBorder}`,
+        `color:${debugColor.panelText}`,
         "border-radius:4px",
         "padding:2px 6px",
         "font-family:inherit",
@@ -1197,8 +1239,7 @@ export default function Oneko({
       ) => {
         const lbl = document.createElement("span");
         lbl.textContent = axis;
-        lbl.style.cssText =
-          "min-width:10px;color:rgba(140,140,140,0.8);font-size:10px;font-weight:bold;";
+        lbl.style.cssText = `min-width:10px;color:${debugColor.panelSubtle};font-size:10px;font-weight:bold;`;
 
         const valLbl = document.createElement("span");
         valLbl.style.cssText = "min-width:28px;text-align:right;font-size:10px;";
@@ -1206,7 +1247,7 @@ export default function Oneko({
         const slider = document.createElement("input");
         slider.type = "range";
         slider.min = "16";
-        slider.style.cssText = "flex:1;cursor:pointer;accent-color:#a5d6a7;";
+        slider.style.cssText = `flex:1;cursor:pointer;accent-color:${debugColor.accent};`;
 
         // Sync slider bounds + value whenever the panel is rendered
         const sync = () => {
@@ -1261,7 +1302,7 @@ export default function Oneko({
       speedSlider.min = "1";
       speedSlider.max = "40";
       speedSlider.value = String(speed);
-      speedSlider.style.cssText = "flex:1;cursor:pointer;accent-color:#a5d6a7;";
+      speedSlider.style.cssText = `flex:1;cursor:pointer;accent-color:${debugColor.accent};`;
       speedSlider.addEventListener("input", () => {
         const val = Number(speedSlider.value);
         speedLabel.textContent = String(val);
@@ -1475,7 +1516,7 @@ export default function Oneko({
         }
         return;
       }
-      const available = ["scratchSelf", "tired"];
+      const available: IdleActivityState[] = ["scratchSelf", "tired"];
       // 18 = position clamp boundary (16) + 2px tolerance
       // only scratch if cat is genuinely pinned against the viewport edge
       const wallAnims = [
@@ -1483,7 +1524,7 @@ export default function Oneko({
         s.nekoPosX >= window.innerWidth - 18 && "scratchWallE",
         s.nekoPosY <= 18 && "scratchWallN",
         s.nekoPosY >= window.innerHeight - 18 && "scratchWallS",
-      ].filter(Boolean) as string[];
+      ].filter(Boolean) as IdleActivityState[];
       available.push(...wallAnims);
       s.idleAnimation = available[Math.floor(Math.random() * available.length)];
     };
@@ -1544,7 +1585,7 @@ export default function Oneko({
         rows,
       );
 
-      s.currentPath = runDijkstra(catCell, mouseCell, grid, cols, rows);
+      s.currentPath = findRoute(catCell, mouseCell, grid, cols, rows);
       s.pathWaypointIdx = 0;
       s.lastPathRecalcFrame = s.frameCount;
       s.lastPathTargetCol = Math.floor(s.mousePosX / CELL_SIZE);
@@ -1640,7 +1681,7 @@ export default function Oneko({
       moveToward(s.mousePosX, s.mousePosY);
     };
 
-    // Movement: follow Dijkstra path toward mouse (or freerun direct)
+    // Movement: follow the current route toward the cursor, or free-roam directly.
     const followPath = (overallDist: number) => {
       const s = stateRef.current;
       if (overallDist < s.followDistanceCfg) {
@@ -1690,7 +1731,7 @@ export default function Oneko({
             rect.setAttribute("width", String(CELL_SIZE - 1));
             rect.setAttribute("height", String(CELL_SIZE - 1));
             rect.setAttribute("fill", "none");
-            rect.setAttribute("stroke", "rgba(255,80,80,0.25)");
+            rect.setAttribute("stroke", debugColor.dangerSoft);
             rect.setAttribute("stroke-width", "0.5");
             group.appendChild(rect);
           }
@@ -1711,7 +1752,7 @@ export default function Oneko({
         rect.setAttribute("width", String(r.right - r.left));
         rect.setAttribute("height", String(r.bottom - r.top));
         rect.setAttribute("fill", "none");
-        rect.setAttribute("stroke", "rgba(255,80,80,0.3)");
+        rect.setAttribute("stroke", debugColor.dangerSoft);
         rect.setAttribute("stroke-width", "0.5");
         rect.setAttribute("stroke-dasharray", "3 3");
         group.appendChild(rect);
@@ -1732,7 +1773,7 @@ export default function Oneko({
       const line = document.createElementNS(SVG_NS, "polyline");
       line.setAttribute("points", points);
       line.setAttribute("fill", "none");
-      line.setAttribute("stroke", "rgba(100,220,100,0.5)");
+      line.setAttribute("stroke", debugColor.trail);
       line.setAttribute("stroke-width", "1.5");
       line.style.transition = "all 0.15s ease";
       group.appendChild(line);
@@ -1742,12 +1783,12 @@ export default function Oneko({
         dot.setAttribute("cx", String(pt.x));
         dot.setAttribute("cy", String(pt.y));
         dot.setAttribute("r", "2");
-        dot.setAttribute("fill", "rgba(100,220,100,0.7)");
+        dot.setAttribute("fill", debugColor.trailDot);
         group.appendChild(dot);
       }
     };
 
-    const getActivityLabel = () => {
+    const getActivityLabel = (): CatActivityState => {
       const s = stateRef.current;
       if (s.freerunMode) {
         return "freerun";
@@ -1761,7 +1802,7 @@ export default function Oneko({
       if (s.idleTime > 0) {
         return "idle";
       }
-      return "pathfinding";
+      return "moving";
     };
 
     const getBubbleStatus = (s: typeof stateRef.current) => {
@@ -1777,9 +1818,9 @@ export default function Oneko({
     const updateDebugHUD = () => {
       const s = stateRef.current;
       const activity = getActivityLabel();
-      const stateColor = s.freerunMode ? "#ff8a80" : "#a5d6a7";
+      const stateColor = s.freerunMode ? debugColor.danger : debugColor.accent;
       const td = "padding:1px 0;";
-      const labelTd = `${td}font-weight:bold;color:rgba(140,140,140,0.8);padding-right:12px;`;
+      const labelTd = `${td}font-weight:bold;color:${debugColor.panelSubtle};padding-right:12px;`;
       const valueTd = `${td}text-align:right;`;
       const row = (label: string, value: string, color?: string) => {
         const valStyle = color ? `${valueTd}color:${color}` : valueTd;
@@ -1798,8 +1839,8 @@ export default function Oneko({
         row("dist", `${Math.round(distToMouse)}px`),
         row("idle", `${s.idleTime}f`),
         row("frame", `${s.frameCount}`),
-        row("path", `${s.currentPath.length} pts`),
-        row("waypoint", `${s.pathWaypointIdx}/${s.currentPath.length}`),
+        row("trail", `${s.currentPath.length} pts`),
+        row("step", `${s.pathWaypointIdx}/${s.currentPath.length}`),
         row("obstacles", `${s.obstacleRects.length}`),
         row("grid", `${s.gridCols} x ${s.gridRows}`),
         row("freerun", s.freerunMode ? `${s.freerunTimer}f left` : "off"),
@@ -2051,7 +2092,7 @@ export default function Oneko({
       const currentState = getActivityLabel();
       if (currentState !== lastStateRef.current) {
         lastStateRef.current = currentState;
-        onStateChange?.(currentState);
+        onStateChangeRef.current?.(currentState);
         const pool = SOUND_POOLS[currentState];
         if (pool) playSound(pool);
       }
@@ -2061,8 +2102,8 @@ export default function Oneko({
         playSound(SOUND_POOLS.idle);
       } else if (currentState === "sleeping" && frameCount % 100 === 0) {
         playSound(SOUND_POOLS.sleeping);
-      } else if (currentState === "pathfinding" && frameCount % 80 === 0) {
-        playSound(SOUND_POOLS.pathfinding);
+      } else if (currentState === "moving" && frameCount % 80 === 0) {
+        playSound(SOUND_POOLS.moving);
       }
       if (liveStateRef?.current) {
         const ls = liveStateRef.current;
@@ -2172,9 +2213,9 @@ export default function Oneko({
   useEffect(() => {
     if (!laserPointer) return;
 
-    const DOT_SVG = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'><rect x='3' y='0' width='1' height='1' fill='%23FF1111'/><rect x='2' y='1' width='3' height='1' fill='%23FF1111'/><rect x='1' y='2' width='5' height='1' fill='%23FF1111'/><rect x='0' y='3' width='7' height='1' fill='%23FF1111'/><rect x='1' y='4' width='5' height='1' fill='%23FF1111'/><rect x='2' y='5' width='3' height='1' fill='%23FF1111'/><rect x='3' y='6' width='1' height='1' fill='%23FF1111'/><rect x='2' y='2' width='1' height='1' fill='%23FF8888'/></svg>`;
+    const DOT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true" focusable="false" style="display:block;width:100%;height:100%"><rect x="3" y="0" width="1" height="1" fill="var(--destructive)"/><rect x="2" y="1" width="3" height="1" fill="var(--destructive)"/><rect x="1" y="2" width="5" height="1" fill="var(--destructive)"/><rect x="0" y="3" width="7" height="1" fill="var(--destructive)"/><rect x="1" y="4" width="5" height="1" fill="var(--destructive)"/><rect x="2" y="5" width="3" height="1" fill="var(--destructive)"/><rect x="3" y="6" width="1" height="1" fill="var(--destructive)"/><rect x="2" y="2" width="1" height="1" fill="var(--accent)"/></svg>`;
 
-    const LASER_SVG = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 5' shape-rendering='crispEdges'><rect x='2' y='0' width='16' height='1' fill='%23CC2222'/><rect x='1' y='1' width='18' height='1' fill='%23CC2222'/><rect x='0' y='2' width='20' height='1' fill='%23CC2222'/><rect x='1' y='3' width='18' height='1' fill='%23CC2222'/><rect x='2' y='4' width='16' height='1' fill='%23CC2222'/><rect x='11' y='1' width='1' height='1' fill='%23881111'/><rect x='13' y='1' width='1' height='1' fill='%23881111'/><rect x='15' y='1' width='1' height='1' fill='%23881111'/><rect x='11' y='2' width='1' height='1' fill='%23881111'/><rect x='13' y='2' width='1' height='1' fill='%23881111'/><rect x='15' y='2' width='1' height='1' fill='%23881111'/><rect x='11' y='3' width='1' height='1' fill='%23881111'/><rect x='13' y='3' width='1' height='1' fill='%23881111'/><rect x='15' y='3' width='1' height='1' fill='%23881111'/><rect x='4' y='0' width='3' height='1' fill='%23FF5555'/><rect x='4' y='1' width='3' height='1' fill='%23FF5555'/><rect x='18' y='1' width='3' height='1' fill='%23FF8888'/><rect x='18' y='2' width='3' height='1' fill='%23FF8888'/><rect x='18' y='3' width='3' height='1' fill='%23FF8888'/></svg>`;
+    const LASER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 5" shape-rendering="crispEdges" aria-hidden="true" focusable="false" style="display:block;width:100%;height:100%"><rect x="2" y="0" width="16" height="1" fill="var(--destructive)"/><rect x="1" y="1" width="18" height="1" fill="var(--destructive)"/><rect x="0" y="2" width="20" height="1" fill="var(--destructive)"/><rect x="1" y="3" width="18" height="1" fill="var(--destructive)"/><rect x="2" y="4" width="16" height="1" fill="var(--destructive)"/><rect x="11" y="1" width="1" height="1" fill="var(--primary-foreground)"/><rect x="13" y="1" width="1" height="1" fill="var(--primary-foreground)"/><rect x="15" y="1" width="1" height="1" fill="var(--primary-foreground)"/><rect x="11" y="2" width="1" height="1" fill="var(--primary-foreground)"/><rect x="13" y="2" width="1" height="1" fill="var(--primary-foreground)"/><rect x="15" y="2" width="1" height="1" fill="var(--primary-foreground)"/><rect x="11" y="3" width="1" height="1" fill="var(--primary-foreground)"/><rect x="13" y="3" width="1" height="1" fill="var(--primary-foreground)"/><rect x="15" y="3" width="1" height="1" fill="var(--primary-foreground)"/><rect x="4" y="0" width="3" height="1" fill="var(--primary)"/><rect x="4" y="1" width="3" height="1" fill="var(--primary)"/><rect x="18" y="1" width="3" height="1" fill="var(--accent)"/><rect x="18" y="2" width="3" height="1" fill="var(--accent)"/><rect x="18" y="3" width="3" height="1" fill="var(--accent)"/></svg>`;
 
     const DOT_SIZE = 9;
     const LASER_W = 88;
@@ -2196,11 +2237,11 @@ export default function Oneko({
         "left:-100px",
         "top:-100px",
         `opacity:${opacity}`,
-        `background:url("data:image/svg+xml;utf8,${DOT_SVG}") no-repeat center/contain`,
         glow
-          ? "filter:drop-shadow(0 0 4px rgba(255,30,30,0.9)) drop-shadow(0 0 12px rgba(255,0,0,0.55))"
+          ? "filter:drop-shadow(0 0 4px var(--destructive)) drop-shadow(0 0 12px color-mix(in srgb, var(--destructive) 55%, transparent))"
           : "",
       ].join(";");
+      d.innerHTML = DOT_SVG;
       return d;
     };
 
@@ -2223,11 +2264,11 @@ export default function Oneko({
       "pointer-events:none",
       `z-index:${zIndex}`,
       "image-rendering:pixelated",
-      `background:url("data:image/svg+xml;utf8,${LASER_SVG}") no-repeat center/contain`,
       "transform-origin:100% 50%",
-      "filter:drop-shadow(0 0 6px rgba(255,30,30,0.45))",
+      "filter:drop-shadow(0 0 6px color-mix(in srgb, var(--destructive) 45%, transparent))",
       "will-change:transform,left,top",
     ].join(";");
+    laser.innerHTML = LASER_SVG;
 
     document.body.appendChild(laser);
     for (const t of trail) document.body.appendChild(t);

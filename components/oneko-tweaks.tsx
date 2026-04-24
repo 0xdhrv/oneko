@@ -4,6 +4,17 @@ import { useEffect, useRef } from "react";
 import { Pane } from "tweakpane";
 import { useOnekoPlayground } from "@/components/oneko-playground-context";
 
+type PaneCompat = Pane & {
+  addFolder: (options: { title: string; expanded?: boolean }) => {
+    addBinding: <TTarget extends object, TKey extends keyof TTarget>(
+      target: TTarget,
+      key: TKey,
+      options?: unknown,
+    ) => { on: (eventName: "change", handler: (event: { value: TTarget[TKey] }) => void) => void };
+  };
+  refresh: () => void;
+};
+
 export function OnekoTweaks() {
   const { state, actions, liveStateRef } = useOnekoPlayground();
   const {
@@ -29,7 +40,7 @@ export function OnekoTweaks() {
     laserPointer,
   } = state;
   const paneRef = useRef<HTMLDivElement>(null);
-  const paneInstanceRef = useRef<Pane | null>(null);
+  const paneInstanceRef = useRef<PaneCompat | null>(null);
   const paramsRef = useRef({
     speed,
     idleThreshold,
@@ -60,7 +71,7 @@ export function OnekoTweaks() {
       container: paneRef.current,
       title: "Oneko",
       expanded: true,
-    });
+    }) as PaneCompat;
 
     paneInstanceRef.current = pane;
 
@@ -123,7 +134,7 @@ export function OnekoTweaks() {
     });
     stateFolder.addBinding(liveStateRef.current, "pathLength", {
       readonly: true,
-      label: "path pts",
+      label: "trail pts",
       interval: 100,
     });
     stateFolder.addBinding(liveStateRef.current, "obstacleCount", {

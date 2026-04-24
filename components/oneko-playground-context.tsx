@@ -96,7 +96,7 @@ export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
   const [bubbleChance, setBubbleChance] = useState(0.5);
   const [followDistance, setFollowDistance] = useState(20);
   const [animationSpeed, setAnimationSpeed] = useState(1);
-  const [bubbleText, setBubbleText] = useState("Meow!");
+  const [bubbleText, setBubbleText] = useState("purr patrol");
   const [freerunChance, setFreerunChance] = useState(0.06);
   const [freerunDuration, setFreerunDuration] = useState(40);
   const [bubbleEnabled, setBubbleEnabled] = useState(true);
