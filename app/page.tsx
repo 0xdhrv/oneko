@@ -1,6 +1,12 @@
 import dynamic from "next/dynamic";
+import type { Metadata } from "next";
 import { InspirationAttribution } from "@/components/inspiration-attribution";
 import { GitHubLink } from "@/components/github-link";
+
+export const metadata: Metadata = {
+  title: "Oneko playground",
+  description: "Interactive pixel cat: tweak speed, sounds, bubbles, and motion in the browser.",
+};
 
 const OnekoPlayground = dynamic(() => import("./oneko-playground"), {
   loading: () => (

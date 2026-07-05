@@ -8,13 +8,15 @@
 
 ## Learned Workspace Facts
 
-- Next.js App Router project; entry layout/styles live in `app/layout.tsx` and `app/globals.css` (the legacy `styles/globals.css` is not the active stylesheet).
-- Main interactive cat lives in `components/oneko.tsx`; bubble copy pools (e.g. `IDLE_MESSAGES`, `MOVING_MESSAGES`, `FREERUN_MESSAGES`) are defined inline there.
-- Chat bubble uses Geist Pixel via `geist/font/pixel` exposed as the CSS variable `--font-geist-pixel-square`; the font must be loaded in `app/layout.tsx` for the bubble to render correctly.
-- Theming uses `next-themes`; tokens are defined in `app/globals.css` with background `#FFF` (light) / `#0A0A0A` (dark) and accent palette ginger `#E89F5E`, blush `#F4B8A8`, sage `#A8C3B5`, fur gray `#B8A89F`.
-- Click/UI sound asset is at `components/sounds/click-soft.mp3` and should be played on user interactions.
-- Production domain is `oneko.dhrv.pw` (used by `lib/site-url.ts` and SEO/OG metadata).
-- shadcn registry for installable `Oneko`: root `registry.json`; `pnpm run registry:build` runs `shadcn build` and emits `public/r/oneko.json` (and `public/r/registry.json`); `prebuild` runs that before `next build`; consumers run `npx shadcn@latest add https://oneko.dhrv.pw/r/oneko.json`.
-- Inspiration attribution lives in `components/inspiration-attribution.tsx` and links to `https://github.com/adryd325/oneko.js` (no trailing slash).
-- The cat mounts on `document.body` with default `z-index` `2147483646` (one below max); the homepage footer uses Tailwind `z-2147483647` so the attribution row stays above the sprite layer.
-- Playground settings are centralized in `components/oneko-playground-context.tsx` (`OnekoPlaygroundProvider` / `useOnekoPlayground()`); `OnekoTweaks` reads that context instead of a long prop/callback list.
+- Next.js App Router project; entry layout/styles live in `app/layout.tsx` and `app/globals.css`.
+- `components/oneko.tsx` is the shadcn registry entry — a thin React shell. Animation runs in `hooks/use-cat-animation.ts`; engine code lives under `lib/oneko/` (frame loop, pathfinding, bubbles, debug controls, persistence).
+- Bubble copy pools (`IDLE_MESSAGES`, `MOVING_MESSAGES`, `FREERUN_MESSAGES`) are in `lib/oneko/constants.ts`; bubble selection/rendering is in `lib/oneko/animation/bubbles.ts`.
+- Chat bubble uses Geist Pixel via `geist/font/pixel` as `--font-geist-pixel-square`; load it in `app/layout.tsx`.
+- Theming uses `next-themes`; tokens in `app/globals.css` with background `#FFF` (light) / `#0A0A0A` (dark) and accent palette ginger `#E89F5E`, blush `#F4B8A8`, sage `#A8C3B5`, fur gray `#B8A89F`.
+- Click/UI sound asset is at `components/sounds/click-soft.mp3`.
+- Production domain is `oneko.dhrv.pw` (`lib/site-url.ts`, SEO/OG metadata).
+- shadcn registry: root `registry.json`; `pnpm run registry:build` emits `public/r/oneko.json`; `prebuild` runs before `next build`; consumers run `npx shadcn@latest add https://oneko.dhrv.pw/r/oneko.json`.
+- Inspiration attribution is in `components/inspiration-attribution.tsx`; URL validation/fallback in `lib/oneko/attribution-url.ts` (links to `https://github.com/adryd325/oneko.js`, no trailing slash).
+- The cat mounts on `document.body` with default `z-index` `2147483646` (`DEFAULT_Z_INDEX` in `lib/oneko/constants.ts`); fixed footer/attribution UI uses `z-2147483647`.
+- Playground settings: `components/oneko-playground-context.tsx` (`OnekoPlaygroundProvider` / `useOnekoPlayground()`).
+- Lint/format: `pnpm lint` (oxlint), `pnpm fmt` (oxfmt). Tests: `pnpm test` (vitest).

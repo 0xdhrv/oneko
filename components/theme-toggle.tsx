@@ -2,7 +2,7 @@
 
 import { Moon, Sun } from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,13 +12,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+// No-op subscribe + diverging snapshots: server renders `false`, client resolves
+// to `true` in a single hydration commit (no post-mount setState, no icon flash).
+const subscribeNoop = () => () => {};
+const snapshotClient = () => true;
+const snapshotServer = () => false;
+
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(subscribeNoop, snapshotClient, snapshotServer);
 
   return (
     <DropdownMenu>
@@ -28,6 +30,7 @@ export function ThemeToggle() {
           size="icon"
           className="group pointer-events-auto relative border-border bg-background/80 shadow-xs backdrop-blur-sm"
           aria-label="Theme"
+          suppressHydrationWarning
         >
           {mounted ? (
             <>

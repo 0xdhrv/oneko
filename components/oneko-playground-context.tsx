@@ -2,14 +2,15 @@
 
 import {
   createContext,
-  useContext,
+  use,
   useMemo,
+  useReducer,
   useRef,
-  useState,
   type MutableRefObject,
   type ReactNode,
 } from "react";
 import type { CatLiveState } from "@/components/oneko";
+import { DEFAULT_ONEKO_PLAYGROUND_STATE } from "@/lib/oneko/playground-defaults";
 
 const DEFAULT_LIVE_STATE: CatLiveState = {
   state: "idle",
@@ -83,98 +84,42 @@ const OnekoPlaygroundContext = createContext<OnekoPlaygroundContextValue | null>
 export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
   const liveStateRef = useRef<CatLiveState>({ ...DEFAULT_LIVE_STATE });
 
-  const [speed, setSpeed] = useState(10);
-  const [persistPosition, setPersistPosition] = useState(true);
-  const [showCat, setShowCat] = useState(true);
-  const [scale, setScale] = useState(1);
-  const [opacity, setOpacity] = useState(1);
-  const [rotationAmount, setRotationAmount] = useState(15);
-  const [idleThreshold, setIdleThreshold] = useState(1000);
-  const [meow, setMeow] = useState(true);
-  const [volume, setVolume] = useState(0.5);
-  const [laserPointer, setLaserPointer] = useState(false);
-  const [bubbleChance, setBubbleChance] = useState(0.5);
-  const [followDistance, setFollowDistance] = useState(20);
-  const [animationSpeed, setAnimationSpeed] = useState(1);
-  const [bubbleText, setBubbleText] = useState("purr patrol");
-  const [freerunChance, setFreerunChance] = useState(0.06);
-  const [freerunDuration, setFreerunDuration] = useState(40);
-  const [bubbleEnabled, setBubbleEnabled] = useState(true);
-  const [bubbleDisplayFrames, setBubbleDisplayFrames] = useState(180);
-  const [bubbleCooldown, setBubbleCooldown] = useState(120);
-  const [hueRotate, setHueRotate] = useState(0);
-
-  const actions = useMemo(
-    () => ({
-      setSpeed,
-      setPersistPosition,
-      setShowCat,
-      setScale,
-      setOpacity,
-      setRotationAmount,
-      setIdleThreshold,
-      setMeow,
-      setVolume,
-      setLaserPointer,
-      setBubbleChance,
-      setFollowDistance,
-      setAnimationSpeed,
-      setBubbleText,
-      setFreerunChance,
-      setFreerunDuration,
-      setBubbleEnabled,
-      setBubbleDisplayFrames,
-      setBubbleCooldown,
-      setHueRotate,
+  // Use a reducer to group the 20 config fields (addresses prefer-useReducer diagnostic).
+  const [state, dispatch] = useReducer(
+    (prev: OnekoPlaygroundState, partial: Partial<OnekoPlaygroundState>) => ({
+      ...prev,
+      ...partial,
     }),
-    [],
+    { ...DEFAULT_ONEKO_PLAYGROUND_STATE },
   );
 
-  const state = useMemo(
-    (): OnekoPlaygroundState => ({
-      speed,
-      persistPosition,
-      showCat,
-      scale,
-      opacity,
-      rotationAmount,
-      idleThreshold,
-      meow,
-      volume,
-      laserPointer,
-      bubbleChance,
-      followDistance,
-      animationSpeed,
-      bubbleText,
-      freerunChance,
-      freerunDuration,
-      bubbleEnabled,
-      bubbleDisplayFrames,
-      bubbleCooldown,
-      hueRotate,
-    }),
-    [
-      speed,
-      persistPosition,
-      showCat,
-      scale,
-      opacity,
-      rotationAmount,
-      idleThreshold,
-      meow,
-      volume,
-      laserPointer,
-      bubbleChance,
-      followDistance,
-      animationSpeed,
-      bubbleText,
-      freerunChance,
-      freerunDuration,
-      bubbleEnabled,
-      bubbleDisplayFrames,
-      bubbleCooldown,
-      hueRotate,
-    ],
+  // Stabilize actions object (and its functions) with useMemo so consumers
+  // can safely depend on it. dispatch from useReducer is stable.
+  const actions = useMemo(
+    () =>
+      ({
+        setSpeed: (v: number) => dispatch({ speed: v }),
+        setPersistPosition: (v: boolean) => dispatch({ persistPosition: v }),
+        setShowCat: (v: boolean) => dispatch({ showCat: v }),
+        setScale: (v: number) => dispatch({ scale: v }),
+        setOpacity: (v: number) => dispatch({ opacity: v }),
+        setRotationAmount: (v: number) => dispatch({ rotationAmount: v }),
+        setIdleThreshold: (v: number) => dispatch({ idleThreshold: v }),
+        setMeow: (v: boolean) => dispatch({ meow: v }),
+        setVolume: (v: number) => dispatch({ volume: v }),
+        setLaserPointer: (v: boolean) => dispatch({ laserPointer: v }),
+        setBubbleChance: (v: number) => dispatch({ bubbleChance: v }),
+        setFollowDistance: (v: number) => dispatch({ followDistance: v }),
+        setAnimationSpeed: (v: number) => dispatch({ animationSpeed: v }),
+        setBubbleText: (v: string) => dispatch({ bubbleText: v }),
+        setFreerunChance: (v: number) => dispatch({ freerunChance: v }),
+        setFreerunDuration: (v: number) => dispatch({ freerunDuration: v }),
+        setBubbleEnabled: (v: boolean) => dispatch({ bubbleEnabled: v }),
+        setBubbleDisplayFrames: (v: number) => dispatch({ bubbleDisplayFrames: v }),
+        setBubbleCooldown: (v: number) => dispatch({ bubbleCooldown: v }),
+        setHueRotate: (v: number) => dispatch({ hueRotate: v }),
+      }) as const,
+    [dispatch],
   );
 
   const value = useMemo(() => ({ state, actions, liveStateRef }), [state, actions, liveStateRef]);
@@ -185,7 +130,7 @@ export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
 }
 
 export function useOnekoPlayground(): OnekoPlaygroundContextValue {
-  const ctx = useContext(OnekoPlaygroundContext);
+  const ctx = use(OnekoPlaygroundContext);
   if (!ctx) {
     throw new Error("useOnekoPlayground must be used within OnekoPlaygroundProvider");
   }
