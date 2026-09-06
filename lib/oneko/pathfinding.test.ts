@@ -58,6 +58,11 @@ describe("findRoute", () => {
     expect(path.at(-1)).toEqual({ x: 72, y: 40 });
   });
 
+  it("does not cut diagonally between touching blocked cells", () => {
+    const grid = new Uint8Array([0, 1, 1, 0]);
+    expect(findRoute(0, 3, grid, 2, 2)).toEqual([]);
+  });
+
   it("returns empty when no route exists", () => {
     const grid = openGrid(3, 3);
     for (let i = 0; i < grid.length; i++) {

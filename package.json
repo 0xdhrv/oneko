@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "next dev",
-    "registry:build": "shadcn build",
+    "registry:build": "shadcn build && oxfmt public/r/*.json",
     "prebuild": "pnpm run registry:build",
     "build": "next build",
     "start": "next start",
@@ -24,16 +24,16 @@
     "@radix-ui/react-slot": "1.2.4",
     "@radix-ui/react-tooltip": "1.2.8",
     "@vercel/analytics": "2.0.1",
+    "@web-kits/audio": "^0.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "geist": "^1.7.0",
-    "lucide-react": "^1.8.0",
     "next": "16.2.6",
     "next-themes": "^0.4.6",
     "react": "^19",
     "react-dom": "^19",
-    "tailwind-merge": "^3.5.0",
-    "tweakpane": "^4.0.5"
+    "shiki": "^4.4.3",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.2",

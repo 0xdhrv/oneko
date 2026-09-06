@@ -1,3 +1,4 @@
+import { createZoneState } from "./zone-runtime";
 import { DEFAULT_POSITION, OBSTACLE_INTERVAL, PATH_RECALC_INTERVAL } from "./constants";
 import {
   applyRuntimeConfig,
@@ -15,6 +16,7 @@ export function createInitialCatState(options: InitialCatStateOptions): CatRunti
   const startY = options.initialPos?.y ?? DEFAULT_POSITION.y;
 
   const state: CatRuntimeState = {
+    zoneState: createZoneState(),
     nekoPosX: startX,
     nekoPosY: startY,
     nekoVelX: 0,
@@ -25,7 +27,6 @@ export function createInitialCatState(options: InitialCatStateOptions): CatRunti
     idleTime: 0,
     idleAnimation: null as IdleActivityState | null,
     idleAnimationFrame: 0,
-    lastFrameTimestamp: 0,
     obstacleRects: [],
     lastObstacleRefresh: -OBSTACLE_INTERVAL,
     grid: null,

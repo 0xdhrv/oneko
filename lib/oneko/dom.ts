@@ -1,4 +1,4 @@
-import { CELL_SIZE, debugColor, ORIGINAL_GIF_URL, TILE } from "./constants";
+import { CELL_SIZE, debugColor, TILE } from "./constants";
 import type { CatRuntimeState } from "./types";
 
 export interface BubbleElements {
@@ -20,8 +20,8 @@ export function createCatElement(state: CatRuntimeState, zIndex: number): HTMLDi
     `left:${state.nekoPosX - TILE / 2}px`,
     `top:${state.nekoPosY - TILE / 2}px`,
     `z-index:${zIndex}`,
-    `background-image:url(${ORIGINAL_GIF_URL})`,
     "background-repeat:no-repeat",
+    "background-size:256px 128px",
     "transform:scale(1)",
     "opacity:1",
   ].join(";");
@@ -102,7 +102,7 @@ export function createBubble(zIndex: number): BubbleElements {
     "padding:4px 8px",
     "border-radius:8px",
     "box-sizing:border-box",
-    "font-size:10px",
+    "font-size:9px",
     "line-height:1.25",
     "font-weight:500",
     "font-family:var(--font-geist-pixel-square), monospace",

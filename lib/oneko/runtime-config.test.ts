@@ -1,9 +1,11 @@
+import { createZoneState } from "./zone-runtime";
 import { describe, expect, it } from "vitest";
 import { applyRuntimeConfig, defaultRuntimeConfigState } from "./runtime-config";
 import type { CatRuntimeState } from "./types";
 
 function minimalRuntimeState(): CatRuntimeState {
   return {
+    zoneState: createZoneState(),
     nekoPosX: 0,
     nekoPosY: 0,
     nekoVelX: 0,
@@ -14,7 +16,6 @@ function minimalRuntimeState(): CatRuntimeState {
     idleTime: 0,
     idleAnimation: null,
     idleAnimationFrame: 0,
-    lastFrameTimestamp: 0,
     obstacleRects: [],
     lastObstacleRefresh: 0,
     grid: null,

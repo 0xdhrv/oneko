@@ -4,10 +4,11 @@ import type { CatRuntimeState } from "./types";
 export function loadPersistedCatState(
   stateRef: { current: CatRuntimeState },
   el: HTMLDivElement,
+  storageKey = "oneko",
 ): void {
   let parsed: Record<string, unknown> | null = null;
   try {
-    const raw = window.localStorage.getItem("oneko");
+    const raw = window.localStorage.getItem(storageKey);
     parsed = raw ? JSON.parse(raw) : null;
   } catch {
     parsed = null;
@@ -44,12 +45,13 @@ export function loadPersistedCatState(
 export function createPersistHandler(
   stateRef: { current: CatRuntimeState },
   el: HTMLDivElement,
+  storageKey = "oneko",
 ): () => void {
   return () => {
     try {
       const s = stateRef.current;
       window.localStorage.setItem(
-        "oneko",
+        storageKey,
         JSON.stringify({
           nekoPosX: s.nekoPosX,
           nekoPosY: s.nekoPosY,

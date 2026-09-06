@@ -5,6 +5,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const base = getSiteUrl().replace(/\/$/, "");
   return [
     {
+      url: `${base}/docs`,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
       url: `${base}/`,
       lastModified: new Date(),
       changeFrequency: "weekly",

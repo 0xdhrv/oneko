@@ -5,7 +5,7 @@
  * oneko.js (MIT): https://github.com/adryd325/oneko.js/
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LaserCursor } from "@/components/laser-cursor";
 import { useCatAnimation } from "@/hooks/use-cat-animation";
 import { useOnekoPropsSync } from "@/hooks/use-oneko-props-sync";
@@ -28,9 +28,22 @@ import {
 import { createInitialCatState } from "@/lib/oneko/initial-state";
 import type { CatActivityState, CatLiveState, OnekoProps } from "@/lib/oneko/types";
 
-export type { CatLiveState, OnekoProps };
+export type { CatActivityState, CatLiveState, OnekoProps };
+export type { OnekoSkin } from "@/lib/oneko/skins";
+export type { OnekoZone } from "@/lib/oneko/zones";
 
 export default function Oneko({
+  paused = false,
+  followCursor = true,
+  sleepEnabled = true,
+  bubblePlacement = "auto",
+  bubbleScale = 1,
+  soundBasePath = "/cat-sounds",
+  storageKey = "oneko",
+  zones,
+  zoneAttractionChance,
+  zoneAttractionDuration,
+  skin = "classic",
   persistPosition = true,
   /** One below max so fixed UI can sit above the cat. */
   zIndex = DEFAULT_Z_INDEX,
@@ -64,45 +77,21 @@ export default function Oneko({
     onStateChangeRef.current = onStateChange;
   }, [onStateChange]);
 
-  const stateRef = useRef(
-    createInitialCatState({
-      initialPos,
-      speed,
-      scale,
-      opacity,
-      rotationAmount,
-      idleThreshold,
-      freerunChance,
-      freerunDuration,
-      bubbleEnabled,
-      bubbleDisplayFrames,
-      bubbleCooldown,
-      bubbleChance,
-      followDistance,
-      animationSpeed,
-      bubbleText,
-      meow,
-      volume,
-      laserPointer,
-    }),
-  );
-
-  useCatAnimation({
-    stateRef,
-    elRef,
-    lastStateRef,
-    onStateChangeRef,
-    liveStateRef,
-    persistPosition,
-    zIndex,
-  });
-  useOnekoPropsSync(stateRef, elRef, {
+  const config = {
+    paused,
+    followCursor,
+    sleepEnabled,
+    bubblePlacement,
+    bubbleScale,
+    soundBasePath,
+    zones,
+    zoneAttractionChance,
+    zoneAttractionDuration,
     speed,
     scale,
     opacity,
     rotationAmount,
     idleThreshold,
-    hueRotate,
     freerunChance,
     freerunDuration,
     bubbleEnabled,
@@ -114,8 +103,27 @@ export default function Oneko({
     bubbleText,
     meow,
     volume,
-    laserPointer,
+    laserPointer: laserPointer && followCursor && !paused,
+  };
+
+  const [initialState] = useState(() => createInitialCatState({ initialPos, ...config }));
+  const stateRef = useRef(initialState);
+
+  useCatAnimation({
+    stateRef,
+    elRef,
+    lastStateRef,
+    onStateChangeRef,
+    liveStateRef,
+    persistPosition,
+    storageKey,
+    zIndex,
+  });
+  useOnekoPropsSync(stateRef, elRef, {
+    ...config,
+    hueRotate,
+    skin,
   });
 
-  return laserPointer ? <LaserCursor zIndex={zIndex} /> : null;
+  return config.laserPointer ? <LaserCursor zIndex={zIndex} /> : null;
 }

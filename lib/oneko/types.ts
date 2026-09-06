@@ -1,3 +1,7 @@
+import type { OnekoZone } from "./zones";
+import type { ZoneRuntimeState } from "./zone-runtime";
+import type { OnekoSkin } from "./skins";
+
 export type CatActivityState =
   | "idle"
   | "moving"
@@ -29,6 +33,28 @@ export interface CatLiveState {
 }
 
 export interface OnekoProps {
+  /** Freeze animation in place without unmounting. Default false. */
+  paused?: boolean;
+  /** Chase the pointer and visit favorite spots. False keeps the cat resting in place. Default true. */
+  followCursor?: boolean;
+  /** Allow the cat to nap while idle. Default true. */
+  sleepEnabled?: boolean;
+  /** Preferred bubble side; auto chooses the side with room. Default auto. */
+  bubblePlacement?: "auto" | "above" | "below";
+  /** Bubble size multiplier, in addition to scale (0.5–2). Default 1. */
+  bubbleScale?: number;
+  /** Directory URL for the optional .ogg sounds. Default /cat-sounds. */
+  soundBasePath?: string;
+  /** localStorage key for position persistence. Default oneko. */
+  storageKey?: string;
+  /** Strict keep-out areas and occasional favorite spots. DOM data-oneko-zone attributes also work. */
+  zones?: readonly OnekoZone[];
+  /** Chance to visit a favorite at each five-second check (0–1). Default 0.3. */
+  zoneAttractionChance?: number;
+  /** Time spent pursuing a favorite, in milliseconds. Default 4000. */
+  zoneAttractionDuration?: number;
+  /** Built-in pixel-art skin. Default classic. */
+  skin?: OnekoSkin;
   persistPosition?: boolean;
   zIndex?: number;
   initialPos?: { x: number; y: number };
@@ -80,6 +106,7 @@ export interface PathPoint {
 }
 
 export interface CatRuntimeState {
+  zoneState: ZoneRuntimeState;
   nekoPosX: number;
   nekoPosY: number;
   nekoVelX: number;
@@ -90,7 +117,6 @@ export interface CatRuntimeState {
   idleTime: number;
   idleAnimation: IdleActivityState | null;
   idleAnimationFrame: number;
-  lastFrameTimestamp: number;
   obstacleRects: ObstacleRect[];
   lastObstacleRefresh: number;
   grid: Uint8Array | null;
@@ -103,6 +129,12 @@ export interface CatRuntimeState {
   lastPathTargetRow: number;
   debugMode: boolean;
   paused: boolean;
+  pausedCfg: boolean;
+  followCursorCfg: boolean;
+  sleepEnabledCfg: boolean;
+  bubblePlacementCfg: NonNullable<OnekoProps["bubblePlacement"]>;
+  bubbleScaleCfg: number;
+  soundBasePathCfg: string;
   stateLocked: boolean;
   noFollow: boolean;
   currentSpeed: number;

@@ -18,7 +18,11 @@ function wallScratchAnimations(s: CatRuntimeState): IdleActivityState[] {
 }
 
 function pickRandomIdleAnimation(s: CatRuntimeState): IdleActivityState {
-  const available: IdleActivityState[] = ["scratchSelf", "tired", ...wallScratchAnimations(s)];
+  const available: IdleActivityState[] = [
+    "scratchSelf",
+    ...(s.sleepEnabledCfg ? ["tired" as const] : []),
+    ...wallScratchAnimations(s),
+  ];
   return available[Math.floor(Math.random() * available.length)];
 }
 
@@ -38,7 +42,7 @@ export function maybeStartIdleAnimation(deps: CatAnimationDeps) {
   }
 
   s.idleAnimationFrame = 0;
-  if (s.idleTime > threshold * 3) {
+  if (s.sleepEnabledCfg && s.idleTime > threshold * 3) {
     startSleepingAnimation(deps);
     return;
   }
@@ -85,6 +89,11 @@ function resetOrLoopIdleAnimation(
 
 export function updateIdleAnimation(deps: CatAnimationDeps) {
   const s = deps.stateRef.current;
+  if (!s.sleepEnabledCfg && (s.idleAnimation === "sleeping" || s.idleAnimation === "tired")) {
+    s.idleAnimation = null;
+    s.idleAnimationFrame = 0;
+    s.idleTime = 0;
+  }
   if (!s.idleAnimation) {
     return false;
   }

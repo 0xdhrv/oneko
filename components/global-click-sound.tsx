@@ -1,41 +1,75 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import clickSoftUrl from "@/components/sounds/click-soft.mp3";
+import { createUiSoundPlayer, type UiSound } from "@/lib/ui-sounds";
 
-const VOLUME = 0.35;
-
-export function GlobalClickSound() {
-  const reducedMotionRef = useRef(false);
+export function GlobalClickSound({
+  enabled = true,
+  volume = 0.5,
+}: {
+  enabled?: boolean;
+  volume?: number;
+}) {
+  const enabledRef = useRef(enabled);
+  const volumeRef = useRef(volume);
+  enabledRef.current = enabled;
+  volumeRef.current = volume;
 
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const sync = () => {
-      reducedMotionRef.current = mq.matches;
-    };
-    sync();
-    mq.addEventListener("change", sync);
-
-    const audio = new Audio(clickSoftUrl);
-    audio.preload = "auto";
-    audio.volume = VOLUME;
-
-    const onPointerDown = (event: PointerEvent) => {
-      if (reducedMotionRef.current) return;
-      const el = event.target;
-      if (!(el instanceof Element)) return;
-      if (el.closest("[data-no-click-sound]")) return;
-
-      audio.currentTime = 0;
-      void audio.play().catch(() => {
-        /* autoplay policy or missing asset */
+    const player = createUiSoundPlayer();
+    let lastTick = -Infinity;
+    const play = (kind: UiSound) => {
+      if (kind === "tick") {
+        const now = performance.now();
+        if (now - lastTick < 60) return;
+        lastTick = now;
+      }
+      void player.play(kind, volumeRef.current).catch(() => {
+        // An unavailable audio device must not interrupt a control.
       });
     };
-
-    window.addEventListener("pointerdown", onPointerDown, { capture: true, passive: true });
+    const isQuiet = (element: Element) =>
+      Boolean(element.closest('[data-no-click-sound], [disabled], [aria-disabled="true"]'));
+    const onClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element) || isQuiet(event.target)) return;
+      const control = event.target.closest(
+        'button,a[href],summary,input[type="checkbox"],input[type="radio"],[role="button"],[role="switch"]',
+      );
+      if (!control) return;
+      const isEnablingSound = control.matches('[data-sound-toggle][aria-checked="false"]');
+      if ((!enabledRef.current && !isEnablingSound) || volumeRef.current <= 0) return;
+      const isToggle = control.matches('input,[role="switch"],[aria-pressed],[aria-expanded]');
+      play(isToggle ? "toggle" : "tap");
+    };
+    const onInput = (event: Event) => {
+      if (
+        event.target instanceof HTMLInputElement &&
+        event.target.type === "range" &&
+        !isQuiet(event.target) &&
+        enabledRef.current &&
+        volumeRef.current > 0
+      )
+        play("tick");
+    };
+    const onChange = (event: Event) => {
+      if (
+        event.target instanceof HTMLSelectElement &&
+        !isQuiet(event.target) &&
+        enabledRef.current &&
+        volumeRef.current > 0
+      )
+        play("toggle");
+    };
+    // Click also covers keyboard activation. Empty page space stays quiet.
+    // Capture lets the Sound switch unlock Audio Kit before React updates its state.
+    window.addEventListener("click", onClick, true);
+    window.addEventListener("input", onInput);
+    window.addEventListener("change", onChange);
     return () => {
-      window.removeEventListener("pointerdown", onPointerDown, true);
-      mq.removeEventListener("change", sync);
+      window.removeEventListener("click", onClick, true);
+      window.removeEventListener("input", onInput);
+      window.removeEventListener("change", onChange);
+      player.stop();
     };
   }, []);
 

@@ -8,7 +8,6 @@ import {
   GeistPixelLine,
 } from "geist/font/pixel";
 import { Analytics } from "@vercel/analytics/next";
-import { GlobalClickSound } from "@/components/global-click-sound";
 import { ThemeProvider } from "@/components/theme-provider";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
@@ -43,7 +42,7 @@ export const metadata: Metadata = {
     template: "%s · Oneko",
   },
   description,
-  alternates: { canonical: "/" },
+  alternates: { canonical: "/", types: { "text/markdown": "/docs.md", "text/plain": "/llms.txt" } },
   manifest: "/site.webmanifest",
   icons: {
     icon: [
@@ -95,7 +94,6 @@ export default function RootLayout({
           disableTransitionOnChange
           storageKey="oneko-theme"
         >
-          <GlobalClickSound />
           {children}
         </ThemeProvider>
         {process.env.NODE_ENV === "production" && <Analytics />}

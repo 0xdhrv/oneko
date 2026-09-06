@@ -7,18 +7,196 @@
       "name": "oneko",
       "type": "registry:component",
       "title": "Oneko",
-      "description": "Cursor-following pixel cat for React (client-only). Based on the oneko.js idea; mounts on document.body with optional bubbles, sounds, and tweakable motion.",
+      "description": "Pixel cat for React with 12 skins, keep-out zones, favorite spots, pause and nap controls, adjustable bubbles, sounds, and configurable motion.",
       "author": "dhrv <https://oneko.dhrv.pw>",
       "categories": ["visualization", "misc"],
       "dependencies": [],
       "registryDependencies": [],
       "files": [
         {
+          "path": "components/laser-cursor.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "components/oneko.tsx",
           "type": "registry:component"
+        },
+        {
+          "path": "docs/skins.md",
+          "type": "registry:file",
+          "target": "docs/oneko-skins.md"
+        },
+        {
+          "path": "hooks/use-cat-animation.ts",
+          "type": "registry:hook"
+        },
+        {
+          "path": "hooks/use-oneko-props-sync.ts",
+          "type": "registry:hook"
+        },
+        {
+          "path": "lib/oneko/animation-loop.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/activity.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/bubbles.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/debug-render.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/deps.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/frame.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/frame/interrupt-idle.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/frame/tick-laser.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/frame/tick-live-state.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/frame/tick-movement.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/frame/tick-prelude.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/frame/tick-sounds.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/grid.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/idle.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/mouse.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/movement.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/sprites.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/constants.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/debug-controls/bubble.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/debug-controls/force-state.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/debug-controls/index.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/debug-controls/playback.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/debug-controls/position.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/debug-controls/speed.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/debug-controls/ui.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/dom.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/initial-state.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/konami.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/laser-cursor-dom.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/obstacle-filters.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/pathfinding.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/persistence.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/runtime-config.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/skin-sheets.json",
+          "type": "registry:lib",
+          "target": "lib/oneko/skin-sheets.json"
+        },
+        {
+          "path": "lib/oneko/skins.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/start-cat-animation.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/teardown.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/types.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/zone-runtime.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/zones.ts",
+          "type": "registry:lib"
         }
       ],
-      "docs": "Render from a client-only entry point, or lazy-load it after mount in SSR-enabled apps. Optional: add sound files under `public/cat-sounds/` if you want full audio; the sprite sheet loads from the upstream oneko.js GIF URL by default."
+      "docs": "Includes the React component, animation hooks, engine, 12 bundled pixel-art skins, and skin credits. Customize paused, followCursor, sleepEnabled, bubblePlacement, and bubbleScale without remounting. Mark elements with data-oneko-zone=\"avoid\" or data-oneko-zone=\"attract\", or pass zones using selectors or viewport rectangles. Render from a client-only entry point. Optional: copy sound files to public/cat-sounds/, set soundBasePath to your sound directory, or set meow={false}. Use storageKey for independent saved positions."
     }
   ]
 }

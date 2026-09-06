@@ -10,7 +10,7 @@ export default defineConfig({
       reporter: ["json", "text"],
       reportsDirectory: "./coverage",
       include: ["lib/oneko/**/*.ts"],
-      exclude: ["lib/oneko/**/*.test.ts", "lib/oneko/tweakpane-folders.ts"],
+      exclude: ["lib/oneko/**/*.test.ts"],
     },
   },
   resolve: {

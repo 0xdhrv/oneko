@@ -1,25 +1,23 @@
 import type { CatRuntimeState } from "./types";
 
+/** The sprite has ten frames per second; no need to wake on every screen refresh. */
 export function startAnimationLoop(
   stateRef: { current: CatRuntimeState },
   frame: () => void,
 ): () => void {
-  let rafId = 0;
-
-  const onAnimationFrame = (timestamp: number) => {
-    const s = stateRef.current;
-    if (!s.lastFrameTimestamp) {
-      s.lastFrameTimestamp = timestamp;
-    }
-    if (timestamp - s.lastFrameTimestamp > 100) {
-      s.lastFrameTimestamp = timestamp;
-      if (!s.paused) {
-        frame();
-      }
-    }
-    rafId = window.requestAnimationFrame(onAnimationFrame);
+  let timer: ReturnType<typeof setInterval> | undefined;
+  const syncVisibility = () => {
+    clearInterval(timer);
+    timer = undefined;
+    if (document.hidden) return;
+    timer = setInterval(() => {
+      if (!stateRef.current.paused && !stateRef.current.pausedCfg) frame();
+    }, 100);
   };
-
-  rafId = window.requestAnimationFrame(onAnimationFrame);
-  return () => window.cancelAnimationFrame(rafId);
+  document.addEventListener("visibilitychange", syncVisibility);
+  syncVisibility();
+  return () => {
+    clearInterval(timer);
+    document.removeEventListener("visibilitychange", syncVisibility);
+  };
 }

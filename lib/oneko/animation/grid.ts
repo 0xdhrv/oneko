@@ -13,7 +13,17 @@ export function refreshGridIfNeeded(deps: CatAnimationDeps) {
   if (s.frameCount - s.lastObstacleRefresh < OBSTACLE_INTERVAL) {
     return;
   }
-  s.obstacleRects = collectObstacles();
+  const softObstacles = collectObstacles().filter(
+    (rect) =>
+      !s.zoneState.favorites.some(
+        ({ rect: favorite }) =>
+          rect.left >= favorite.left &&
+          rect.right <= favorite.right &&
+          rect.top >= favorite.top &&
+          rect.bottom <= favorite.bottom,
+      ),
+  );
+  s.obstacleRects = [...softObstacles, ...s.zoneState.blocked];
   s.lastObstacleRefresh = s.frameCount;
   s.gridCols = Math.ceil(window.innerWidth / CELL_SIZE);
   s.gridRows = Math.ceil(window.innerHeight / CELL_SIZE);
@@ -23,8 +33,8 @@ export function refreshGridIfNeeded(deps: CatAnimationDeps) {
 
 export function recalcPathIfNeeded(deps: CatAnimationDeps) {
   const s = deps.stateRef.current;
-  const mouseCol = Math.floor(s.mousePosX / CELL_SIZE);
-  const mouseRow = Math.floor(s.mousePosY / CELL_SIZE);
+  const mouseCol = Math.floor(s.zoneState.movementTarget.x / CELL_SIZE);
+  const mouseRow = Math.floor(s.zoneState.movementTarget.y / CELL_SIZE);
   const mouseMoved =
     Math.abs(mouseCol - s.lastPathTargetCol) > PATH_RECALC_MOUSE_CELLS ||
     Math.abs(mouseRow - s.lastPathTargetRow) > PATH_RECALC_MOUSE_CELLS;

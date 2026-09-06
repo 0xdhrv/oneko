@@ -1,3 +1,4 @@
+import { refreshZones } from "./zone-runtime";
 import { hideBubble, showBubble } from "./animation/bubbles";
 import { createFrameLoop } from "./animation/frame";
 import { createMouseMoveHandler } from "./animation/mouse";
@@ -17,6 +18,7 @@ export interface StartCatAnimationOptions {
   onStateChangeRef: { current: ((state: CatActivityState) => void) | undefined };
   liveStateRef?: { current: CatLiveState };
   persistPosition: boolean;
+  storageKey?: string;
   zIndex: number;
 }
 
@@ -49,6 +51,7 @@ export function startCatAnimation({
   onStateChangeRef,
   liveStateRef,
   persistPosition,
+  storageKey = "oneko",
   zIndex,
 }: StartCatAnimationOptions): () => void {
   const el = createCatElement(stateRef.current, zIndex);
@@ -84,8 +87,10 @@ export function startCatAnimation({
   const debugWrapper = createDebugWrapper(zIndex, debugHUD, debugControls);
 
   if (persistPosition) {
-    loadPersistedCatState(stateRef, el);
+    loadPersistedCatState(stateRef, el, storageKey);
   }
+
+  refreshZones(deps);
 
   document.body.appendChild(debugSVG);
   document.body.appendChild(debugWrapper);
@@ -94,6 +99,16 @@ export function startCatAnimation({
 
   const onMouseMove = createMouseMoveHandler(deps);
   document.addEventListener("mousemove", onMouseMove);
+  const onPointerDown = (event: PointerEvent) => {
+    if (event.pointerType !== "touch") return;
+    if (
+      event.target instanceof Element &&
+      event.target.closest("button,a,input,select,textarea,label,summary,[role='button']")
+    )
+      return;
+    onMouseMove(event);
+  };
+  document.addEventListener("pointerdown", onPointerDown);
 
   const invalidateObstacles = () => {
     stateRef.current.lastObstacleRefresh = -OBSTACLE_INTERVAL;
@@ -102,7 +117,7 @@ export function startCatAnimation({
   window.addEventListener("scroll", invalidateObstacles, { passive: true });
   window.addEventListener("resize", invalidateObstacles, { passive: true });
 
-  const onBeforeUnload = persistPosition ? createPersistHandler(stateRef, el) : null;
+  const onBeforeUnload = persistPosition ? createPersistHandler(stateRef, el, storageKey) : null;
   if (onBeforeUnload) {
     window.addEventListener("beforeunload", onBeforeUnload);
   }
@@ -117,6 +132,7 @@ export function startCatAnimation({
       { el, debugSVG, debugWrapper, bubbleEl },
       {
         onMouseMove,
+        onPointerDown,
         onKeyDown,
         invalidateObstacles,
         onBeforeUnload,

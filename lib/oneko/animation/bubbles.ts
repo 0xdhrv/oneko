@@ -82,7 +82,7 @@ export function hideBubble(deps: CatAnimationDeps) {
 }
 
 function applyBubblePlacement(deps: CatAnimationDeps, showBelow: boolean) {
-  deps.bubbleEl.style.transformOrigin = showBelow ? "bottom center" : "top center";
+  deps.bubbleEl.style.transformOrigin = "top center";
   deps.bubbleEl.style.flexDirection = showBelow ? "column-reverse" : "column";
   deps.bubbleTail.style.cssText = showBelow
     ? "transform:scaleY(-1);margin-top:0;margin-bottom:-2px;"
@@ -94,20 +94,31 @@ function positionBubble(deps: CatAnimationDeps) {
   const catX = Math.floor(s.nekoPosX);
   const catY = Math.floor(s.nekoPosY);
   const vw = window.innerWidth;
+  const vh = window.innerHeight;
   const bubbleW = deps.bubbleEl.offsetWidth || deps.bubbleTextEl.offsetWidth || 100;
+  const bubbleH = deps.bubbleEl.offsetHeight || 34;
+  const bubbleScale = s.scale * s.bubbleScaleCfg;
   const margin = 6;
   const halfCat = (TILE * s.scale) / 2;
 
-  const aboveY = Math.floor(catY - halfCat - 42);
+  const aboveY = Math.floor(catY - halfCat - 8 - bubbleH * bubbleScale);
   const belowY = Math.floor(catY + halfCat + 8);
-  const showBelow = aboveY < margin;
-  deps.bubbleEl.style.top = `${Math.round(showBelow ? belowY : aboveY)}px`;
-  deps.bubbleEl.style.transform = `translateX(-50%) scale(${s.scale})`;
+  const showBelow =
+    s.bubblePlacementCfg === "below" ||
+    (s.bubblePlacementCfg === "auto" && aboveY < margin && catY < vh / 2);
+  const top = Math.max(
+    margin,
+    Math.min(vh - margin - bubbleH * bubbleScale, showBelow ? belowY : aboveY),
+  );
+  deps.bubbleEl.style.top = `${Math.round(top)}px`;
+  deps.bubbleEl.style.transform = `translateX(-50%) scale(${bubbleScale})`;
   applyBubblePlacement(deps, showBelow);
 
-  const halfBubble = (bubbleW * s.scale) / 2;
+  const halfBubble = (bubbleW * bubbleScale) / 2;
   let left = catX;
-  if (catX - halfBubble < margin) {
+  if (halfBubble * 2 > vw - margin * 2) {
+    left = vw / 2;
+  } else if (catX - halfBubble < margin) {
     left = margin + halfBubble;
   } else if (catX + halfBubble > vw - margin) {
     left = vw - margin - halfBubble;

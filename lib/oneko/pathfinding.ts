@@ -23,6 +23,7 @@ export function collectObstacles(): ObstacleRect[] {
   const rects: ObstacleRect[] = [];
 
   for (const node of document.querySelectorAll(OBSTACLE_SELECTOR)) {
+    if (node.closest('[data-oneko-zone="attract"]')) continue;
     const r = node.getBoundingClientRect();
     if (shouldIncludeObstacleRect(r, vw, vh)) {
       rects.push(toObstacleRect(r));
@@ -165,7 +166,7 @@ function relaxNeighbors(
   cols: number,
   rows: number,
   grid: Uint8Array,
-  dist: Float32Array,
+  dist: Float64Array,
   prev: Int32Array,
   heap: [number, number][],
 ) {
@@ -177,6 +178,7 @@ function relaxNeighbors(
     if (nIdx === -1 || grid[nIdx] === 1) {
       continue;
     }
+    if (dr !== 0 && dc !== 0 && (grid[r * cols + c + dc] || grid[(r + dr) * cols + c])) continue;
     const newDist = dist[idx] + edgeCost;
     if (newDist < dist[nIdx]) {
       dist[nIdx] = newDist;
@@ -194,7 +196,7 @@ function searchRoute(
   cols: number,
   rows: number,
 ): Int32Array | null {
-  const dist = new Float32Array(grid.length).fill(Number.POSITIVE_INFINITY);
+  const dist = new Float64Array(grid.length).fill(Number.POSITIVE_INFINITY);
   const prev = new Int32Array(grid.length).fill(-1);
   const heap: [number, number][] = [];
 

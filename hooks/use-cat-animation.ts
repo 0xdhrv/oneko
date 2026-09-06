@@ -11,6 +11,7 @@ export function useCatAnimation({
   onStateChangeRef,
   liveStateRef,
   persistPosition,
+  storageKey,
   zIndex,
 }: {
   stateRef: { current: CatRuntimeState };
@@ -19,6 +20,7 @@ export function useCatAnimation({
   onStateChangeRef: { current: ((state: CatActivityState) => void) | undefined };
   liveStateRef?: { current: CatLiveState };
   persistPosition: boolean;
+  storageKey: string;
   zIndex: number;
 }) {
   useEffect(() => {
@@ -39,7 +41,17 @@ export function useCatAnimation({
       onStateChangeRef,
       liveStateRef,
       persistPosition,
+      storageKey,
       zIndex,
     });
-  }, [stateRef, elRef, lastStateRef, onStateChangeRef, persistPosition, zIndex, liveStateRef]);
+  }, [
+    stateRef,
+    elRef,
+    lastStateRef,
+    onStateChangeRef,
+    persistPosition,
+    storageKey,
+    zIndex,
+    liveStateRef,
+  ]);
 }

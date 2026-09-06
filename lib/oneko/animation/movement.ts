@@ -1,3 +1,4 @@
+import { constrainZoneMovement } from "../zones";
 import {
   CELL_SIZE,
   FREERUN_MESSAGES,
@@ -26,7 +27,7 @@ export function recalculatePath(deps: CatAnimationDeps): void {
     rows,
   );
   const mouseCell = nearestWalkable(
-    worldToCell(s.mousePosX, s.mousePosY, cols, rows),
+    worldToCell(s.zoneState.movementTarget.x, s.zoneState.movementTarget.y, cols, rows),
     grid,
     cols,
     rows,
@@ -35,15 +36,15 @@ export function recalculatePath(deps: CatAnimationDeps): void {
   s.currentPath = findRoute(catCell, mouseCell, grid, cols, rows);
   s.pathWaypointIdx = 0;
   s.lastPathRecalcFrame = s.frameCount;
-  s.lastPathTargetCol = Math.floor(s.mousePosX / CELL_SIZE);
-  s.lastPathTargetRow = Math.floor(s.mousePosY / CELL_SIZE);
+  s.lastPathTargetCol = Math.floor(s.zoneState.movementTarget.x / CELL_SIZE);
+  s.lastPathTargetRow = Math.floor(s.zoneState.movementTarget.y / CELL_SIZE);
 }
 
 function getNextWaypointTarget(deps: CatAnimationDeps) {
   const s = deps.stateRef.current;
   const { currentPath: path } = s;
   if (path.length === 0) {
-    return { x: s.mousePosX, y: s.mousePosY };
+    return { x: s.zoneState.movementTarget.x, y: s.zoneState.movementTarget.y };
   }
   while (s.pathWaypointIdx < path.length - 1) {
     const wp = path[s.pathWaypointIdx];
@@ -76,8 +77,22 @@ function moveToward(deps: CatAnimationDeps, targetX: number, targetY: number) {
     s.nekoVelX = (s.nekoVelX / velMag) * maxVel;
     s.nekoVelY = (s.nekoVelY / velMag) * maxVel;
   }
-  s.nekoPosX += s.nekoVelX;
-  s.nekoPosY += s.nekoVelY;
+  const from = { x: s.nekoPosX, y: s.nekoPosY };
+  const proposed = {
+    x: Math.max(16, Math.min(window.innerWidth - 16, s.nekoPosX + s.nekoVelX)),
+    y: Math.max(16, Math.min(window.innerHeight - 16, s.nekoPosY + s.nekoVelY)),
+  };
+  const safe = constrainZoneMovement(from, proposed, s.zoneState.blocked);
+  if (safe.x !== proposed.x || safe.y !== proposed.y) {
+    s.nekoVelX = 0;
+    s.nekoVelY = 0;
+  }
+  if (safe.x === from.x && safe.y === from.y && (safe.x !== proposed.x || safe.y !== proposed.y)) {
+    restNearCursor(deps);
+    return;
+  }
+  s.nekoPosX = safe.x;
+  s.nekoPosY = safe.y;
   s.nekoPosX = Math.max(16, Math.min(window.innerWidth - 16, s.nekoPosX));
   s.nekoPosY = Math.max(16, Math.min(window.innerHeight - 16, s.nekoPosY));
   deps.el.style.left = `${Math.floor(s.nekoPosX - TILE / 2)}px`;
@@ -125,7 +140,7 @@ function tickFreerun(deps: CatAnimationDeps) {
       s.freerunTimer = s.freerunDurationCfg;
     }
   }
-  moveToward(deps, s.mousePosX, s.mousePosY);
+  moveToward(deps, s.zoneState.movementTarget.x, s.zoneState.movementTarget.y);
 }
 
 function restNearCursor(deps: CatAnimationDeps) {
@@ -149,7 +164,7 @@ function chaseCursor(deps: CatAnimationDeps) {
   }
   if (!s.noFollow && Math.random() < s.freerunChanceCfg) {
     enterFreerun(deps);
-    moveToward(deps, s.mousePosX, s.mousePosY);
+    moveToward(deps, s.zoneState.movementTarget.x, s.zoneState.movementTarget.y);
     return;
   }
   const target = getNextWaypointTarget(deps);
@@ -157,7 +172,14 @@ function chaseCursor(deps: CatAnimationDeps) {
 }
 
 export function followPath(deps: CatAnimationDeps, overallDist: number) {
-  if (overallDist < deps.stateRef.current.followDistanceCfg) {
+  const s = deps.stateRef.current;
+  const lastWaypoint = s.currentPath.at(-1);
+  const reachedPathEnd =
+    !s.freerunMode &&
+    lastWaypoint &&
+    s.pathWaypointIdx === s.currentPath.length - 1 &&
+    Math.hypot(lastWaypoint.x - s.nekoPosX, lastWaypoint.y - s.nekoPosY) < s.followDistanceCfg;
+  if (overallDist < s.followDistanceCfg || reachedPathEnd) {
     restNearCursor(deps);
     return;
   }

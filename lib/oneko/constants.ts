@@ -3,9 +3,6 @@ import type { CatActivityState } from "./types";
 export const TILE = 32;
 export const DEFAULT_Z_INDEX = 2_147_483_646;
 
-export const ORIGINAL_GIF_URL =
-  "https://raw.githubusercontent.com/adryd325/oneko.js/main/oneko.gif";
-
 // Movement config
 export const STEER_LERP = 0.3;
 export const MAX_VEL_FACTOR = 1.5;

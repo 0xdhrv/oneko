@@ -1,7 +1,15 @@
-import type { CatRuntimeState } from "./types";
+import { EMPTY_ZONES } from "./zone-runtime";
+import type { OnekoZone } from "./zones";
+import type { CatRuntimeState, OnekoProps } from "./types";
 
 type RuntimeConfigStateFields = Pick<
   CatRuntimeState,
+  | "pausedCfg"
+  | "followCursorCfg"
+  | "sleepEnabledCfg"
+  | "bubblePlacementCfg"
+  | "bubbleScaleCfg"
+  | "soundBasePathCfg"
   | "currentSpeed"
   | "scale"
   | "opacity"
@@ -30,6 +38,12 @@ type RuntimeConfigStateFields = Pick<
 
 export function defaultRuntimeConfigState(): RuntimeConfigStateFields {
   return {
+    pausedCfg: false,
+    followCursorCfg: true,
+    sleepEnabledCfg: true,
+    bubblePlacementCfg: "auto",
+    bubbleScaleCfg: 1,
+    soundBasePathCfg: "/cat-sounds",
     currentSpeed: 0,
     scale: 1,
     opacity: 1,
@@ -57,7 +71,13 @@ export function defaultRuntimeConfigState(): RuntimeConfigStateFields {
   };
 }
 
-export type CatRuntimeConfig = {
+export type CatRuntimeConfig = Pick<
+  OnekoProps,
+  "paused" | "followCursor" | "sleepEnabled" | "bubblePlacement" | "bubbleScale" | "soundBasePath"
+> & {
+  zones?: readonly OnekoZone[];
+  zoneAttractionChance?: number;
+  zoneAttractionDuration?: number;
   speed: number;
   scale: number;
   opacity: number;
@@ -78,6 +98,32 @@ export type CatRuntimeConfig = {
 };
 
 export function applyRuntimeConfig(state: CatRuntimeState, config: CatRuntimeConfig): void {
+  state.pausedCfg = config.paused ?? false;
+  state.followCursorCfg = config.followCursor ?? true;
+  state.sleepEnabledCfg = config.sleepEnabled ?? true;
+  state.bubblePlacementCfg =
+    config.bubblePlacement === "above" || config.bubblePlacement === "below"
+      ? config.bubblePlacement
+      : "auto";
+  state.bubbleScaleCfg = Number.isFinite(config.bubbleScale)
+    ? Math.max(0.5, Math.min(2, config.bubbleScale!))
+    : 1;
+  state.soundBasePathCfg = (config.soundBasePath ?? "/cat-sounds").replace(/\/+$/, "");
+  if (!state.followCursorCfg) {
+    state.freerunMode = false;
+    state.freerunTimer = 0;
+    state.currentPath = [];
+    state.pathWaypointIdx = 0;
+    state.nekoVelX = 0;
+    state.nekoVelY = 0;
+  }
+  state.zoneState.definitions = config.zones ?? EMPTY_ZONES;
+  state.zoneState.chance = Number.isFinite(config.zoneAttractionChance)
+    ? Math.max(0, Math.min(1, config.zoneAttractionChance!))
+    : 0.3;
+  state.zoneState.duration = Number.isFinite(config.zoneAttractionDuration)
+    ? Math.max(1, Math.min(600, Math.round(config.zoneAttractionDuration! / 100)))
+    : 40;
   state.currentSpeed = config.speed;
   state.scale = config.scale;
   state.opacity = config.opacity;

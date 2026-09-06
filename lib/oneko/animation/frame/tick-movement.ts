@@ -9,12 +9,14 @@ import { tickLaser } from "./tick-laser";
 export function tickMovement(deps: CatAnimationDeps, dist: number) {
   const s = deps.stateRef.current;
   refreshGridIfNeeded(deps);
-  interruptIdleIfChasing(s, dist);
+  const target = s.zoneState.movementTarget;
+  const targetDistance = Math.hypot(target.x - s.nekoPosX, target.y - s.nekoPosY);
+  interruptIdleIfChasing(s, targetDistance);
   recalcPathIfNeeded(deps);
   updateBubble(deps);
   tickLaser(deps, dist);
 
   if (!updateIdleAnimation(deps) && !freezeLockedState(deps)) {
-    followPath(deps, dist);
+    followPath(deps, targetDistance);
   }
 }

@@ -32,7 +32,8 @@ export function playSound(deps: CatAnimationDeps, pool: string[]) {
   const s = deps.stateRef.current;
   if (!s.enableMeow || s.soundCooldown > 0 || pool.length === 0) return;
   const url = pool[Math.floor(Math.random() * pool.length)];
-  const audio = new Audio(url);
+  const filename = url.slice(url.lastIndexOf("/") + 1);
+  const audio = new Audio(`${s.soundBasePathCfg}/${filename}`);
   audio.volume = s.soundVolumeCfg;
   s.soundCooldown = 20;
   audio.play().catch(() => {
