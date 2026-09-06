@@ -1,14 +1,25 @@
-# Oneko
+<div align="center">
+  <br />
+  <img src="./public/icon-512.png" alt="Oneko pixel cat" width="112" />
+  <h1>Oneko</h1>
+  <p>A tiny pixel cat that makes React apps feel alive.</p>
+  <p>
+    <a href="https://oneko.dhrv.pw">Playground</a>
+    ·
+    <a href="https://oneko.dhrv.pw/docs">Documentation</a>
+    ·
+    <a href="https://oneko.dhrv.pw/docs.md">Markdown guide</a>
+  </p>
+  <p>
+    <a href="https://github.com/0xdhrv/oneko/stargazers"><img src="https://shieldcn.dev/github/stars/0xdhrv/oneko.svg?variant=secondary" alt="GitHub stars" /></a>
+    <a href="https://github.com/0xdhrv/oneko/blob/main/LICENSE"><img src="https://shieldcn.dev/github/license/0xdhrv/oneko.svg?variant=secondary" alt="License: MIT" /></a>
+  </p>
+  <br />
+</div>
 
-A shadcn registry component that drops a tiny pixel cat into a React app. The cat mounts on
-`document.body`, follows the pointer, naps when idle, shows cat-themed speech bubbles, and can play
-optional cat sounds.
-
-Live playground: [oneko.dhrv.pw](https://oneko.dhrv.pw)
-
-Full documentation: [oneko.dhrv.pw/docs](https://oneko.dhrv.pw/docs). Includes every prop,
-integration recipes, and a copyable coding-agent prompt. Agents can start at
-[llms.txt](https://oneko.dhrv.pw/llms.txt) or read the [Markdown guide](https://oneko.dhrv.pw/docs.md).
+Oneko is an installable [shadcn registry](https://ui.shadcn.com/docs/registry) component that adds a
+pixel-art cat to your React app. It follows the pointer, naps when things are quiet, shares
+cat-themed thoughts, and can be tailored to feel at home on your site.
 
 ## Install
 
@@ -16,12 +27,13 @@ integration recipes, and a copyable coding-agent prompt. Agents can start at
 npx shadcn@latest add https://oneko.dhrv.pw/r/oneko.json
 ```
 
-The command adds `components/oneko.tsx`, its hooks and animation engine, bundled skins, and skin credits to your project.
+The registry installs the component, hooks, animation engine, bundled skins, and skin credits into
+your project—so you can own and customize the code.
 
-## Usage
+## Use it
 
-Render `Oneko` only in the browser. In SSR-enabled apps, put it behind your framework's client-only
-boundary or lazy-load it after mount.
+Render one `Oneko` from a client component. It mounts itself on `document.body`, keeping it above
+your app without adding layout wrappers.
 
 ```tsx
 "use client";
@@ -33,82 +45,94 @@ export function CatLayer() {
 }
 ```
 
-Optional cat sounds are loaded from `/cat-sounds/*.ogg`. Add those files to your app's public assets
-if you want audio; otherwise set `meow={false}`.
+For SSR-enabled apps, render this client component from the appropriate client-only boundary. In
+Next.js App Router, a client wrapper with `dynamic(..., { ssr: false })` is a convenient option—see
+the [installation guide](https://oneko.dhrv.pw/docs#installation) for the complete setup.
 
-## Features
-
-- Twelve bundled pixel-art skins with crisp previews and instant coat changes.
-- A responsive playground with quick controls, saved preferences, reset, and optional detailed settings.
-- Tap an empty spot on touch screens to call the cat over.
-- A 10fps animation timer that stops while the page is hidden.
-- Pause/resume, cursor-follow and nap toggles, with live bubble size and placement controls.
-- Copy a client component with your playground settings ready to use.
-- Pointer-following motion with obstacle awareness and occasional free-roam bursts.
-- Strict keep-out zones and occasional visits to favorite spots, via HTML attributes or React props.
-- Cat-themed bubble copy for idle, sleepy, playful, scratching, and chasing states.
-- Theme-token bubble styling for light and dark themes.
-- Optional sound pools, laser pointer mode, position persistence, scaling, opacity, rotation, and
-  hue controls.
-- Live state ref for playgrounds or debug panels.
-- Custom sound directories and storage keys for integration into your app.
-
-## Common Props
+## Make it yours
 
 ```tsx
 <Oneko
   skin="calico"
-  speed={10}
-  scale={1}
-  opacity={1}
-  meow
-  volume={0.5}
-  bubbleEnabled
-  bubbleText="purr patrol"
-  bubblePlacement="auto"
-  bubbleScale={1}
-  paused={false}
-  followCursor
+  speed={12}
+  bubbleText="treat inspection in progress"
+  bubblePlacement="above"
   sleepEnabled
-  laserPointer={false}
+  meow={false}
 />
 ```
 
-See [docs/oneko.md](docs/oneko.md) for the full prop reference and integration notes.
+| It comes with             | Why it matters                                                             |
+| ------------------------- | -------------------------------------------------------------------------- |
+| 12 crisp pixel-art coats  | Switch skins instantly without restarting the animation.                   |
+| Pointer and touch support | The cat follows the cursor; on touch, tap an empty spot to call it over.   |
+| Bubbles and naps          | Tune the cat’s thoughts, placement, size, chattiness, and sleepy moments.  |
+| Optional sounds           | Add the supplied `.ogg` files when you want audio, or keep `meow={false}`. |
+| Zones                     | Keep the cat clear of important UI or give it favorite places to visit.    |
+| Integration controls      | Pause it, persist its position, change its layer, observe state, and more. |
 
-## Maintainers
+### Keep the cat out of the way
 
-This repo hosts the playground and shadcn registry output for the component.
+Mark elements the cat should avoid, or spots it should enjoy visiting:
+
+```tsx
+<header data-oneko-zone="avoid">Navigation</header>
+<aside data-oneko-zone="attract">Cat-approved reading nook</aside>
+<Oneko />
+```
+
+You can also provide selector- and rectangle-based zones through the `zones` prop. Read the
+[zones guide](https://oneko.dhrv.pw/docs#zones) for options and examples.
+
+### Add sound
+
+Sound is optional. To enable it, copy this repository’s `public/cat-sounds/` directory into your
+app’s public assets and keep the default `soundBasePath="/cat-sounds"`. Otherwise, set
+`meow={false}`. Browsers may wait for a visitor’s first interaction before playing audio.
+
+## Documentation
+
+The [documentation](https://oneko.dhrv.pw/docs) is the complete source of truth for props,
+framework recipes, sound setup, zones, public types, and a prompt for coding agents. Prefer its
+[Markdown version](https://oneko.dhrv.pw/docs.md) when working from a terminal or with an agent.
+
+## Develop the playground
+
+This repository hosts the Oneko playground and the registry output served at
+`/r/oneko.json`.
 
 ```bash
 pnpm install
 pnpm dev
-pnpm run registry:build
+```
+
+Useful checks:
+
+```bash
+pnpm lint
+pnpm fmt:check
+pnpm test
 pnpm build
 ```
 
-`pnpm build` runs the registry build first, so `public/r/oneko.json` stays in sync with
-`registry.json`.
+`pnpm build` regenerates the registry before building the site. Use `pnpm run registry:build` when
+you only need to refresh `public/r/oneko.json`.
 
-More project details live in [docs/development.md](docs/development.md).
+## Project map
 
-## Repository Layout
+| Path                      | Purpose                                            |
+| ------------------------- | -------------------------------------------------- |
+| `components/oneko.tsx`    | Thin, installable React component shell.           |
+| `hooks/` and `lib/oneko/` | Animation hook and engine.                         |
+| `registry.json`           | Source manifest for the shadcn registry item.      |
+| `public/r/`               | Generated registry JSON served to installers.      |
+| `app/`                    | Next.js playground and documentation routes.       |
+| `docs/`                   | Component API, skins, and local-development notes. |
 
-| Path                   | Role                                              |
-| ---------------------- | ------------------------------------------------- |
-| `components/oneko.tsx` | Distributable shadcn component                    |
-| `registry.json`        | shadcn registry manifest                          |
-| `public/r/`            | Generated registry JSON for static hosting        |
-| `app/`                 | Hosted playground shell                           |
-| `components/ui/`       | Local shadcn/ui primitives used by the playground |
-| `docs/oneko.md`        | Component API and integration notes               |
-| `docs/development.md`  | Local development, registry, and hosting workflow |
+## Credits and license
 
-## Inspiration
+Oneko is inspired by [adryd325/oneko.js](https://github.com/adryd325/oneko.js) and the skin gallery
+in [oneko-swift](https://github.com/oneko-swift/oneko-swift). The sprite artwork belongs to its
+original creators; see [skin credits](docs/skins.md) for attribution and sources.
 
-Inspired by [adryd325/oneko.js](https://github.com/adryd325/oneko.js) and the skin gallery in
-[oneko-swift](https://github.com/oneko-swift/oneko-swift). See [skin credits](docs/skins.md) for the original artists and sources.
-
-## License
-
-Code: MIT. See [LICENSE](LICENSE). Sprite artwork belongs to its original creators; see [skin credits](docs/skins.md).
+The code is available under the [MIT License](LICENSE).
