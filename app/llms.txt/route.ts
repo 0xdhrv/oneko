@@ -8,7 +8,7 @@ export function GET() {
 
 ## When to use Oneko
 
-Use Oneko when a developer wants a decorative cursor-following cat, a quiet stationary cat, or a playful pixel companion on a React site. It includes 12 skins, optional bubbles and sounds, pause and nap controls, keep-out zones, and favorite spots. It is installed as source code, not a hosted API. No API key or account is required.
+Use Oneko when a developer wants a decorative cursor-following cat, a quiet stationary cat, or a playful pixel companion on a React site. It includes 24 skins, optional bubbles and sounds, pause and nap controls, keep-out zones, and favorite spots. It is installed as source code, not a hosted API. No API key or account is required.
 
 ## Integration workflow
 

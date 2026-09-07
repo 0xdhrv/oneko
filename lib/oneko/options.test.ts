@@ -91,6 +91,29 @@ describe("cat behavior options", () => {
 });
 
 describe("bubble comforts", () => {
+  it("uses custom text pools without immediate repeats and falls back for empty pools", () => {
+    const d = deps();
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    applyRuntimeConfig(d.stateRef.current, {
+      ...defaults,
+      bubbleText: ["", "First", "First", "Second", "  "],
+    });
+    showBubble(d);
+    expect(d.bubbleTextEl.textContent).toBe("First");
+    showBubble(d);
+    expect(d.bubbleTextEl.textContent).toBe("Second");
+    applyRuntimeConfig(d.stateRef.current, { ...defaults, bubbleText: [" "] });
+    showBubble(d);
+    expect(d.bubbleTextEl.textContent).toBeTruthy();
+    expect(d.bubbleTextEl.textContent).not.toBe(" ");
+    applyRuntimeConfig(d.stateRef.current, {
+      ...defaults,
+      bubbleText: ["<script>alert(1)</script>"],
+    });
+    showBubble(d);
+    expect(d.bubbleTextEl.textContent).toBe("<script>alert(1)</script>");
+  });
+
   it("changes side and scale live without resizing the cat", () => {
     const d = deps(),
       s = d.stateRef.current;
@@ -200,7 +223,7 @@ describe("installation options", () => {
     expect(usage).toContain("paused\n");
     expect(usage).toContain("followCursor={false}");
     expect(usage).toContain('bubblePlacement={"below"}');
-    expect(usage).toContain('bubbleText={"Treats \\"please\\"\\n</code>"}');
+    expect(usage).toContain('bubbleText={["Treats \\"please\\"","</code>"]}');
     expect(usage).toContain("meow={false}");
     expect(usage).not.toContain("showCat");
     expect(usage).not.toContain("speed=");

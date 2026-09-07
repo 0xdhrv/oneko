@@ -109,12 +109,18 @@ function CatDiary() {
   );
 }
 
-export function OnekoSettings() {
+export function OnekoSettings({
+  group: selectedGroup,
+  showDiary = false,
+}: {
+  group?: "Coat" | "Paws & play" | "Bubbles & purrs";
+  showDiary?: boolean;
+}) {
   const { state, actions } = useOnekoPlayground();
   const [diary, setDiary] = useState(false);
   return (
     <div className="oneko-settings-body">
-      {GROUPS.map((group) => (
+      {GROUPS.filter((group) => !selectedGroup || group.title === selectedGroup).map((group) => (
         <fieldset className="oneko-setting-group" key={group.title}>
           <legend>{group.title}</legend>
           {group.fields.map(({ key, label, format = String }) => {
@@ -202,32 +208,22 @@ export function OnekoSettings() {
               {!state.bubbleEnabled && (
                 <p className="oneko-note">Turn on Bubbles above to let your cat chat.</p>
               )}
-              <label className="oneko-text-field" htmlFor="cat-bubbleText">
-                A little cat thought
-                <input
-                  id="cat-bubbleText"
-                  type="text"
-                  maxLength={120}
-                  disabled={!state.bubbleEnabled}
-                  value={state.bubbleText}
-                  placeholder="Dreaming of treats…"
-                  onChange={(event) => actions.update({ bubbleText: event.target.value })}
-                />
-              </label>
             </>
           )}
         </fieldset>
       ))}
-      <details
-        className="oneko-diary-disclosure"
-        onToggle={(event) => setDiary(event.currentTarget.open)}
-      >
-        <summary>
-          Cat diary <span>Live activity</span>
-          <CaretDown className="oneko-disclosure-icon" size={14} aria-hidden="true" />
-        </summary>
-        {diary && <CatDiary />}
-      </details>
+      {showDiary && (
+        <details
+          className="oneko-diary-disclosure"
+          onToggle={(event) => setDiary(event.currentTarget.open)}
+        >
+          <summary>
+            Cat diary <span>Live activity</span>
+            <CaretDown className="oneko-disclosure-icon" size={14} aria-hidden="true" />
+          </summary>
+          {diary && <CatDiary />}
+        </details>
+      )}
     </div>
   );
 }

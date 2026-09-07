@@ -471,7 +471,8 @@
   font-size: 12px;
 }
 .oneko-text-field input,
-.oneko-text-field select {
+.oneko-text-field select,
+.oneko-text-field textarea {
   min-height: 44px;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -480,7 +481,12 @@
   color: var(--foreground);
   font-size: 14px;
 }
-.oneko-text-field input::placeholder {
+.oneko-text-field textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+.oneko-text-field input::placeholder,
+.oneko-text-field textarea::placeholder {
   color: var(--muted-foreground);
 }
 .oneko-note {
@@ -709,7 +715,7 @@
   align-items: center;
   gap: 8px 20px;
 }
-.oneko-landing-actions button,
+.oneko-landing-actions :is(button, a),
 .oneko-away-note button {
   min-height: 44px;
   padding: 10px 14px;
@@ -721,7 +727,7 @@
     border-color 180ms ease-out,
     transform 180ms cubic-bezier(0.25, 1, 0.5, 1);
 }
-.oneko-landing-actions button:first-child {
+.oneko-landing-actions :is(button, a):first-child {
   background: var(--secondary);
   border: 1px solid var(--border);
 }
@@ -737,29 +743,29 @@
   margin-left: 4px;
   transition: transform 220ms cubic-bezier(0.25, 1, 0.5, 1);
 }
-.oneko-landing-actions button[data-open="true"] .oneko-action-mark {
+.oneko-landing-actions :is(button, a)[data-open="true"] .oneko-action-mark {
   transform: rotate(180deg);
 }
-.oneko-landing-actions button:hover,
+.oneko-landing-actions :is(button, a):hover,
 .oneko-away-note button:hover {
   background: var(--secondary);
 }
-.oneko-landing-actions button:hover .oneko-action-arrow {
+.oneko-landing-actions :is(button, a):hover .oneko-action-arrow {
   transform: translateX(3px);
 }
-.oneko-landing-actions button:active,
+.oneko-landing-actions :is(button, a):active,
 .oneko-away-note button:active {
   transform: translateY(1px);
 }
 @media (hover: hover) {
-  .oneko-landing-actions button:hover {
+  .oneko-landing-actions :is(button, a):hover {
     transform: translateY(-1px);
   }
-  .oneko-landing-actions button:active {
+  .oneko-landing-actions :is(button, a):active {
     transform: translateY(1px);
   }
 }
-.oneko-landing-actions button:focus-visible,
+.oneko-landing-actions :is(button, a):focus-visible,
 .oneko-away-note button:focus-visible {
   outline: 2px solid var(--foreground);
   outline-offset: 3px;
@@ -779,7 +785,7 @@
   text-underline-offset: 3px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .oneko-landing-actions button,
+  .oneko-landing-actions :is(button, a),
   .oneko-away-note button,
   .oneko-action-mark,
   .oneko-action-arrow {
@@ -1357,5 +1363,396 @@
   .oneko-footer > a,
   .oneko-world-caption button {
     transition: none;
+  }
+}
+
+.oneko-custom-assets {
+  display: grid;
+  gap: 24px;
+  padding-block: 8px 24px;
+}
+.oneko-custom-assets input[type="file"] {
+  width: 100%;
+  min-width: 0;
+}
+.oneko-custom-assets input::file-selector-button {
+  margin-right: 12px;
+  cursor: pointer;
+}
+.oneko-asset-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+.oneko-asset-actions > * {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.oneko-upload-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow-wrap: anywhere;
+}
+.oneko-upload-preview .oneko-skin-preview {
+  flex-shrink: 0;
+}
+.oneko-asset-error {
+  color: var(--destructive);
+  line-height: 1.6;
+}
+
+/* A focused editor with a quiet, persistent companion beside it. */
+.oneko-studio {
+  width: min(100% - 48px, 1040px);
+  margin-inline: auto;
+  padding-block: 40px 64px;
+}
+.oneko-studio-nav {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 28px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.oneko-studio-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+}
+.oneko-studio-nav a:hover {
+  color: var(--foreground);
+}
+.studio-heading {
+  margin-bottom: 36px;
+}
+.studio-heading h1 {
+  font-family: var(--font-geist-pixel-square), monospace;
+  font-size: clamp(30px, 4vw, 40px);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+  margin-bottom: 12px;
+}
+.studio-heading h1 span {
+  color: var(--muted-foreground);
+}
+.studio-heading p {
+  font-size: 14px;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+.studio-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  align-items: start;
+  gap: 36px;
+}
+.studio-editor {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--background);
+}
+.studio-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  padding: 8px;
+  background: color-mix(in srgb, var(--secondary) 45%, var(--background));
+}
+.studio-tabs button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 64px;
+  padding: 8px 4px;
+  border-radius: 8px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+.studio-tabs button:hover {
+  color: var(--foreground);
+  background: var(--secondary);
+}
+.studio-tabs [aria-selected="true"] {
+  color: var(--foreground);
+  background: var(--background);
+  box-shadow: 0 1px 3px #00000012;
+}
+.studio-panel {
+  padding: 28px;
+  min-height: 430px;
+}
+.studio-panel-heading {
+  margin-bottom: 28px;
+}
+.studio-panel-heading h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.studio-panel-heading p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+.studio-panel .oneko-section-heading {
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+.studio-panel .oneko-skins {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.studio-panel .oneko-skin {
+  min-height: 82px;
+  border-color: var(--border);
+}
+.studio-panel .oneko-skin:hover {
+  background: var(--secondary);
+}
+.studio-panel .oneko-skin[aria-pressed="true"] {
+  border-color: var(--muted-foreground);
+  background: var(--secondary);
+}
+.studio-more {
+  margin-top: 12px;
+}
+.studio-more > summary {
+  min-height: 60px;
+  font-size: 12px;
+  flex-wrap: wrap;
+  column-gap: 8px;
+  row-gap: 0;
+}
+.studio-more .oneko-disclosure-hint {
+  margin-inline-start: auto;
+}
+.studio-more .oneko-disclosure-icon {
+  margin-inline-start: 0;
+}
+.studio-comforts {
+  padding-block: 0 20px;
+  gap: 12px;
+}
+.studio-comforts button {
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.studio-panel .oneko-custom-assets {
+  gap: 12px;
+  padding-bottom: 12px;
+}
+.studio-panel .oneko-text-field {
+  gap: 8px;
+}
+.studio-panel .oneko-text-field textarea {
+  min-height: 144px;
+  line-height: 1.6;
+}
+.studio-panel .oneko-settings-body {
+  padding-bottom: 0;
+}
+.studio-panel .oneko-setting-group {
+  margin-bottom: 16px;
+}
+.studio-editor-footer {
+  margin: 0;
+  padding: 12px 28px;
+  border-top: 1px solid var(--border);
+}
+.studio-editor-footer p {
+  font-size: 12px;
+}
+.studio-editor-footer button {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.studio-companion {
+  position: sticky;
+  top: 32px;
+  min-width: 0;
+}
+.studio-portrait {
+  padding: 24px;
+  border-radius: 14px;
+  text-align: center;
+  background: color-mix(in srgb, var(--secondary) 60%, var(--background));
+}
+.studio-eyebrow {
+  color: var(--muted-foreground);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+.studio-portrait-stage {
+  height: 156px;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+.studio-portrait-stage .oneko-skin-preview {
+  transform: scale(3);
+  z-index: 1;
+}
+.studio-portrait-shadow {
+  position: absolute;
+  width: 64px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  bottom: 29px;
+}
+.studio-portrait h2 {
+  font-size: 16px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.studio-portrait p {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+  margin-top: 6px;
+}
+.studio-preview-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+.studio-preview-actions button {
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  font-size: 12px;
+}
+.studio-preview-actions button:hover {
+  border-color: var(--muted-foreground);
+}
+.studio-preview-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.studio-play-hint {
+  padding: 16px 12px;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.studio-companion .oneko-world {
+  margin-top: 8px;
+}
+.studio-companion .oneko-world-caption {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0;
+  text-align: center;
+}
+.oneko-studio :is(button, a, summary, input, textarea, select, [role="tabpanel"]):focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+@media (max-width: 900px) {
+  .oneko-studio {
+    width: min(100% - 32px, 640px);
+    padding-top: 24px;
+  }
+  .studio-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .studio-companion {
+    position: static;
+    order: -1;
+  }
+  .studio-portrait {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    column-gap: 16px;
+    padding: 16px 20px;
+    text-align: start;
+  }
+  .studio-eyebrow {
+    display: none;
+  }
+  .studio-portrait-stage {
+    grid-row: 1 / 4;
+    height: 120px;
+  }
+  .studio-portrait-stage .oneko-skin-preview {
+    transform: scale(2);
+  }
+  .studio-portrait-shadow {
+    bottom: 23px;
+    width: 44px;
+  }
+  .studio-portrait h2 {
+    align-self: end;
+  }
+  .studio-preview-actions {
+    grid-column: 2;
+    margin-top: 12px;
+    max-width: 260px;
+  }
+  .studio-companion > .oneko-world {
+    display: none;
+  }
+  .studio-play-hint {
+    padding-block: 12px 0;
+  }
+  .studio-heading {
+    margin-bottom: 24px;
+  }
+  .studio-panel {
+    min-height: 0;
+  }
+}
+@media (max-width: 440px) {
+  .studio-panel {
+    padding: 20px 16px;
+  }
+  .studio-tabs {
+    gap: 0;
+    padding: 6px;
+  }
+  .studio-tabs button {
+    font-size: 10px;
+    min-height: 60px;
+  }
+  .studio-panel .oneko-skins {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .studio-more .oneko-disclosure-hint {
+    display: none;
+  }
+  .studio-more .oneko-disclosure-icon {
+    margin-inline-start: auto;
+  }
+  .studio-editor-footer {
+    padding-inline: 16px;
+  }
+  .studio-panel .oneko-setting-group {
+    column-gap: 16px;
+  }
+}
+
+@media (min-width: 901px) {
+  .studio-editor {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .studio-companion {
+    grid-column: 2;
+    grid-row: 1;
   }
 }

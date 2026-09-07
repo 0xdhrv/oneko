@@ -15,8 +15,8 @@ export function OnekoZones() {
   return (
     <div className="oneko-zone-demo">
       <p className="oneko-note">
-        The cat spots below the settings are active while this section is open. Your cat keeps its
-        paws outside the settings themselves.
+        The play spots beside your companion are active while this section is open. Your cat keeps
+        its paws outside the settings themselves.
       </p>
       <div className="oneko-zone-samples">
         <div>

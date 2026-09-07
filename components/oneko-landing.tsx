@@ -1,22 +1,14 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { ArrowRight, Minus, Plus } from "@phosphor-icons/react";
+import Link from "next/link";
+import { ArrowRight } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { useOnekoPlayground } from "@/components/oneko-playground-context";
 import { OnekoWorld } from "@/components/oneko-world";
 import { OnekoInstall } from "@/components/oneko-install";
 import { advanceKonamiProgress, CATNIP_DIALOGUES } from "@/lib/landing-konami";
 
-const OnekoTweaks = dynamic(() => import("./oneko-tweaks").then((mod) => mod.OnekoTweaks), {
-  loading: () => (
-    <p className="oneko-note" role="status">
-      Gathering your cat’s comforts…
-    </p>
-  ),
-});
-
-type Panel = "customize" | "install";
+type Panel = "install";
 const CATNIP_LEAVES = Array.from({ length: 18 }, (_, index) => index);
 
 export function OnekoLanding() {
@@ -25,7 +17,6 @@ export function OnekoLanding() {
   const [panel, setPanel] = useState<Panel | null>(null);
   const [catnipParty, setCatnipParty] = useState(false);
   const [dialogueIndex, setDialogueIndex] = useState(0);
-  const customizeRef = useRef<HTMLButtonElement>(null);
   const installRef = useRef<HTMLButtonElement>(null);
   const partyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dialogueTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -71,7 +62,7 @@ export function OnekoLanding() {
   }, []);
 
   function closePanel() {
-    (panel === "customize" ? customizeRef : installRef).current?.focus();
+    installRef.current?.focus();
     setPanel(null);
   }
 
@@ -90,7 +81,7 @@ export function OnekoLanding() {
         <h1>
           oneko<span aria-hidden="true">.</span>
         </h1>
-        <p>A tiny cat for your website.</p>
+        <p>A tiny pixel cat for your React website.</p>
         {state.showCat && !state.paused && state.followCursor && (
           <>
             <p className="oneko-pointer-hint">Move your cursor. Your new friend will follow.</p>
@@ -100,19 +91,12 @@ export function OnekoLanding() {
         <p className="oneko-reduced-hint">Your cat is resting while reduced motion is on.</p>
       </header>
       <div className="oneko-landing-actions">
-        <button
-          ref={customizeRef}
-          type="button"
-          aria-expanded={panel === "customize"}
-          aria-controls="cat-customize"
-          data-open={panel === "customize" || undefined}
-          onClick={() => setPanel(panel === "customize" ? null : "customize")}
-        >
+        <Link href="/studio">
           Customize cat
-          <span className="oneko-action-mark" aria-hidden="true">
-            {panel === "customize" ? <Minus size={14} /> : <Plus size={14} />}
+          <span className="oneko-action-arrow" aria-hidden="true">
+            <ArrowRight size={14} />
           </span>
-        </button>
+        </Link>
         <button
           ref={installRef}
           type="button"
@@ -127,7 +111,7 @@ export function OnekoLanding() {
           </span>
         </button>
       </div>
-      {state.showCat && (state.paused || !state.followCursor) && panel !== "customize" && (
+      {state.showCat && (state.paused || !state.followCursor) && (
         <p className="oneko-away-note" role="status">
           {state.paused ? "Your cat is holding still." : "Your cat is staying cozy in one spot."}{" "}
           <button
@@ -157,7 +141,7 @@ export function OnekoLanding() {
           </p>
         </>
       )}
-      {!state.showCat && panel !== "customize" && (
+      {!state.showCat && (
         <p className="oneko-away-note">
           Your cat is taking a break.{" "}
           <button type="button" onClick={() => actions.update({ showCat: true })}>
@@ -165,14 +149,6 @@ export function OnekoLanding() {
           </button>
         </p>
       )}
-      <div
-        id="cat-customize"
-        className="oneko-reveal"
-        data-oneko-zone={panel === "customize" ? "avoid" : undefined}
-        hidden={panel !== "customize"}
-      >
-        {panel === "customize" && <OnekoTweaks onClose={closePanel} />}
-      </div>
       <div
         id="cat-install"
         className="oneko-reveal oneko-install oneko-controls"

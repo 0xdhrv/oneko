@@ -31,9 +31,9 @@ const geistPixelVariableClassName = [
 ].join(" ");
 
 const siteUrl = getSiteUrl();
-const title = "Oneko playground";
+const title = "Oneko — Pixel Cat for React & shadcn";
 const description =
-  "Interactive pixel cat: tweak speed, sounds, bubbles, and motion in the browser.";
+  "Add a cursor-following pixel cat to your React website with Oneko. Try the playground, customize skins and sounds, and install the open-source shadcn component.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     template: "%s · Oneko",
   },
   description,
-  alternates: { canonical: "/", types: { "text/markdown": "/docs.md", "text/plain": "/llms.txt" } },
+  robots: process.env.VERCEL_ENV === "preview" ? { index: false, follow: true } : undefined,
   manifest: "/site.webmanifest",
   icons: {
     icon: [
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     images: [{ url: "/icon-512.png", width: 512, height: 512, alt: "Oneko" }],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title,
     description,
     images: ["/icon-512.png"],

@@ -55,6 +55,8 @@ export interface OnekoProps {
   zoneAttractionDuration?: number;
   /** Built-in pixel-art skin. Default classic. */
   skin?: OnekoSkin;
+  /** Custom 256×128 sprite-sheet URL using the classic 8×4 layout. Overrides skin. */
+  spriteSrc?: string;
   persistPosition?: boolean;
   zIndex?: number;
   initialPos?: { x: number; y: number };
@@ -85,8 +87,8 @@ export interface OnekoProps {
   followDistance?: number;
   /** Multiplier for idle animation speed (0.5–2). Default 1 */
   animationSpeed?: number;
-  /** Custom text injected into the idle bubble message pool */
-  bubbleText?: string;
+  /** Custom awake bubble text, or a pool of thoughts picked without immediate repeats. */
+  bubbleText?: string | readonly string[];
   /** Sound volume (0–1). Default 0.5 */
   volume?: number;
   /** Show a red laser dot in place of the system cursor. Default false */
@@ -150,7 +152,7 @@ export interface CatRuntimeState {
   bubbleChanceCfg: number;
   followDistanceCfg: number;
   animationSpeedCfg: number;
-  customBubbleText: string;
+  customBubbleText: string | readonly string[];
   currentRotation: number;
   enableMeow: boolean;
   soundVolumeCfg: number;

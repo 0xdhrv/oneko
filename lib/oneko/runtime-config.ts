@@ -91,7 +91,7 @@ export type CatRuntimeConfig = Pick<
   bubbleChance: number;
   followDistance: number;
   animationSpeed: number;
-  bubbleText: string;
+  bubbleText: NonNullable<OnekoProps["bubbleText"]>;
   meow: boolean;
   volume: number;
   laserPointer: boolean;

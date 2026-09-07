@@ -23,7 +23,14 @@ export const PROP_DOCS = {
     type: "OnekoSkin",
     default: '"classic"',
     description:
-      "One of the 12 bundled pixel-art coats. Changing coats keeps the current animation running.",
+      "One of the 24 bundled pixel-art coats. Changing coats keeps the current animation running.",
+  },
+  spriteSrc: {
+    group: "Coat & appearance",
+    type: "string",
+    default: "undefined",
+    description:
+      "Custom sprite-sheet URL or data URL. Overrides skin; use a 256 × 128 PNG with the classic 8 × 4 layout of 32 × 32 frames. Changes apply live.",
   },
   scale: {
     group: "Coat & appearance",
@@ -141,10 +148,10 @@ export const PROP_DOCS = {
   },
   bubbleText: {
     group: "Bubbles",
-    type: "string",
+    type: "string | readonly string[]",
     default: '""',
     description:
-      "Custom text for awake idle activities. Sleeping always uses sleepy cat thoughts. The playground limits this to 120 characters.",
+      "Custom awake bubble text, or an array picked at random without immediate repeats. Empty entries are ignored; an empty pool uses built-in messages. Naps and zoomies retain their own messages. In the playground, type one thought per line or import a .txt file (up to 50 thoughts, 120 characters each).",
   },
   bubbleChance: {
     group: "Bubbles",
@@ -276,7 +283,7 @@ export const DOC_SECTIONS: DocSection[] = [
     blocks: [
       {
         kind: "text",
-        text: "Oneko is a shadcn registry component for React. The installer copies the component, hooks, animation engine, 12 bundled skins, and skin credits into your project. You own the code. Start from a React project with shadcn configured and a working import alias.",
+        text: "Oneko is a shadcn registry component for React. The installer copies the component, hooks, animation engine, 24 bundled skins, and skin credits into your project. You own the code. Start from a React project with shadcn configured and a working import alias.",
       },
       { kind: "code", label: "Install Oneko", language: "bash", code: INSTALL_COMMAND },
       {
@@ -327,13 +334,23 @@ export const DOC_SECTIONS: DocSection[] = [
     blocks: [
       {
         kind: "text",
-        text: "Choose classic, black, gray, calico, tora, catppuccin, ghost, silver, spirit, valentine, maia, or vaporwave. All skins ship with the registry; there is no separate image download. They use the original pixel art without smoothing.",
+        text: "Choose classic, black, gray, calico, tora, catppuccin, ghost, silver, spirit, valentine, maia, vaporwave, ginger, sage, siamese, strawberry-milk, blue-frost, lavender, tuxedo, peach, honey, mocha, mint, or midnight-blue. All skins ship with the registry; there is no separate image download. The original 12 sheets are unchanged; 12 generated coat variants are prepared at the same frame size.",
       },
       {
         kind: "code",
         label: "A calico companion",
         language: "tsx",
         code: '<Oneko skin="calico" scale={1.5} rotationAmount={0} meow={false} />',
+      },
+      {
+        kind: "text",
+        text: "In the studio (/studio), open Appearance → Use your own sprite to upload a custom PNG (256 × 128 pixels, up to 256 KB) or download the classic sheet as a template. Keep its frame positions: 8 columns and 4 rows of 32 × 32 frames. Uploads stay in your browser and are saved with preferences. Selecting a built-in coat or Reset cat removes the custom sprite. The React example embeds your uploaded image as a data URL; you can also host the PNG and pass its URL through spriteSrc.",
+      },
+      {
+        kind: "code",
+        label: "Your own sprite and thoughts",
+        language: "tsx",
+        code: '<Oneko spriteSrc="/my-sprite.png" bubbleText={["Treat inspection", "On an adventure"]} meow={false} />',
       },
       {
         kind: "text",

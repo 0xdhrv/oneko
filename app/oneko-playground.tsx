@@ -1,6 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { ReactNode } from "react";
+import { thoughtsForProp } from "@/lib/oneko/custom-assets";
 import { OnekoPlaygroundProvider, useOnekoPlayground } from "@/components/oneko-playground-context";
 import { GlobalClickSound } from "@/components/global-click-sound";
 import { OnekoLanding } from "@/components/oneko-landing";
@@ -13,11 +15,13 @@ function PlaygroundOneko() {
   if (!state.showCat) {
     return null;
   }
-  const { showCat: _, ...config } = state;
-  return <Oneko {...config} liveStateRef={liveStateRef} />;
+  const { showCat: _, spriteName: _name, ...config } = state;
+  return (
+    <Oneko {...config} bubbleText={thoughtsForProp(state.bubbleText)} liveStateRef={liveStateRef} />
+  );
 }
 
-function PlaygroundChrome() {
+function PlaygroundChrome({ children }: { children: ReactNode }) {
   const { state } = useOnekoPlayground();
   return (
     <>
@@ -26,15 +30,15 @@ function PlaygroundChrome() {
       </div>
       <GlobalClickSound enabled={state.meow} volume={state.volume} />
       <PlaygroundOneko />
-      <OnekoLanding />
+      {children}
     </>
   );
 }
 
-export default function OnekoPlayground() {
+export default function OnekoPlayground({ children }: { children?: ReactNode }) {
   return (
     <OnekoPlaygroundProvider>
-      <PlaygroundChrome />
+      <PlaygroundChrome>{children ?? <OnekoLanding />}</PlaygroundChrome>
     </OnekoPlaygroundProvider>
   );
 }

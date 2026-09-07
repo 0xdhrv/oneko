@@ -7,7 +7,7 @@
       "name": "oneko",
       "type": "registry:component",
       "title": "Oneko",
-      "description": "Pixel cat for React with 12 skins, keep-out zones, favorite spots, pause and nap controls, adjustable bubbles, sounds, and configurable motion.",
+      "description": "Pixel cat for React with 12 skins, keep-out zones, favorite spots, pause and nap controls, custom sprite sheets and text pools, adjustable bubbles, sounds, and configurable motion.",
       "author": "dhrv <https://oneko.dhrv.pw>",
       "categories": ["visualization", "misc"],
       "dependencies": [],
@@ -28,6 +28,10 @@
         },
         {
           "path": "hooks/use-cat-animation.ts",
+          "type": "registry:hook"
+        },
+        {
+          "path": "hooks/use-sprite-appearance.ts",
           "type": "registry:hook"
         },
         {
@@ -196,7 +200,7 @@
           "type": "registry:lib"
         }
       ],
-      "docs": "Includes the React component, animation hooks, engine, 12 bundled pixel-art skins, and skin credits. Customize paused, followCursor, sleepEnabled, bubblePlacement, and bubbleScale without remounting. Mark elements with data-oneko-zone=\"avoid\" or data-oneko-zone=\"attract\", or pass zones using selectors or viewport rectangles. Render from a client-only entry point. Optional: copy sound files to public/cat-sounds/, set soundBasePath to your sound directory, or set meow={false}. Use storageKey for independent saved positions."
+      "docs": "Includes the React component, animation hooks, engine, 12 bundled pixel-art skins, and skin credits. Pass spriteSrc for a custom 256x128 PNG in the classic 8x4 layout and bubbleText as a string or array of thoughts. Customize paused, followCursor, sleepEnabled, bubblePlacement, and bubbleScale without remounting. Mark elements with data-oneko-zone=\"avoid\" or data-oneko-zone=\"attract\", or pass zones using selectors or viewport rectangles. Render from a client-only entry point. Optional: copy sound files to public/cat-sounds/, set soundBasePath to your sound directory, or set meow={false}. Use storageKey for independent saved positions."
     }
   ]
 }

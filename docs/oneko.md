@@ -25,39 +25,40 @@ available.
 
 ## Props
 
-| Prop                  | Type                                | Default         | Description                                                        |
-| --------------------- | ----------------------------------- | --------------- | ------------------------------------------------------------------ |
-| `skin`                | `OnekoSkin`                         | `"classic"`     | Built-in coat; see [skins and credits](skins.md).                  |
-| `paused`              | `boolean`                           | `false`         | Freeze animation in place; resume without remounting.              |
-| `followCursor`        | `boolean`                           | `true`          | Follow the pointer and visit favorites; false rests in place.      |
-| `sleepEnabled`        | `boolean`                           | `true`          | Allow naps; disabling wakes a sleeping cat while keeping grooming. |
-| `persistPosition`     | `boolean`                           | `true`          | Store the last cat position in `localStorage`.                     |
-| `storageKey`          | `string`                            | `"oneko"`       | Key used to read and save the cat position.                        |
-| `zIndex`              | `number`                            | `2147483646`    | Sprite layer. Set fixed UI above this if needed.                   |
-| `initialPos`          | `{ x: number; y: number }`          | viewport center | Initial cat position.                                              |
-| `speed`               | `number`                            | `10`            | Movement speed.                                                    |
-| `scale`               | `number`                            | `1`             | Visual scale for the sprite and bubble.                            |
-| `opacity`             | `number`                            | `1`             | Sprite opacity.                                                    |
-| `rotationAmount`      | `number`                            | `15`            | Maximum movement tilt in degrees.                                  |
-| `idleThreshold`       | `number`                            | `1000`          | Idle threshold in milliseconds.                                    |
-| `meow`                | `boolean`                           | `true`          | Enable optional sound playback.                                    |
-| `volume`              | `number`                            | `0.5`           | Sound volume from `0` to `1`.                                      |
-| `soundBasePath`       | `string`                            | `"/cat-sounds"` | Directory URL for the optional sound files.                        |
-| `onStateChange`       | `(state: CatActivityState) => void` | `undefined`     | Called when the cat changes activity.                              |
-| `freerunChance`       | `number`                            | `0.06`          | Per-frame chance to free-roam.                                     |
-| `freerunDuration`     | `number`                            | `40`            | Free-roam duration in frames.                                      |
-| `bubbleEnabled`       | `boolean`                           | `true`          | Show or hide speech bubbles.                                       |
-| `bubblePlacement`     | `"auto" \| "above" \| "below"`      | `"auto"`        | Preferred side of the cat, constrained by the viewport.            |
-| `bubbleScale`         | `number`                            | `1`             | Additional bubble size multiplier, clamped to `0.5–2`.             |
-| `bubbleDisplayFrames` | `number`                            | `180`           | Bubble display time in frames.                                     |
-| `bubbleCooldown`      | `number`                            | `120`           | Minimum frames between bubbles.                                    |
-| `bubbleChance`        | `number`                            | `0.5`           | Bubble trigger probability.                                        |
-| `bubbleText`          | `string`                            | `""`            | Custom non-sleeping bubble message.                                |
-| `followDistance`      | `number`                            | `20`            | Distance where the cat stops chasing.                              |
-| `animationSpeed`      | `number`                            | `1`             | Idle animation speed multiplier.                                   |
-| `hueRotate`           | `number`                            | `0`             | CSS hue rotation in degrees.                                       |
-| `laserPointer`        | `boolean`                           | `false`         | Replace the cursor with a pixel laser pointer.                     |
-| `liveStateRef`        | `{ current: CatLiveState }`         | `undefined`     | Mutable ref updated each frame for playgrounds.                    |
+| Prop                  | Type                                | Default         | Description                                                                                              |
+| --------------------- | ----------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------- |
+| `spriteSrc`           | `string`                            | —               | Custom 256 × 128 PNG URL or data URL; overrides skin using the classic 8 × 4 frame layout.               |
+| `skin`                | `OnekoSkin`                         | `"classic"`     | Built-in coat; see [skins and credits](skins.md).                                                        |
+| `paused`              | `boolean`                           | `false`         | Freeze animation in place; resume without remounting.                                                    |
+| `followCursor`        | `boolean`                           | `true`          | Follow the pointer and visit favorites; false rests in place.                                            |
+| `sleepEnabled`        | `boolean`                           | `true`          | Allow naps; disabling wakes a sleeping cat while keeping grooming.                                       |
+| `persistPosition`     | `boolean`                           | `true`          | Store the last cat position in `localStorage`.                                                           |
+| `storageKey`          | `string`                            | `"oneko"`       | Key used to read and save the cat position.                                                              |
+| `zIndex`              | `number`                            | `2147483646`    | Sprite layer. Set fixed UI above this if needed.                                                         |
+| `initialPos`          | `{ x: number; y: number }`          | viewport center | Initial cat position.                                                                                    |
+| `speed`               | `number`                            | `10`            | Movement speed.                                                                                          |
+| `scale`               | `number`                            | `1`             | Visual scale for the sprite and bubble.                                                                  |
+| `opacity`             | `number`                            | `1`             | Sprite opacity.                                                                                          |
+| `rotationAmount`      | `number`                            | `15`            | Maximum movement tilt in degrees.                                                                        |
+| `idleThreshold`       | `number`                            | `1000`          | Idle threshold in milliseconds.                                                                          |
+| `meow`                | `boolean`                           | `true`          | Enable optional sound playback.                                                                          |
+| `volume`              | `number`                            | `0.5`           | Sound volume from `0` to `1`.                                                                            |
+| `soundBasePath`       | `string`                            | `"/cat-sounds"` | Directory URL for the optional sound files.                                                              |
+| `onStateChange`       | `(state: CatActivityState) => void` | `undefined`     | Called when the cat changes activity.                                                                    |
+| `freerunChance`       | `number`                            | `0.06`          | Per-frame chance to free-roam.                                                                           |
+| `freerunDuration`     | `number`                            | `40`            | Free-roam duration in frames.                                                                            |
+| `bubbleEnabled`       | `boolean`                           | `true`          | Show or hide speech bubbles.                                                                             |
+| `bubblePlacement`     | `"auto" \| "above" \| "below"`      | `"auto"`        | Preferred side of the cat, constrained by the viewport.                                                  |
+| `bubbleScale`         | `number`                            | `1`             | Additional bubble size multiplier, clamped to `0.5–2`.                                                   |
+| `bubbleDisplayFrames` | `number`                            | `180`           | Bubble display time in frames.                                                                           |
+| `bubbleCooldown`      | `number`                            | `120`           | Minimum frames between bubbles.                                                                          |
+| `bubbleChance`        | `number`                            | `0.5`           | Bubble trigger probability.                                                                              |
+| `bubbleText`          | `string or readonly string[]`       | `""`            | Custom awake message or random pool without immediate repeats. Naps and zoomies keep their own messages. |
+| `followDistance`      | `number`                            | `20`            | Distance where the cat stops chasing.                                                                    |
+| `animationSpeed`      | `number`                            | `1`             | Idle animation speed multiplier.                                                                         |
+| `hueRotate`           | `number`                            | `0`             | CSS hue rotation in degrees.                                                                             |
+| `laserPointer`        | `boolean`                           | `false`         | Replace the cursor with a pixel laser pointer.                                                           |
+| `liveStateRef`        | `{ current: CatLiveState }`         | `undefined`     | Mutable ref updated each frame for playgrounds.                                                          |
 
 ## Behavior and integration options
 

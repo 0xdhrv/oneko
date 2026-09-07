@@ -4,10 +4,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { InspirationAttribution } from "@/components/inspiration-attribution";
 import { GitHubLink } from "@/components/github-link";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const metadata: Metadata = {
-  title: "Oneko playground",
-  description: "Interactive pixel cat: tweak speed, sounds, bubbles, and motion in the browser.",
+  title: { absolute: "Oneko — Pixel Cat for React & shadcn" },
+  alternates: { canonical: "/" },
 };
 
 const OnekoPlayground = dynamic(() => import("./oneko-playground"), {
@@ -34,22 +35,22 @@ export default function HomePage() {
             "@type": "SoftwareApplication",
             name: "Oneko React pixel cat",
             description:
-              "An open-source shadcn registry component that adds a customizable pixel cat to React websites, with 12 skins, bubbles, optional sounds, and cat-friendly zones.",
-            url: "https://oneko.dhrv.pw",
+              "An open-source shadcn registry component that adds a customizable pixel cat to React websites, with customizable skins, bubbles, optional sounds, and cat-friendly zones.",
+            url: getSiteUrl(),
             applicationCategory: "DeveloperApplication",
             operatingSystem: "Any",
             sameAs: "https://github.com/0xdhrv/oneko",
-          }),
+          }).replace(/</g, "\\u003c"),
         }}
       />
       <div className="flex-1">
         <OnekoPlayground />
         <section className="oneko-guide-summary" aria-labelledby="cat-guide-title">
-          <h2 id="cat-guide-title">Give your cat a home.</h2>
+          <h2 id="cat-guide-title">A pixel cat for your React website.</h2>
           <p>
-            Oneko is a shadcn component that brings a tiny pixel cat to your React website. Choose
-            from twelve coats, adjust its pace, and give it a little cat thought. Your companion can
-            chase the cursor, enjoy a nap, or stay cozy in one spot.
+            Oneko is a shadcn component that brings a tiny pixel cat to your React website. Choose a
+            coat, adjust its pace, and give it a little cat thought. Your companion can chase the
+            cursor, enjoy a nap, or stay cozy in one spot.
           </p>
           <p>
             The cat guide covers installation, every option, Next.js examples, keep-out areas,
@@ -57,15 +58,16 @@ export default function HomePage() {
             the full guide in Markdown, so your cat can settle into an existing project.
           </p>
           <p>
-            Try the comforts above, then copy your cat’s settings to bring it along. The installer
-            adds the source to your project, ready to make your own.
+            Open the studio to customize your cat, then copy its settings to bring it along. The
+            installer adds the source to your project, ready to make your own.
           </p>
           <Link href="/docs">
-            Read the cat docs <ArrowUpRight size={14} aria-hidden="true" />
+            Install Oneko: React and Next.js docs <ArrowUpRight size={14} aria-hidden="true" />
           </Link>
         </section>
       </div>
       <footer className="oneko-footer">
+        <a href="https://dhrv.pw">Made by dhrv</a>
         <Link href="/docs">Cat docs</Link>
         <InspirationAttribution />
         <a

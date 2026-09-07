@@ -1,3 +1,4 @@
+import { getSiteUrl } from "@/lib/site-url";
 import { createDocsMarkdown } from "@/lib/oneko-docs";
 
 export const dynamic = "force-static";
@@ -6,7 +7,7 @@ export function GET() {
     headers: {
       "Content-Type": "text/markdown; charset=utf-8",
       Vary: "Accept",
-      Link: '</docs>; rel="canonical"',
+      Link: `<${getSiteUrl()}/docs>; rel="canonical"`,
     },
   });
 }

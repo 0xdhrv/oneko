@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Playground implementation — the classic “cat follows the cursor” idea comes from
+ * Installable React component — the classic “cat follows the cursor” idea comes from
  * oneko.js (MIT): https://github.com/adryd325/oneko.js/
  */
 
@@ -44,6 +44,7 @@ export default function Oneko({
   zoneAttractionChance,
   zoneAttractionDuration,
   skin = "classic",
+  spriteSrc,
   persistPosition = true,
   /** One below max so fixed UI can sit above the cat. */
   zIndex = DEFAULT_Z_INDEX,
@@ -123,6 +124,7 @@ export default function Oneko({
     ...config,
     hueRotate,
     skin,
+    spriteSrc,
   });
 
   return config.laserPointer ? <LaserCursor zIndex={zIndex} /> : null;

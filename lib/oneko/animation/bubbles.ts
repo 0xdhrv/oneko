@@ -12,7 +12,7 @@ import {
 } from "../constants";
 import type { CatAnimationDeps } from "./deps";
 
-export function pickFromPool(deps: CatAnimationDeps, pool: string[]) {
+export function pickFromPool(deps: CatAnimationDeps, pool: readonly string[]) {
   const s = deps.stateRef.current;
   let idx = Math.floor(Math.random() * pool.length);
   if (idx === s.lastBubbleMsg) {
@@ -28,8 +28,11 @@ function messageForIdleAnimation(deps: CatAnimationDeps): string | undefined {
   if (s.idleAnimation === "sleeping") {
     return pickFromPool(deps, SLEEPING_MESSAGES);
   }
-  if (s.customBubbleText) {
-    return s.customBubbleText;
+  if (typeof s.customBubbleText === "string") {
+    if (s.customBubbleText.trim()) return s.customBubbleText;
+  } else {
+    const thoughts = [...new Set(s.customBubbleText.filter((text) => text.trim()))];
+    if (thoughts.length) return pickFromPool(deps, thoughts);
   }
   if (s.idleAnimation === "tired") {
     return pickFromPool(deps, TIRED_MESSAGES);

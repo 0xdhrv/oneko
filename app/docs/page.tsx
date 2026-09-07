@@ -10,11 +10,11 @@ import "./docs.css";
 const description =
   "Install the Oneko shadcn pixel cat. Complete React prop reference, Next.js examples, skins, bubbles, zones, sounds, and a ready-to-copy coding agent prompt.";
 export const metadata: Metadata = {
-  title: "Documentation",
+  title: "React & Next.js Installation Guide",
   description,
   alternates: { canonical: "/docs", types: { "text/markdown": "/docs.md" } },
   openGraph: {
-    title: "Oneko documentation",
+    title: "Oneko React & Next.js Installation Guide",
     description,
     url: "/docs",
     type: "website",
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Oneko documentation",
+    title: "Oneko React & Next.js Installation Guide",
     description,
     images: ["/icon-512.png"],
   },
@@ -65,8 +65,8 @@ export default async function DocsPage() {
               for little paws<span aria-hidden="true">.</span>
             </h1>
             <p>
-              A pixel cat, at home in your React app. Install it, pick a coat, and make its little
-              habits your own.
+              Install the Oneko shadcn component in your React or Next.js app. This guide covers
+              setup, every prop, custom skins, and your cat’s little habits.
             </p>
             <div className="docs-intro-links">
               <a href="#installation">
@@ -178,6 +178,7 @@ export default async function DocsPage() {
             </section>
           ))}
           <footer className="docs-footer">
+            <a href="https://dhrv.pw">Made by dhrv</a>
             <p>A small cat. A little company.</p>
             <Link href="/">
               Back to your cat <ArrowUpRight size={14} aria-hidden="true" />

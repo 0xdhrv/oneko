@@ -1,3 +1,4 @@
+import { isSavedSprite, normalizeThoughts, MAX_THOUGHT_TEXT_LENGTH } from "./custom-assets";
 import type { OnekoSkin } from "./skins";
 import { isOnekoSkin } from "./skins";
 import type { OnekoProps } from "./types";
@@ -9,6 +10,8 @@ export const DEFAULT_ONEKO_PLAYGROUND_STATE = {
   bubblePlacement: "auto" as NonNullable<OnekoProps["bubblePlacement"]>,
   bubbleScale: 1,
   skin: "classic" as OnekoSkin,
+  spriteSrc: "",
+  spriteName: "",
   speed: 10,
   persistPosition: true,
   showCat: true,
@@ -71,7 +74,12 @@ export function restorePlaygroundState(raw: string | null): OnekoPlaygroundState
         if (value === "auto" || value === "above" || value === "below")
           state.bubblePlacement = value;
       } else if (key === "bubbleText") {
-        if (typeof value === "string") state.bubbleText = value.slice(0, 120);
+        if (typeof value === "string")
+          state.bubbleText = normalizeThoughts(value.slice(0, MAX_THOUGHT_TEXT_LENGTH));
+      } else if (key === "spriteSrc") {
+        if (isSavedSprite(value)) state.spriteSrc = value;
+      } else if (key === "spriteName") {
+        if (typeof value === "string") state.spriteName = value.slice(0, 255);
       } else if (key in SETTING_RANGES) {
         if (typeof value !== "number" || !Number.isFinite(value)) continue;
         const [min, max] = SETTING_RANGES[key as keyof typeof SETTING_RANGES];
