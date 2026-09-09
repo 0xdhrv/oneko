@@ -15,6 +15,7 @@
   <p>
     <a href="https://github.com/0xdhrv/oneko/stargazers"><img src="https://shieldcn.dev/github/stars/0xdhrv/oneko.svg?variant=secondary" alt="GitHub stars" /></a>
     <a href="https://github.com/0xdhrv/oneko/blob/main/LICENSE"><img src="https://shieldcn.dev/github/license/0xdhrv/oneko.svg?variant=secondary" alt="License: MIT" /></a>
+    <a href="https://github.com/0xdhrv/oneko/commits"><img src="https://shieldcn.dev/github/commits/0xdhrv/oneko.svg?variant=secondary" alt="Last commit" /></a>
   </p>
   <br />
 </div>
