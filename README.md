@@ -33,6 +33,17 @@ npx shadcn@latest add https://oneko.dhrv.pw/r/oneko.json
 The registry installs the component, hooks, animation engine, bundled skins, and skin credits into
 your project—so you can own and customize the code.
 
+For a smaller installation with the classic coat and custom sprite support:
+
+```bash
+npx shadcn@latest add https://oneko.dhrv.pw/r/oneko-classic.json
+```
+
+Both versions use the same component and animation engine. Choose the full version above for all
+24 named skins. They install to the same paths, so choose one version per project. To switch,
+install the other version and review the files the installer asks to overwrite. Studio examples
+that use another named `skin` require the full version; custom `spriteSrc` works with either.
+
 ## Use it
 
 Render one `Oneko` from a client component. It mounts itself on `document.body`, keeping it above
@@ -98,6 +109,17 @@ The studio editor itself stays on this site; the installed cat does not depend o
 
 Thoughts are picked without immediate repeats; naps and zoomies keep their own messages.
 
+### Pick a personality or share your cat
+
+The studio's **Behavior** tab offers Sleepy, Curious, and Playful presets. They change movement
+settings while preserving your artwork, thoughts, sound, pause, and visibility choices. Adjusting
+the sliders updates the selected preset automatically.
+
+In **Export**, **Copy share link** opens your built-in coat and settings in the studio. Links keep
+the configuration in the URL fragment. Custom artwork and settings too large for a link travel
+in **Download configuration**, which saves every setting and the embedded sprite in a JSON file.
+Use **Import configuration** to restore that file. Invalid files leave your current cat unchanged.
+
 ### Keep the cat out of the way
 
 Mark elements the cat should avoid, or spots it should enjoy visiting:
@@ -113,9 +135,13 @@ You can also provide selector- and rectangle-based zones through the `zones` pro
 
 ### Add sound
 
-Sound is optional. To enable it, copy this repository’s `public/cat-sounds/` directory into your
-app’s public assets and keep the default `soundBasePath="/cat-sounds"`. Otherwise, set
-`meow={false}`. Browsers may wait for a visitor’s first interaction before playing audio.
+Sound is off by default. To enable it, copy this repository’s `public/cat-sounds/` directory into
+your app’s public assets and render `<Oneko meow />`. Keep the default
+`soundBasePath="/cat-sounds"`, or point it to your sound directory. Browsers may wait for a
+visitor’s first interaction before playing audio.
+
+The cat and laser follow changes to the visitor's reduced-motion preference. Position saving
+uses validated coordinates and runs when the page hides or the component unmounts.
 
 ## Documentation
 
@@ -143,7 +169,26 @@ pnpm build
 ```
 
 `pnpm build` regenerates the registry before building the site. Use `pnpm run registry:build` when
-you only need to refresh `public/r/oneko.json`.
+you only need to refresh the full and classic registry files. See [development notes](docs/development.md)
+for installed-component browser checks.
+
+### Deploy to Cloudflare Workers
+
+```bash
+pnpm install --frozen-lockfile
+pnpm preview
+```
+
+`pnpm preview` builds the registry and site with OpenNext, then runs the result in the local
+Cloudflare Workers runtime. To publish it:
+
+```bash
+pnpm exec wrangler login
+pnpm deploy
+```
+
+See [Cloudflare deployment notes](docs/development.md#cloudflare-workers) for Git builds,
+canonical URLs, and deployment checks.
 
 ## Project map
 

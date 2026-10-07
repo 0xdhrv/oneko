@@ -9,22 +9,8 @@ import { useEffect, useRef, useState } from "react";
 import { LaserCursor } from "@/components/laser-cursor";
 import { useCatAnimation } from "@/hooks/use-cat-animation";
 import { useOnekoPropsSync } from "@/hooks/use-oneko-props-sync";
-import {
-  BUBBLE_COOLDOWN_FRAMES,
-  BUBBLE_DISPLAY_FRAMES,
-  DEFAULT_ANIMATION_SPEED,
-  DEFAULT_BUBBLE_CHANCE,
-  DEFAULT_FOLLOW_DISTANCE,
-  DEFAULT_IDLE_THRESHOLD_MS,
-  DEFAULT_OPACITY,
-  DEFAULT_ROTATION_AMOUNT,
-  DEFAULT_SCALE,
-  DEFAULT_SPEED,
-  DEFAULT_VOLUME,
-  DEFAULT_Z_INDEX,
-  FREERUN_CHANCE,
-  FREERUN_DURATION,
-} from "@/lib/oneko/constants";
+import { ONEKO_DEFAULTS } from "@/lib/oneko/defaults";
+import { useMotionAllowed } from "@/hooks/use-motion-allowed";
 import { createInitialCatState } from "@/lib/oneko/initial-state";
 import type { CatActivityState, CatLiveState, OnekoProps } from "@/lib/oneko/types";
 
@@ -33,43 +19,44 @@ export type { OnekoSkin } from "@/lib/oneko/skins";
 export type { OnekoZone } from "@/lib/oneko/zones";
 
 export default function Oneko({
-  paused = false,
-  followCursor = true,
-  sleepEnabled = true,
-  bubblePlacement = "auto",
-  bubbleScale = 1,
-  soundBasePath = "/cat-sounds",
-  storageKey = "oneko",
+  paused = ONEKO_DEFAULTS.paused,
+  followCursor = ONEKO_DEFAULTS.followCursor,
+  sleepEnabled = ONEKO_DEFAULTS.sleepEnabled,
+  bubblePlacement = ONEKO_DEFAULTS.bubblePlacement,
+  bubbleScale = ONEKO_DEFAULTS.bubbleScale,
+  soundBasePath = ONEKO_DEFAULTS.soundBasePath,
+  storageKey = ONEKO_DEFAULTS.storageKey,
   zones,
-  zoneAttractionChance,
-  zoneAttractionDuration,
-  skin = "classic",
+  zoneAttractionChance = ONEKO_DEFAULTS.zoneAttractionChance,
+  zoneAttractionDuration = ONEKO_DEFAULTS.zoneAttractionDuration,
+  skin = ONEKO_DEFAULTS.skin,
   spriteSrc,
-  persistPosition = true,
+  persistPosition = ONEKO_DEFAULTS.persistPosition,
   /** One below max so fixed UI can sit above the cat. */
-  zIndex = DEFAULT_Z_INDEX,
+  zIndex = ONEKO_DEFAULTS.zIndex,
   initialPos,
-  speed = DEFAULT_SPEED,
-  scale = DEFAULT_SCALE,
-  opacity = DEFAULT_OPACITY,
-  rotationAmount = DEFAULT_ROTATION_AMOUNT,
-  idleThreshold = DEFAULT_IDLE_THRESHOLD_MS,
-  meow = true,
+  speed = ONEKO_DEFAULTS.speed,
+  scale = ONEKO_DEFAULTS.scale,
+  opacity = ONEKO_DEFAULTS.opacity,
+  rotationAmount = ONEKO_DEFAULTS.rotationAmount,
+  idleThreshold = ONEKO_DEFAULTS.idleThreshold,
+  meow = ONEKO_DEFAULTS.meow,
   onStateChange,
-  freerunChance = FREERUN_CHANCE,
-  freerunDuration = FREERUN_DURATION,
-  bubbleEnabled = true,
-  bubbleDisplayFrames = BUBBLE_DISPLAY_FRAMES,
-  bubbleCooldown = BUBBLE_COOLDOWN_FRAMES,
-  hueRotate = 0,
+  freerunChance = ONEKO_DEFAULTS.freerunChance,
+  freerunDuration = ONEKO_DEFAULTS.freerunDuration,
+  bubbleEnabled = ONEKO_DEFAULTS.bubbleEnabled,
+  bubbleDisplayFrames = ONEKO_DEFAULTS.bubbleDisplayFrames,
+  bubbleCooldown = ONEKO_DEFAULTS.bubbleCooldown,
+  hueRotate = ONEKO_DEFAULTS.hueRotate,
   liveStateRef,
-  bubbleChance = DEFAULT_BUBBLE_CHANCE,
-  followDistance = DEFAULT_FOLLOW_DISTANCE,
-  animationSpeed = DEFAULT_ANIMATION_SPEED,
-  bubbleText = "",
-  volume = DEFAULT_VOLUME,
-  laserPointer = false,
+  bubbleChance = ONEKO_DEFAULTS.bubbleChance,
+  followDistance = ONEKO_DEFAULTS.followDistance,
+  animationSpeed = ONEKO_DEFAULTS.animationSpeed,
+  bubbleText = ONEKO_DEFAULTS.bubbleText,
+  volume = ONEKO_DEFAULTS.volume,
+  laserPointer = ONEKO_DEFAULTS.laserPointer,
 }: OnekoProps) {
+  const motionAllowed = useMotionAllowed();
   const elRef = useRef<HTMLDivElement | null>(null);
   const lastStateRef = useRef<CatActivityState>("idle");
   const onStateChangeRef = useRef(onStateChange);
@@ -111,6 +98,7 @@ export default function Oneko({
   const stateRef = useRef(initialState);
 
   useCatAnimation({
+    enabled: motionAllowed,
     stateRef,
     elRef,
     lastStateRef,
@@ -127,5 +115,5 @@ export default function Oneko({
     spriteSrc,
   });
 
-  return config.laserPointer ? <LaserCursor zIndex={zIndex} /> : null;
+  return motionAllowed && config.laserPointer ? <LaserCursor zIndex={zIndex} /> : null;
 }

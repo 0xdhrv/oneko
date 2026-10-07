@@ -2,8 +2,14 @@ import { describe, expect, it } from "vitest";
 import sharp from "sharp";
 import { defaultSpriteSets, TILE } from "./constants";
 import { getSkinSource, isOnekoSkin, ONEKO_SKINS, type OnekoSkin } from "./skins";
+import sheets from "./skin-sheets.json";
+import { SKIN_CATALOG } from "./skin-catalog";
 
 describe("bundled cat skins", () => {
+  it("exposes exactly the bundled sheet IDs, without duplicate or missing catalog entries", () => {
+    expect(ONEKO_SKINS.map(({ id }) => id).sort()).toEqual(Object.keys(sheets).sort());
+    expect(new Set(SKIN_CATALOG.map(({ id }) => id)).size).toBe(SKIN_CATALOG.length);
+  });
   it.each(ONEKO_SKINS)(
     "$name contains every animation frame at the original pixel size",
     async ({ id }) => {

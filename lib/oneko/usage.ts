@@ -1,18 +1,14 @@
 import { thoughtsForProp } from "./custom-assets";
-import { DEFAULT_ONEKO_PLAYGROUND_STATE, type OnekoPlaygroundState } from "./playground-defaults";
-
-/** The playground starts quiet and with a cat thought; the component does not. */
-const COMPONENT_DEFAULTS = {
-  ...DEFAULT_ONEKO_PLAYGROUND_STATE,
-  meow: true,
-  bubbleText: "",
-};
+import type { OnekoPlaygroundState } from "./playground-defaults";
+import { ONEKO_DEFAULTS } from "./defaults";
 
 export function createOnekoUsage(state: OnekoPlaygroundState): string {
-  const props = (Object.keys(COMPONENT_DEFAULTS) as (keyof OnekoPlaygroundState)[])
-    .filter(
-      (key) => key !== "showCat" && key !== "spriteName" && state[key] !== COMPONENT_DEFAULTS[key],
-    )
+  const props = (Object.keys(state) as (keyof OnekoPlaygroundState)[])
+    .filter((key) => {
+      if (key === "showCat" || key === "spriteName") return false;
+      if (key === "spriteSrc") return Boolean(state.spriteSrc);
+      return state[key] !== ONEKO_DEFAULTS[key];
+    })
     .map((key) =>
       state[key] === true
         ? `  ${key}`

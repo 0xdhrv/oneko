@@ -124,7 +124,7 @@ export const PROP_DOCS = {
     type: "boolean",
     default: "false",
     description:
-      "Replace the system cursor with a pixel laser toy. Hidden while paused or when followCursor is false. The toy takes priority over favorites.",
+      "Replace the system cursor with a pixel laser toy. Hidden with reduced motion, while paused, or when followCursor is false. Cleanup restores the previous cursor. The toy takes priority over favorites.",
   },
   bubbleEnabled: {
     group: "Bubbles",
@@ -176,9 +176,9 @@ export const PROP_DOCS = {
   meow: {
     group: "Sounds",
     type: "boolean",
-    default: "true",
+    default: "false",
     description:
-      "Allow optional cat audio. Set false if you have not added sound files. The hosted playground starts with sound off.",
+      "Enable optional cat audio after adding the sound files. Both the component and hosted playground start with sound off.",
   },
   volume: {
     group: "Sounds",
@@ -198,7 +198,7 @@ export const PROP_DOCS = {
     type: "boolean",
     default: "true",
     description:
-      "Restore saved position/activity on mount and save before page unload. False disables both storage reads and writes.",
+      "Restore validated coordinates on mount and save when the page hides or the component unmounts. False disables storage reads and writes.",
   },
   storageKey: {
     group: "Home & integration",
@@ -287,6 +287,16 @@ export const DOC_SECTIONS: DocSection[] = [
       },
       { kind: "code", label: "Install Oneko", language: "bash", code: INSTALL_COMMAND },
       {
+        kind: "code",
+        label: "Classic coat and custom sprites only",
+        language: "bash",
+        code: "npx shadcn@latest add https://oneko.dhrv.pw/r/oneko-classic.json",
+      },
+      {
+        kind: "text",
+        text: "Choose one installation per project. The classic item has the same engine and component path, with only the classic coat embedded. Named skins such as calico need the full item; custom spriteSrc works with either. To switch versions, run the other install command and review overwritten files. Studio exports use the full install command.",
+      },
+      {
         kind: "text",
         text: "Mount one cat near the root of your app. It attaches its sprite and bubble to document.body; it does not take up layout space. For a browser-only React app, import Oneko and render it directly.",
       },
@@ -320,7 +330,7 @@ export const DOC_SECTIONS: DocSection[] = [
     blocks: [
       {
         kind: "text",
-        text: "All props are optional. These are component defaults; the playground starts with sound off and its own cat thought. The engine runs at 10fps, so 10 active frames is about one second. Hidden tabs and paused cats do not advance those timers.",
+        text: "All props are optional. These are component defaults; the playground starts with sound off and its own cat thought. The cat and laser stop when reduced motion is enabled and return when it is disabled. The engine runs at 10fps, so 10 active frames is about one second. Hidden tabs and paused cats do not advance those timers.",
       },
       {
         kind: "text",
@@ -334,7 +344,7 @@ export const DOC_SECTIONS: DocSection[] = [
     blocks: [
       {
         kind: "text",
-        text: "Choose classic, black, gray, calico, tora, catppuccin, ghost, silver, spirit, valentine, maia, vaporwave, ginger, sage, siamese, strawberry-milk, blue-frost, lavender, tuxedo, peach, honey, mocha, mint, or midnight-blue. All skins ship with the registry; there is no separate image download. The original 12 sheets are unchanged; 12 generated coat variants are prepared at the same frame size.",
+        text: "Choose classic, black, gray, calico, tora, catppuccin, ghost, silver, spirit, valentine, maia, vaporwave, ginger, sage, siamese, strawberry-milk, blue-frost, lavender, tuxedo, peach, honey, mocha, mint, or midnight-blue. All skins ship with the full registry; the classic-only item includes classic and supports custom spriteSrc. Neither requires a separate image download. The original 12 sheets are unchanged; 12 generated coat variants are prepared at the same frame size.",
       },
       {
         kind: "code",
@@ -442,7 +452,7 @@ export const DOC_SECTIONS: DocSection[] = [
     blocks: [
       {
         kind: "text",
-        text: "The registry does not include audio files. Keep meow={false} for a silent install, or copy public/cat-sounds/ from the source repository into your app’s public assets, preserving the .ogg filenames. Browsers may require user interaction before audio can play.",
+        text: "Sound is off by default, and the registry does not include audio files. To enable it, set meow and copy public/cat-sounds/ from the source repository into your app’s public assets, preserving the .ogg filenames. Browsers may require user interaction before audio can play.",
       },
       {
         kind: "code",
@@ -453,6 +463,24 @@ export const DOC_SECTIONS: DocSection[] = [
       {
         kind: "text",
         text: "soundBasePath also accepts an absolute directory URL. Mute and volume apply to future playback; sounds already playing can finish. Sleeping audio uses the purr pool.",
+      },
+    ],
+  },
+  {
+    id: "studio",
+    title: "Presets and sharing",
+    blocks: [
+      {
+        kind: "text",
+        text: "In the studio's Behavior tab, Sleepy, Curious, and Playful presets adjust movement settings. They preserve artwork, thoughts, sound, pause, cursor-follow, nap, and visibility choices. The selected preset follows the current slider values; presets do not add a runtime prop.",
+      },
+      {
+        kind: "text",
+        text: "In Export, Copy share link opens a built-in coat and settings in the studio. The configuration stays in the URL fragment and is limited to 8192 characters. Shared settings take precedence over saved browser preferences on load. Invalid links leave saved preferences intact.",
+      },
+      {
+        kind: "text",
+        text: "Download configuration includes every setting, thought, and custom sprite. Import configuration accepts a versioned JSON file up to 512 KB and replaces the current settings, including sound and visibility. Invalid versions, settings, or artwork leave your cat unchanged. Custom sprites and oversized configurations use files instead of share links.",
       },
     ],
   },
@@ -468,7 +496,7 @@ export const DOC_SECTIONS: DocSection[] = [
       },
       {
         kind: "text",
-        text: "Position and idle activity are restored from localStorage on mount and saved before page unload. Storage failures are ignored. A saved spot takes precedence over initialPos. Use persistPosition={false} for a predictable starting position or when saving is unwanted.",
+        text: "Only position is saved, using a versioned pair of finite coordinates. Valid legacy positions are migrated; malformed values and stored animation internals are ignored. Restored positions are clamped to the viewport. Saving runs when the page hides, on pagehide, and on component cleanup. Storage failures are ignored. A saved spot takes precedence over initialPos. Use persistPosition={false} for a predictable starting position or when saving is unwanted.",
       },
       {
         kind: "text",

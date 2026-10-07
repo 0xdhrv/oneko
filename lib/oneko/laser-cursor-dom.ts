@@ -71,7 +71,9 @@ export function mountLaserCursor(zIndex: number): () => void {
     document.body.appendChild(t);
   }
   document.body.appendChild(dot);
-  document.body.style.cursor = "none";
+  const previousCursor = document.body.style.getPropertyValue("cursor");
+  const previousPriority = document.body.style.getPropertyPriority("cursor");
+  document.body.style.setProperty("cursor", "none");
 
   let pointerX = window.innerWidth / 2;
   let pointerY = window.innerHeight / 2;
@@ -134,6 +136,10 @@ export function mountLaserCursor(zIndex: number): () => void {
     if (laser.parentNode) {
       laser.parentNode.removeChild(laser);
     }
-    document.body.style.cursor = "";
+    if (previousCursor) {
+      document.body.style.setProperty("cursor", previousCursor, previousPriority);
+    } else {
+      document.body.style.removeProperty("cursor");
+    }
   };
 }

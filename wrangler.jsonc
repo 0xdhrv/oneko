@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "oneko",
+  "main": ".open-next/worker.js",
+  "minify": true,
+  // next-themes serializes a function into an inline browser script. Name
+  // preservation injects Worker-only helpers that break that script.
+  "keep_names": false,
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "oneko",
+    },
+  ],
+  "observability": {
+    "enabled": true,
+  },
+}

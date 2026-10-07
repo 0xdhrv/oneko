@@ -1,3 +1,4 @@
+import { ONEKO_DEFAULTS } from "./defaults";
 import { EMPTY_ZONES } from "./zone-runtime";
 import type { OnekoZone } from "./zones";
 import type { CatRuntimeState, OnekoProps } from "./types";
@@ -38,35 +39,35 @@ type RuntimeConfigStateFields = Pick<
 
 export function defaultRuntimeConfigState(): RuntimeConfigStateFields {
   return {
-    pausedCfg: false,
-    followCursorCfg: true,
-    sleepEnabledCfg: true,
-    bubblePlacementCfg: "auto",
-    bubbleScaleCfg: 1,
-    soundBasePathCfg: "/cat-sounds",
-    currentSpeed: 0,
-    scale: 1,
-    opacity: 1,
-    rotationAmount: 0,
-    idleThresholdMs: 0,
-    freerunChanceCfg: 0,
-    freerunDurationCfg: 0,
-    bubbleEnabledCfg: true,
-    bubbleDisplayFramesCfg: 0,
-    bubbleCooldownFramesCfg: 0,
-    bubbleChanceCfg: 0,
-    followDistanceCfg: 0,
-    animationSpeedCfg: 1,
-    customBubbleText: "",
+    pausedCfg: ONEKO_DEFAULTS.paused,
+    followCursorCfg: ONEKO_DEFAULTS.followCursor,
+    sleepEnabledCfg: ONEKO_DEFAULTS.sleepEnabled,
+    bubblePlacementCfg: ONEKO_DEFAULTS.bubblePlacement,
+    bubbleScaleCfg: ONEKO_DEFAULTS.bubbleScale,
+    soundBasePathCfg: ONEKO_DEFAULTS.soundBasePath,
+    currentSpeed: ONEKO_DEFAULTS.speed,
+    scale: ONEKO_DEFAULTS.scale,
+    opacity: ONEKO_DEFAULTS.opacity,
+    rotationAmount: ONEKO_DEFAULTS.rotationAmount,
+    idleThresholdMs: ONEKO_DEFAULTS.idleThreshold,
+    freerunChanceCfg: ONEKO_DEFAULTS.freerunChance,
+    freerunDurationCfg: ONEKO_DEFAULTS.freerunDuration,
+    bubbleEnabledCfg: ONEKO_DEFAULTS.bubbleEnabled,
+    bubbleDisplayFramesCfg: ONEKO_DEFAULTS.bubbleDisplayFrames,
+    bubbleCooldownFramesCfg: ONEKO_DEFAULTS.bubbleCooldown,
+    bubbleChanceCfg: ONEKO_DEFAULTS.bubbleChance,
+    followDistanceCfg: ONEKO_DEFAULTS.followDistance,
+    animationSpeedCfg: ONEKO_DEFAULTS.animationSpeed,
+    customBubbleText: ONEKO_DEFAULTS.bubbleText,
     currentRotation: 0,
-    enableMeow: true,
-    soundVolumeCfg: 0,
+    enableMeow: ONEKO_DEFAULTS.meow,
+    soundVolumeCfg: ONEKO_DEFAULTS.volume,
     soundCooldown: 0,
     bubbleTimer: 0,
     bubbleCooldown: 0,
     bubbleVisible: false,
     lastBubbleMsg: -1,
-    laserPointerCfg: false,
+    laserPointerCfg: ONEKO_DEFAULTS.laserPointer,
     laserCaught: false,
   };
 }
@@ -98,17 +99,20 @@ export type CatRuntimeConfig = Pick<
 };
 
 export function applyRuntimeConfig(state: CatRuntimeState, config: CatRuntimeConfig): void {
-  state.pausedCfg = config.paused ?? false;
-  state.followCursorCfg = config.followCursor ?? true;
-  state.sleepEnabledCfg = config.sleepEnabled ?? true;
+  state.pausedCfg = config.paused ?? ONEKO_DEFAULTS.paused;
+  state.followCursorCfg = config.followCursor ?? ONEKO_DEFAULTS.followCursor;
+  state.sleepEnabledCfg = config.sleepEnabled ?? ONEKO_DEFAULTS.sleepEnabled;
   state.bubblePlacementCfg =
     config.bubblePlacement === "above" || config.bubblePlacement === "below"
       ? config.bubblePlacement
-      : "auto";
+      : ONEKO_DEFAULTS.bubblePlacement;
   state.bubbleScaleCfg = Number.isFinite(config.bubbleScale)
     ? Math.max(0.5, Math.min(2, config.bubbleScale!))
-    : 1;
-  state.soundBasePathCfg = (config.soundBasePath ?? "/cat-sounds").replace(/\/+$/, "");
+    : ONEKO_DEFAULTS.bubbleScale;
+  state.soundBasePathCfg = (config.soundBasePath ?? ONEKO_DEFAULTS.soundBasePath).replace(
+    /\/+$/,
+    "",
+  );
   if (!state.followCursorCfg) {
     state.freerunMode = false;
     state.freerunTimer = 0;
@@ -120,10 +124,10 @@ export function applyRuntimeConfig(state: CatRuntimeState, config: CatRuntimeCon
   state.zoneState.definitions = config.zones ?? EMPTY_ZONES;
   state.zoneState.chance = Number.isFinite(config.zoneAttractionChance)
     ? Math.max(0, Math.min(1, config.zoneAttractionChance!))
-    : 0.3;
+    : ONEKO_DEFAULTS.zoneAttractionChance;
   state.zoneState.duration = Number.isFinite(config.zoneAttractionDuration)
     ? Math.max(1, Math.min(600, Math.round(config.zoneAttractionDuration! / 100)))
-    : 40;
+    : ONEKO_DEFAULTS.zoneAttractionDuration / 100;
   state.currentSpeed = config.speed;
   state.scale = config.scale;
   state.opacity = config.opacity;

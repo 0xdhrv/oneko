@@ -1,3 +1,4 @@
+import { ONEKO_DEFAULTS } from "./defaults";
 import { refreshZones } from "./zone-runtime";
 import { hideBubble, showBubble } from "./animation/bubbles";
 import { createFrameLoop } from "./animation/frame";
@@ -51,9 +52,11 @@ export function startCatAnimation({
   onStateChangeRef,
   liveStateRef,
   persistPosition,
-  storageKey = "oneko",
+  storageKey = ONEKO_DEFAULTS.storageKey,
   zIndex,
 }: StartCatAnimationOptions): () => void {
+  stateRef.current.bubbleVisible = false;
+  stateRef.current.bubbleTimer = 0;
   const el = createCatElement(stateRef.current, zIndex);
   elRef.current = el;
   const debugSVG = createDebugSVG(zIndex);
@@ -117,9 +120,13 @@ export function startCatAnimation({
   window.addEventListener("scroll", invalidateObstacles, { passive: true });
   window.addEventListener("resize", invalidateObstacles, { passive: true });
 
-  const onBeforeUnload = persistPosition ? createPersistHandler(stateRef, el, storageKey) : null;
-  if (onBeforeUnload) {
-    window.addEventListener("beforeunload", onBeforeUnload);
+  const persist = persistPosition ? createPersistHandler(stateRef, storageKey) : null;
+  const onVisibilityChange = () => {
+    if (document.hidden) persist?.();
+  };
+  if (persist) {
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("pagehide", persist);
   }
 
   const onKeyDown = createKonamiHandler(stateRef, debugSVG, debugWrapper);
@@ -127,7 +134,8 @@ export function startCatAnimation({
 
   const stopAnimationLoop = startAnimationLoop(stateRef, frame);
 
-  return () =>
+  return () => {
+    persist?.();
     teardownCatAnimation(
       { el, debugSVG, debugWrapper, bubbleEl },
       {
@@ -135,8 +143,14 @@ export function startCatAnimation({
         onPointerDown,
         onKeyDown,
         invalidateObstacles,
-        onBeforeUnload,
+        persist,
+        onVisibilityChange,
         stopAnimationLoop,
       },
     );
+    elRef.current = null;
+    stateRef.current.bubbleVisible = false;
+    stateRef.current.bubbleTimer = 0;
+    if (liveStateRef) liveStateRef.current.bubbleVisible = false;
+  };
 }

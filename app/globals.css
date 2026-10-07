@@ -1548,6 +1548,59 @@
   border: 1px solid var(--border);
   border-radius: 8px;
 }
+.oneko-personalities {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.oneko-personalities button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.oneko-personalities button > span:last-child {
+  color: var(--muted-foreground);
+}
+.oneko-personalities button[aria-pressed="true"] {
+  border-color: var(--muted-foreground);
+  background: var(--secondary);
+}
+.oneko-configuration {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.oneko-configuration h3 {
+  font-size: 14px;
+  font-weight: 600;
+}
+.oneko-configuration-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.oneko-configuration-actions button {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--secondary);
+}
+@media (max-width: 480px) {
+  .oneko-personalities {
+    grid-template-columns: 1fr;
+  }
+}
 .studio-panel .oneko-custom-assets {
   gap: 12px;
   padding-bottom: 12px;

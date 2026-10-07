@@ -16,6 +16,7 @@ import { OnekoZones } from "@/components/oneko-zones";
 import { OnekoSettings } from "@/components/oneko-settings";
 import { OnekoInstall } from "@/components/oneko-install";
 import { getSkinSource, ONEKO_SKINS } from "@/lib/oneko/skins";
+import { ONEKO_PERSONALITIES, selectedPersonality } from "@/lib/oneko/personalities";
 
 const SECTIONS = [
   {
@@ -93,12 +94,13 @@ function Comfort({
 }
 
 export function OnekoTweaks() {
-  const { state, actions } = useOnekoPlayground();
+  const { state, actions, configurationStatus } = useOnekoPlayground();
   const [active, setActive] = useState<Section>("appearance");
   const [assetsVersion, setAssetsVersion] = useState(0);
   const [notice, setNotice] = useState("");
   const selected = ONEKO_SKINS.find((skin) => skin.id === state.skin) ?? ONEKO_SKINS[0];
   const section = SECTIONS.find((item) => item.id === active)!;
+  const personality = selectedPersonality(state);
 
   return (
     <section
@@ -213,6 +215,26 @@ export function OnekoTweaks() {
               )}
               {active === "behavior" && (
                 <>
+                  <div className="oneko-section-heading">
+                    <h3>Personality</h3>
+                    <span>{personality?.name ?? "Custom"}</span>
+                  </div>
+                  <div className="oneko-personalities" role="group" aria-label="Cat personality">
+                    {ONEKO_PERSONALITIES.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        aria-pressed={personality?.id === preset.id}
+                        onClick={() => {
+                          actions.update(preset.settings);
+                          setNotice(`${preset.name} personality applied.`);
+                        }}
+                      >
+                        <span>{preset.name}</span>
+                        <span>{preset.description}</span>
+                      </button>
+                    ))}
+                  </div>
                   <div className="oneko-toolbar studio-comforts">
                     <Comfort setting="laserPointer" label="Laser toy" />
                   </div>
@@ -222,7 +244,7 @@ export function OnekoTweaks() {
               {active === "zones" && <OnekoZones />}
               {active === "export" && (
                 <div className="oneko-install">
-                  <OnekoInstall />
+                  <OnekoInstall key={assetsVersion} />
                 </div>
               )}
             </>
@@ -230,7 +252,7 @@ export function OnekoTweaks() {
         </div>
       ))}
       <div className="oneko-settings-footer studio-editor-footer">
-        <p role="status">{notice || "Changes saved in this browser"}</p>
+        <p role="status">{notice || configurationStatus || "Changes saved in this browser"}</p>
         <button
           type="button"
           onClick={() => {

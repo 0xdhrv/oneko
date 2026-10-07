@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ONEKO_SHIKI_THEME_OPTIONS, type CodeLanguage } from "@/lib/shiki-config";
+import type { CodeLanguage } from "@/lib/shiki-config";
 
 export function ShikiCode({
   code,
@@ -18,13 +18,8 @@ export function ShikiCode({
 
   useEffect(() => {
     let current = true;
-    void import("shiki/bundle/web")
-      .then(({ codeToHtml, createCssVariablesTheme }) =>
-        codeToHtml(code, {
-          lang: language,
-          theme: createCssVariablesTheme(ONEKO_SHIKI_THEME_OPTIONS),
-        }),
-      )
+    void import("@/lib/shiki")
+      .then(({ highlightCode }) => highlightCode(code, language))
       .then((html) => {
         if (current) setHighlighted({ code, html });
       })

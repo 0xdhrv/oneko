@@ -41,7 +41,7 @@ available.
 | `opacity`             | `number`                            | `1`             | Sprite opacity.                                                                                          |
 | `rotationAmount`      | `number`                            | `15`            | Maximum movement tilt in degrees.                                                                        |
 | `idleThreshold`       | `number`                            | `1000`          | Idle threshold in milliseconds.                                                                          |
-| `meow`                | `boolean`                           | `true`          | Enable optional sound playback.                                                                          |
+| `meow`                | `boolean`                           | `false`         | Enable optional sound playback.                                                                          |
 | `volume`              | `number`                            | `0.5`           | Sound volume from `0` to `1`.                                                                            |
 | `soundBasePath`       | `string`                            | `"/cat-sounds"` | Directory URL for the optional sound files.                                                              |
 | `onStateChange`       | `(state: CatActivityState) => void` | `undefined`     | Called when the cat changes activity.                                                                    |
@@ -80,7 +80,7 @@ available.
   chats, and naps unless naps are disabled. The laser cursor is hidden. Keep-out zones can still
   relocate the cat to a safe spot. Re-enabling follows the latest pointer position.
 - `sleepEnabled={false}` wakes an existing nap on the next active tick and skips sleepy idle
-  animations. It also applies to a nap restored from storage.
+  animations. Stored animation activity is not restored.
 - `bubbleScale` multiplies the bubble's inherited `scale` without changing the sprite. `auto`
   prefers above the cat and flips below near the top; all placements clamp to the viewport when
   the bubble fits. A bubble wider than the viewport is centered.
@@ -88,7 +88,7 @@ available.
   slashes. Keep the existing `.ogg` filenames. No sounds are bundled by the registry installer.
 - `storageKey` defaults to the existing `oneko` key for compatibility. Choose separate keys for
   independent saved positions. Changing it restarts the animation DOM and loads that key if present;
-  `persistPosition={false}` disables reads and writes. Positions are saved before page unload.
+  `persistPosition={false}` disables reads and writes. Validated coordinates are saved when the page hides, on pagehide, and on component cleanup. Legacy coordinates are migrated; animation internals are not loaded.
 
 These options, except the storage key, update without restarting the animation. Public types
 `OnekoProps`, `OnekoSkin`, `OnekoZone`, `CatActivityState`, and `CatLiveState` can all be imported
@@ -126,12 +126,11 @@ If your app does not load Geist Pixel, the bubble falls back to `monospace`.
 
 ## Sound Assets
 
-When `meow` is enabled, sounds are requested from `/cat-sounds/*.ogg`. You can copy the sound files
-from this repo's `public/cat-sounds/` directory, provide your own files with the same names, or turn
-sound off with:
+Sound is off by default. When `meow` is enabled, sounds are requested from `/cat-sounds/*.ogg`. You can copy the sound files
+from this repo's `public/cat-sounds/` directory or provide your own files with the same names, then enable playback:
 
 ```tsx
-<Oneko meow={false} />
+<Oneko meow />
 ```
 
 Browsers may block playback until the user interacts with the page.
@@ -139,13 +138,13 @@ Browsers may block playback until the user interacts with the page.
 ## Playground behavior
 
 The hosted playground remembers settings in this browser and starts with sound off. Reset restores
-all playground defaults. The component keeps its existing `meow={true}` default for compatibility.
+all playground defaults. The component also starts with sound off.
 Pause, cursor-follow, naps, bubble size, and bubble placement are available in the detailed settings.
 The install panel generates a copyable client component using your current settings, omitting
 unchanged component defaults and playground-only visibility.
 Coat changes do not restart the animation. Touch users can tap non-interactive page space to set a
 new destination. Hidden tabs stop the animation timer, and reduced-motion preferences keep the cat
-unmounted. The skin picker remains usable with reduced motion.
+and laser unmounted. Preference changes apply live, and laser cleanup restores the host cursor. The skin picker remains usable with reduced motion.
 
 The landing page starts with all controls closed. Choose **Customize cat** for coats and settings,
 or **Add a cat to your site** for installation. Customization loads on demand; the install panel is
@@ -157,6 +156,18 @@ Saved preferences do not reopen panels on the next visit.
 The playground uses `@web-kits/audio` for short interface sounds on buttons, toggles, selections,
 and sliders. These follow the Sound toggle and volume and stay muted with reduced motion. Empty
 page space is quiet. The installable cat keeps its separate optional `.ogg` sound pools.
+
+## Presets, sharing, and installation sizes
+
+The studio's Behavior tab offers Sleepy, Curious, and Playful movement presets. These preserve
+artwork, thoughts, sound, pause, cursor-follow, nap, and visibility settings. The Export tab can
+copy a share link for built-in coats or download the complete configuration, including custom
+artwork. Import accepts exported JSON up to 512 KB and leaves the current settings unchanged if
+validation fails. Links over 8192 characters use the file workflow instead.
+
+The original `/r/oneko.json` installs all 24 coats. `/r/oneko-classic.json` installs the same
+component and engine with only classic embedded. Custom `spriteSrc` works with both; other named
+skins require the full version. Both install to the same paths, so choose one version per project.
 
 ## Keep-out zones and favorite spots
 

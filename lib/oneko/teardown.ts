@@ -10,7 +10,8 @@ type CatAnimationListeners = {
   onPointerDown: (event: PointerEvent) => void;
   onKeyDown: (e: KeyboardEvent) => void;
   invalidateObstacles: () => void;
-  onBeforeUnload: (() => void) | null;
+  persist: (() => void) | null;
+  onVisibilityChange: () => void;
   stopAnimationLoop: () => void;
 };
 
@@ -21,7 +22,8 @@ export function teardownCatAnimation(
     onPointerDown,
     onKeyDown,
     invalidateObstacles,
-    onBeforeUnload,
+    persist,
+    onVisibilityChange,
     stopAnimationLoop,
   }: CatAnimationListeners,
 ) {
@@ -30,8 +32,9 @@ export function teardownCatAnimation(
   document.removeEventListener("keydown", onKeyDown);
   window.removeEventListener("scroll", invalidateObstacles);
   window.removeEventListener("resize", invalidateObstacles);
-  if (onBeforeUnload) {
-    window.removeEventListener("beforeunload", onBeforeUnload);
+  if (persist) {
+    document.removeEventListener("visibilitychange", onVisibilityChange);
+    window.removeEventListener("pagehide", persist);
   }
   stopAnimationLoop();
 

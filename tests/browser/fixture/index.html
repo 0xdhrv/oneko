@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Installed Oneko browser checks</title>
+    <style>
+      :root {
+        --foreground: #181818;
+        --background: #ffffff;
+        --border: #888888;
+        --destructive: #ff0000;
+        --accent: #ffffff;
+        --primary: #111111;
+        --primary-foreground: #ffffff;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+      }
+      nav {
+        position: fixed;
+        bottom: 0;
+        padding: 12px;
+      }
+      button {
+        min-width: 44px;
+        min-height: 44px;
+      }
+    </style>
+  </head>
+  <body style="cursor: crosshair">
+    <div id="root"></div>
+    <script type="module" src="/fixture.tsx"></script>
+  </body>
+</html>

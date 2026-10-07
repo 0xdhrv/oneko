@@ -5,6 +5,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Keep the selected Shiki imports in the bundle; externalizing its package
+  // makes OpenNext include every grammar and theme in the Worker.
+  transpilePackages: ["shiki"],
   images: {
     unoptimized: true,
   },

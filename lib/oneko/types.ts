@@ -65,6 +65,7 @@ export interface OnekoProps {
   opacity?: number;
   rotationAmount?: number;
   idleThreshold?: number;
+  /** Enable optional sound assets supplied by the host app. Default false. */
   meow?: boolean;
   onStateChange?: (state: CatActivityState) => void;
   /** Probability per frame cat enters freerun mode (0–1). Default 0.06 */

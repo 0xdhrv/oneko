@@ -5,6 +5,7 @@ import { startCatAnimation } from "@/lib/oneko/start-cat-animation";
 import type { CatActivityState, CatLiveState, CatRuntimeState } from "@/lib/oneko/types";
 
 export function useCatAnimation({
+  enabled,
   stateRef,
   elRef,
   lastStateRef,
@@ -14,6 +15,7 @@ export function useCatAnimation({
   storageKey,
   zIndex,
 }: {
+  enabled: boolean;
   stateRef: { current: CatRuntimeState };
   elRef: { current: HTMLDivElement | null };
   lastStateRef: { current: CatActivityState };
@@ -24,13 +26,7 @@ export function useCatAnimation({
   zIndex: number;
 }) {
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const prefersReduced =
-      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-    if (prefersReduced) {
+    if (!enabled || typeof window === "undefined") {
       return;
     }
 
@@ -45,6 +41,7 @@ export function useCatAnimation({
       zIndex,
     });
   }, [
+    enabled,
     stateRef,
     elRef,
     lastStateRef,

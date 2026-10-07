@@ -1,71 +1,61 @@
 import { TILE } from "./constants";
+import { ONEKO_DEFAULTS } from "./defaults";
 import type { CatRuntimeState } from "./types";
+
+export type PersistedPosition = { version: 1; x: number; y: number };
+
+export function parsePersistedPosition(value: unknown): PersistedPosition | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  if (record.version !== undefined && record.version !== 1) return null;
+  const x = record.version === 1 ? record.x : record.nekoPosX;
+  const y = record.version === 1 ? record.y : record.nekoPosY;
+  if (typeof x !== "number" || !Number.isFinite(x)) return null;
+  if (typeof y !== "number" || !Number.isFinite(y)) return null;
+  return { version: 1, x, y };
+}
 
 export function loadPersistedCatState(
   stateRef: { current: CatRuntimeState },
   el: HTMLDivElement,
-  storageKey = "oneko",
+  storageKey = ONEKO_DEFAULTS.storageKey,
 ): void {
-  let parsed: Record<string, unknown> | null = null;
+  let position: PersistedPosition | null;
   try {
-    const raw = window.localStorage.getItem(storageKey);
-    parsed = raw ? JSON.parse(raw) : null;
+    position = parsePersistedPosition(
+      JSON.parse(window.localStorage.getItem(storageKey) ?? "null"),
+    );
   } catch {
-    parsed = null;
-  }
-
-  if (!parsed) {
     return;
   }
+  if (!position) return;
 
-  const apply = <K extends keyof CatRuntimeState>(key: K, value: unknown) => {
-    if (value !== undefined && value !== null) {
-      stateRef.current[key] = value as CatRuntimeState[K];
-    }
+  const clamp = (value: number, extent: number) => {
+    const inset = Math.min(TILE / 2, Math.max(0, extent / 2));
+    return Math.max(inset, Math.min(Math.max(inset, extent - inset), value));
   };
-
-  apply("nekoPosX", parsed.nekoPosX);
-  apply("nekoPosY", parsed.nekoPosY);
-  apply("mousePosX", parsed.mousePosX);
-  apply("mousePosY", parsed.mousePosY);
-  apply("frameCount", parsed.frameCount);
-  apply("idleTime", parsed.idleTime);
-  apply("idleAnimation", parsed.idleAnimation);
-  apply("idleAnimationFrame", parsed.idleAnimationFrame);
-
-  if (parsed.bgPos) {
-    el.style.backgroundPosition = parsed.bgPos as string;
-  }
-
-  const s0 = stateRef.current;
-  el.style.left = `${s0.nekoPosX - TILE / 2}px`;
-  el.style.top = `${s0.nekoPosY - TILE / 2}px`;
+  const state = stateRef.current;
+  state.nekoPosX = state.mousePosX = clamp(position.x, window.innerWidth);
+  state.nekoPosY = state.mousePosY = clamp(position.y, window.innerHeight);
+  state.nekoVelX = state.nekoVelY = 0;
+  state.currentPath = [];
+  state.pathWaypointIdx = 0;
+  el.style.left = `${state.nekoPosX - TILE / 2}px`;
+  el.style.top = `${state.nekoPosY - TILE / 2}px`;
 }
 
 export function createPersistHandler(
   stateRef: { current: CatRuntimeState },
-  el: HTMLDivElement,
-  storageKey = "oneko",
+  storageKey = ONEKO_DEFAULTS.storageKey,
 ): () => void {
   return () => {
+    const state = stateRef.current;
+    const position = parsePersistedPosition({ version: 1, x: state.nekoPosX, y: state.nekoPosY });
+    if (!position) return;
     try {
-      const s = stateRef.current;
-      window.localStorage.setItem(
-        storageKey,
-        JSON.stringify({
-          nekoPosX: s.nekoPosX,
-          nekoPosY: s.nekoPosY,
-          mousePosX: s.mousePosX,
-          mousePosY: s.mousePosY,
-          frameCount: s.frameCount,
-          idleTime: s.idleTime,
-          idleAnimation: s.idleAnimation,
-          idleAnimationFrame: s.idleAnimationFrame,
-          bgPos: el.style.backgroundPosition,
-        }),
-      );
+      window.localStorage.setItem(storageKey, JSON.stringify(position));
     } catch {
-      // ignore
+      // Position persistence is optional when browser storage is unavailable.
     }
   };
 }

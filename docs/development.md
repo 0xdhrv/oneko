@@ -6,7 +6,7 @@ covers maintainer workflow.
 
 ## Requirements
 
-- Node.js LTS
+- Node.js 22 or newer (an active LTS release is recommended)
 - pnpm
 
 ## Local Workflow
@@ -20,15 +20,74 @@ Open [http://localhost:3000](http://localhost:3000) to use the playground.
 
 ## Scripts
 
-| Command                               | Description                                          |
-| ------------------------------------- | ---------------------------------------------------- |
-| `pnpm dev`                            | Start the local playground server.                   |
-| `pnpm run registry:build`             | Build `public/r/oneko.json` from `registry.json`.    |
-| `pnpm build`                          | Build registry output, then build the hosted site.   |
-| `pnpm start`                          | Start the production server after a build.           |
-| `pnpm run lint` / `pnpm run lint:fix` | Run oxlint.                                          |
-| `pnpm run fmt` / `pnpm run fmt:check` | Run oxfmt.                                           |
-| `pnpm run generate:favicons`          | Regenerate favicon assets from `public/favicon.svg`. |
+| Command                               | Description                                            |
+| ------------------------------------- | ------------------------------------------------------ |
+| `pnpm dev`                            | Start the local playground server.                     |
+| `pnpm run registry:build`             | Build `public/r/oneko.json` from `registry.json`.      |
+| `pnpm build`                          | Build registry output, then build the hosted site.     |
+| `pnpm start`                          | Start the production server after a build.             |
+| `pnpm build:cloudflare`               | Build the registry, site, and OpenNext Worker.         |
+| `pnpm preview`                        | Build and serve the app in the local Workers runtime.  |
+| `pnpm deploy:check`                   | Build and validate a Worker upload without publishing. |
+| `pnpm deploy`                         | Build and publish to Cloudflare Workers.               |
+| `pnpm cf-typegen`                     | Generate local Cloudflare binding types.               |
+| `pnpm run lint` / `pnpm run lint:fix` | Run oxlint.                                            |
+| `pnpm run fmt` / `pnpm run fmt:check` | Run oxfmt.                                             |
+| `pnpm run generate:favicons`          | Regenerate favicon assets from `public/favicon.svg`.   |
+
+## Cloudflare Workers
+
+The site uses the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare/get-started)
+to retain Next.js routing and Markdown content negotiation in `proxy.ts`. `wrangler.jsonc`
+defines the Worker and static assets; `open-next.config.ts` defines the adapter build.
+
+```bash
+pnpm install --frozen-lockfile
+pnpm deploy:check
+pnpm preview
+```
+
+Open the local Workers URL printed by Wrangler (normally `http://localhost:8787`). Check
+`/`, `/studio`, `/docs`, `/docs.md`, `/llms.txt`, `/llms-full.txt`, `/r/oneko.json`, and
+`/r/oneko-classic.json`. Requests to `/` and `/docs` with `Accept: text/markdown` should
+return Markdown, and missing pages should return HTTP 404.
+
+To publish from your machine, run `pnpm exec wrangler login`, then `pnpm deploy`.
+The Worker name defaults to `oneko`; if you rename it, also update the
+`WORKER_SELF_REFERENCE` service to the same name. Attach `oneko.dhrv.pw` under the Worker's
+**Settings → Domains & Routes** after deployment when moving the existing site.
+
+For Cloudflare Workers Builds connected to this repository, configure:
+
+| Setting                       | Value                                    |
+| ----------------------------- | ---------------------------------------- |
+| Root directory                | Repository root                          |
+| Build command                 | `pnpm build:cloudflare`                  |
+| Deploy command                | `pnpm exec opennextjs-cloudflare deploy` |
+| Preview command               | `pnpm exec opennextjs-cloudflare upload` |
+| Build variable `NODE_VERSION` | `24.12.0`                                |
+| Build variable `PNPM_VERSION` | `10.33.2`                                |
+
+Set `NEXT_PUBLIC_SITE_URL` in the build environment if the canonical hostname differs from
+`https://oneko.dhrv.pw`. Next.js embeds it during the build; a runtime-only variable does
+not update prerendered metadata. `pnpm deploy` rebuilds the app, while the Git deploy command
+above uses the output from its separate build step.
+
+The current app has no ISR or runtime data cache, so no R2 bucket is required. If you add
+revalidation or cached server fetches, configure a persistent cache following the
+[OpenNext caching guide](https://opennext.js.org/cloudflare/caching).
+Fingerprint-named Next.js assets use immutable caching through `public/_headers`.
+Syntax highlighting uses Shiki's JavaScript regex engine and only the site's Bash, HTML,
+and TSX grammars. Workers cannot compile the default engine's inline WebAssembly at runtime.
+Next.js bundles these selected imports via `transpilePackages` to avoid including Shiki's
+full language catalog in the Worker.
+OpenNext currently labels Node.js proxy support as experimental; verify Markdown negotiation
+with `pnpm preview` after upgrading Next.js or the adapter.
+Wrangler minifies the Worker with `keep_names: false` so the inline script generated by
+`next-themes` does not reference Worker-only name-preservation helpers. Vercel Analytics is
+enabled only on Vercel deployments.
+Generated Worker output, local Wrangler state, local secrets, and generated binding types
+are ignored by Git. Run `pnpm cf-typegen` after changing bindings if server code needs them.
 
 ## Registry
 
@@ -41,9 +100,35 @@ npx shadcn@latest add https://oneko.dhrv.pw/r/oneko.json
 `registry.json` is the source of truth. `pnpm run registry:build` emits:
 
 - `public/r/oneko.json`
+- `public/r/oneko-classic.json`
 - `public/r/registry.json`
 
 `prebuild` runs `registry:build`, so production builds keep the generated registry files current.
+After shadcn builds the full item, `scripts/build-registry.mjs` derives the classic item by
+replacing only its sprite-sheet data. The catalog filters itself against available sheets, and
+the engine source stays identical. Registry tests compile both variants in isolated projects.
+
+Run `node scripts/measure-registry.mjs` after rebuilding to compare minified and gzipped consumer
+bundles. It builds both generated installations with the same Vite settings and excludes React
+from both measurements.
+
+## Browser checks
+
+```bash
+pnpm registry:build
+pnpm exec playwright install chromium
+pnpm test:browser
+```
+
+The checks start the studio on port 3101 and a Vite consumer fixture on port 3102. The fixture
+extracts the generated full registry into `.codex/browser-consumer`, so runtime checks exercise
+the installed files. They cover live motion preferences, cursor restoration, position storage,
+quiet defaults, presets, share links, configuration files, and a narrow viewport.
+
+If Chrome is already installed, `PLAYWRIGHT_CHANNEL=chrome pnpm test:browser` uses it instead.
+Playwright saves traces for failed checks under `test-results/`. Rebuild the registry after
+changing an installed file. The shared defaults live in `lib/oneko/defaults.ts`; studio defaults
+and generated JSX use that same definition.
 
 ## App Entrypoints
 

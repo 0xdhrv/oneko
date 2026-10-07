@@ -199,10 +199,10 @@ describe("installation options", () => {
       },
     });
     const d = deps();
-    createPersistHandler(d.stateRef, d.el, "cat:shop")();
+    createPersistHandler(d.stateRef, "cat:shop")();
     expect(saved.has("oneko")).toBe(false);
     d.stateRef.current.nekoPosX = 100;
-    createPersistHandler(d.stateRef, d.el)();
+    createPersistHandler(d.stateRef)();
     loadPersistedCatState(d.stateRef, d.el, "cat:shop");
     expect(d.stateRef.current.nekoPosX).toBe(250);
     loadPersistedCatState(d.stateRef, d.el);
@@ -224,7 +224,7 @@ describe("installation options", () => {
     expect(usage).toContain("followCursor={false}");
     expect(usage).toContain('bubblePlacement={"below"}');
     expect(usage).toContain('bubbleText={["Treats \\"please\\"","</code>"]}');
-    expect(usage).toContain("meow={false}");
+    expect(usage).not.toContain("meow=");
     expect(usage).not.toContain("showCat");
     expect(usage).not.toContain("speed=");
   });

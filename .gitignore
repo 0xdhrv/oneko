@@ -14,8 +14,14 @@ next.user-config.*
 node_modules
 coverage/
 .next/
+.open-next/
+.wrangler/
+.dev.vars*
+cloudflare-env.d.ts
 .DS_Store
 tsconfig.tsbuildinfo
 .cursor/
 .codex/
+test-results/
+playwright-report/
 tsconfig.tsbuildinfo
