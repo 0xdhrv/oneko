@@ -2,7 +2,7 @@
   <br />
   <img src="./public/icon-512.png" alt="Oneko pixel cat" width="112" />
   <h1>Oneko</h1>
-  <p>A tiny pixel cat that makes React apps feel alive.</p>
+  <p>A tiny pixel cat for your website: a React component, or one script tag.</p>
   <p>
     <a href="https://oneko.dhrv.pw">Playground</a>
     ·
@@ -17,6 +17,12 @@
     <a href="https://github.com/0xdhrv/oneko/blob/main/LICENSE"><img src="https://shieldcn.dev/github/license/0xdhrv/oneko.svg?variant=secondary" alt="License: MIT" /></a>
     <a href="https://github.com/0xdhrv/oneko/commits"><img src="https://shieldcn.dev/github/commits/0xdhrv/oneko.svg?variant=secondary" alt="Last commit" /></a>
   </p>
+  <p>
+    <a href="https://buymeacoffee.com/0xdhrv"><img alt="Buy Me a Coffee" src="https://shieldcn.dev/badge/buymecoffee-FFDD04.svg?size=default&amp;theme=neutral&amp;logo=buymeacoffee" /></a>
+    <a href="https://github.com/0xdhrv"><img alt="GitHub" src="https://shieldcn.dev/badge/github-181717.svg?size=default&amp;theme=neutral&amp;logo=github" /></a>
+    <a href="https://x.com/0xdhrv"><img alt="X (Twitter)" src="https://shieldcn.dev/badge/twitter-1DA1F2.svg?size=default&amp;theme=neutral&amp;logo=x" /></a>
+  </p>
+  <img src="./public/og.png" alt="Six pixel cats in different skins: idle, running, scratching, alert, tired, and sleeping" width="720" />
   <br />
 </div>
 
@@ -38,6 +44,14 @@ For a smaller installation with the classic coat and custom sprite support:
 ```bash
 npx shadcn@latest add https://oneko.dhrv.pw/r/oneko-classic.json
 ```
+
+| Install         | Skins                 | Initial bundle (gzip) | Loaded on demand                             |
+| --------------- | --------------------- | --------------------- | -------------------------------------------- |
+| `oneko`         | 24 named skins        | ~31 KB                | ~558 KB, the first time a named skin is used |
+| `oneko-classic` | Classic + `spriteSrc` | ~31 KB                | none                                         |
+
+The classic coat ships inline. The other sheets load in one chunk only when a non-classic `skin`
+is rendered. Measured with `node scripts/measure-registry.mjs` (React excluded).
 
 Both versions use the same component and animation engine. Choose the full version above for all
 24 named skins. They install to the same paths, so choose one version per project. To switch,
@@ -62,6 +76,36 @@ export function CatLayer() {
 For SSR-enabled apps, render this client component from the appropriate client-only boundary. In
 Next.js App Router, a client wrapper with `dynamic(..., { ssr: false })` is a convenient option—see
 the [installation guide](https://oneko.dhrv.pw/docs#installation) for the complete setup.
+
+### Without React
+
+Astro, Hugo, Jekyll, WordPress, or a plain HTML page can load the hosted build instead. One tag
+brings a cat; options are `data-` attributes named after the props:
+
+```html
+<script type="module" src="https://oneko.dhrv.pw/oneko.js" data-skin="calico" data-meow></script>
+```
+
+Or place the element where you like and change its attributes at runtime:
+
+```html
+<script type="module" src="https://oneko.dhrv.pw/oneko.js"></script>
+<oneko-cat skin="ginger" bubble-text="mrrp?|nap time"></oneko-cat>
+```
+
+For full control, import the API and keep the instance:
+
+```js
+import { createOneko } from "https://oneko.dhrv.pw/oneko.js";
+
+const cat = createOneko({ skin: "tuxedo", laserPointer: true });
+cat.update({ paused: true });
+cat.destroy();
+```
+
+The script is about 33 KB gzipped; named skins load on first use. Sounds default to the hosted
+files, so `data-meow` works without copying anything. Add `data-manual` to load the script without
+the automatic cat.
 
 ## Make it yours
 
@@ -135,12 +179,18 @@ You can also provide selector- and rectangle-based zones through the `zones` pro
 
 ### Add sound
 
-Sound is off by default. To enable it, copy this repository’s `public/cat-sounds/` directory into
-your app’s public assets and render `<Oneko meow />`. Keep the default
-`soundBasePath="/cat-sounds"`, or point it to your sound directory. Browsers may wait for a
+Sound is off by default. The quickest way to enable it is to use the hosted files:
+
+```tsx
+<Oneko meow soundBasePath="https://oneko.dhrv.pw/cat-sounds" />
+```
+
+To self-host, copy this repository’s `public/cat-sounds/` directory into your app’s public assets
+and render `<Oneko meow />` with the default `soundBasePath="/cat-sounds"`. Browsers may wait for a
 visitor’s first interaction before playing audio.
 
-The cat and laser follow changes to the visitor's reduced-motion preference. Position saving
+The cat and laser follow changes to the visitor's reduced-motion preference. Set
+`reducedMotion="rest"` to show a still, sleeping cat instead of hiding it. Position saving
 uses validated coordinates and runs when the page hides or the component unmounts.
 
 ## Documentation
@@ -168,9 +218,10 @@ pnpm test
 pnpm build
 ```
 
-`pnpm build` regenerates the registry before building the site. Use `pnpm run registry:build` when
+`pnpm build` regenerates the registry and the hosted `public/oneko.js` before building the site. Use `pnpm run registry:build` when
 you only need to refresh the full and classic registry files. See [development notes](docs/development.md)
-for installed-component browser checks.
+for installed-component browser checks. `pnpm test:browser` also covers the hosted script.
+After changing skins or the title, run `pnpm generate:og` to refresh the social preview image.
 
 ### Deploy to Cloudflare Workers
 
@@ -198,6 +249,7 @@ canonical URLs, and deployment checks.
 | `hooks/` and `lib/oneko/` | Animation hook and engine.                         |
 | `registry.json`           | Source manifest for the shadcn registry item.      |
 | `public/r/`               | Generated registry JSON served to installers.      |
+| `lib/oneko/vanilla*.ts`   | Framework-free build served as `/oneko.js`.        |
 | `app/`                    | Next.js playground and documentation routes.       |
 | `docs/`                   | Component API, skins, and local-development notes. |
 

@@ -1,2 +1,18 @@
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
+
+/cat-sounds/*
+  Cache-Control: public, max-age=604800
+  Access-Control-Allow-Origin: *
+
+/og.png
+  Cache-Control: public, max-age=86400
+
+# Hosted plain-script build; cross-origin module scripts need CORS.
+/oneko.js
+  Cache-Control: public, max-age=3600
+  Access-Control-Allow-Origin: *
+
+/oneko/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *

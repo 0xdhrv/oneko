@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SHEET_PATH = "lib/oneko/skin-sheets.json";
+const IDS_PATH = "lib/oneko/skin-ids.json";
 const CLASSIC_DESCRIPTION =
   "Pixel cat for React with the classic coat, custom sprites, keep-out zones, favorite spots, adjustable bubbles, and optional sounds that are off by default.";
 const CLASSIC_DOCS =
@@ -24,11 +25,19 @@ export function deriveClassicItem(full) {
     title: "Oneko Classic",
     description: CLASSIC_DESCRIPTION,
     docs: CLASSIC_DOCS,
-    files: full.files.map((file) =>
-      file.path === SHEET_PATH
-        ? { ...file, content: `${JSON.stringify({ classic: sheets.classic }, null, 2)}\n` }
-        : { ...file },
-    ),
+    files: full.files.map((file) => {
+      if (file.path === SHEET_PATH)
+        return {
+          ...file,
+          content: `${JSON.stringify({ classic: sheets.classic }, null, 2)}\n`,
+        };
+      if (file.path === IDS_PATH)
+        return {
+          ...file,
+          content: `${JSON.stringify(["classic"], null, 2)}\n`,
+        };
+      return { ...file };
+    }),
   };
 }
 
@@ -51,7 +60,10 @@ export function buildClassicRegistry(root = process.cwd()) {
     description: classic.description,
     docs: classic.docs,
   };
-  const index = { ...manifest, items: [...manifest.items, classicManifestItem] };
+  const index = {
+    ...manifest,
+    items: [...manifest.items, classicManifestItem],
+  };
   writeFileSync(resolve(root, "public/r/registry.json"), `${JSON.stringify(index, null, 2)}\n`);
 }
 

@@ -40,3 +40,7 @@ for (const id of variants) {
 }
 
 await writeFile(catalog, `${JSON.stringify(sheets, null, 2)}\n`);
+await writeFile(
+  new URL("lib/oneko/skin-ids.json", root),
+  `${JSON.stringify(Object.keys(sheets), null, 2)}\n`,
+);

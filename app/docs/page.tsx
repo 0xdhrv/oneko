@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { OG_IMAGE } from "@/lib/site-url";
 import { ArrowDown, ArrowUp, ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { CopyButton } from "@/components/docs/copy-button";
@@ -18,20 +19,20 @@ export const metadata: Metadata = {
     description,
     url: "/docs",
     type: "website",
-    images: ["/icon-512.png"],
+    images: [OG_IMAGE],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Oneko React & Next.js Installation Guide",
     description,
-    images: ["/icon-512.png"],
+    images: [OG_IMAGE.url],
   },
 };
 
 export default async function DocsPage() {
   const sidebarSections = [
     { id: "overview", title: "Overview" },
-    ...DOC_SECTIONS.map(({ id, title }) => ({ id, title })),
+    ...DOC_SECTIONS.map(({ id, label }) => ({ id, title: label })),
   ];
   const highlightedSections = await Promise.all(
     DOC_SECTIONS.map(async (section) => ({
@@ -87,6 +88,7 @@ export default async function DocsPage() {
               <div className="docs-section-heading">
                 <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                 <h2 id={`${section.id}-title`}>
+                  <span className="docs-section-label">{section.label}</span>
                   <a href={`#${section.id}`}>{section.title}</a>
                 </h2>
               </div>
@@ -113,7 +115,9 @@ export default async function DocsPage() {
                       className="docs-highlighted-code"
                       role="region"
                       aria-label={block.label}
-                      dangerouslySetInnerHTML={{ __html: block.highlightedCode }}
+                      dangerouslySetInnerHTML={{
+                        __html: block.highlightedCode,
+                      }}
                     />
                   </figure>
                 );

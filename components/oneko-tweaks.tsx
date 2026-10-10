@@ -15,7 +15,8 @@ import { OnekoCustomAssets } from "@/components/oneko-custom-assets";
 import { OnekoZones } from "@/components/oneko-zones";
 import { OnekoSettings } from "@/components/oneko-settings";
 import { OnekoInstall } from "@/components/oneko-install";
-import { getSkinSource, ONEKO_SKINS } from "@/lib/oneko/skins";
+import { getBundledSkinSource } from "@/lib/bundled-skins";
+import { ONEKO_SKINS } from "@/lib/oneko/skins";
 import { ONEKO_PERSONALITIES, selectedPersonality } from "@/lib/oneko/personalities";
 
 const SECTIONS = [
@@ -181,7 +182,9 @@ export function OnekoTweaks() {
                         <span
                           className="oneko-skin-preview"
                           aria-hidden="true"
-                          style={{ backgroundImage: `url("${getSkinSource(skin.id)}")` }}
+                          style={{
+                            backgroundImage: `url("${getBundledSkinSource(skin.id)}")`,
+                          }}
                         />
                         <span>{skin.name}</span>
                         <span className="oneko-skin-mark" aria-hidden="true">

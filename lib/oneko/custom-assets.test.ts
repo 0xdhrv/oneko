@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
-import { getSkinSource } from "./skins";
+import { getBundledSkinSource } from "../bundled-skins";
 import {
   isSavedSprite,
   MAX_SPRITE_BYTES,
@@ -12,7 +12,11 @@ import { restorePlaygroundState, DEFAULT_ONEKO_PLAYGROUND_STATE } from "./playgr
 import { createOnekoUsage } from "./usage";
 
 function textFile(text: string, name = "thoughts.txt") {
-  return { name, size: new TextEncoder().encode(text).length, text: async () => text } as File;
+  return {
+    name,
+    size: new TextEncoder().encode(text).length,
+    text: async () => text,
+  } as File;
 }
 
 afterEach(() => vi.unstubAllGlobals());
@@ -35,11 +39,11 @@ describe("custom assets", () => {
   });
 
   it("only restores bounded PNG sheets with the expected dimensions", () => {
-    expect(isSavedSprite(getSkinSource("classic"))).toBe(true);
+    expect(isSavedSprite(getBundledSkinSource("classic"))).toBe(true);
     expect(isSavedSprite("https://example.com/cat.png")).toBe(false);
     expect(isSavedSprite("data:image/svg+xml;base64,PHN2Zz4=")).toBe(false);
     expect(isSavedSprite("data:image/png;base64,broken")).toBe(false);
-    const bytes = Buffer.from(getSkinSource("classic").split(",")[1], "base64");
+    const bytes = Buffer.from(getBundledSkinSource("classic").split(",")[1], "base64");
     bytes.writeUInt32BE(128, 16);
     expect(isSavedSprite(`data:image/png;base64,${bytes.toString("base64")}`)).toBe(false);
     expect(isSavedSprite(`data:image/png;base64,${"a".repeat(MAX_SPRITE_BYTES * 2)}`)).toBe(false);
@@ -50,7 +54,7 @@ describe("custom assets", () => {
     vi.stubGlobal(
       "FileReader",
       class {
-        result = getSkinSource("classic");
+        result = getBundledSkinSource("classic");
         onload = () => {};
         readAsDataURL() {
           this.onload();
@@ -74,19 +78,19 @@ describe("custom assets", () => {
         }
       },
     );
-    await expect(readSprite({ size: 100 } as File)).resolves.toBe(getSkinSource("classic"));
+    await expect(readSprite({ size: 100 } as File)).resolves.toBe(getBundledSkinSource("classic"));
   });
 
   it("round-trips assets and exports portable props without upload metadata", () => {
     const saved = restorePlaygroundState(
       JSON.stringify({
         ...DEFAULT_ONEKO_PLAYGROUND_STATE,
-        spriteSrc: getSkinSource("classic"),
+        spriteSrc: getBundledSkinSource("classic"),
         spriteName: "my cat.png",
         bubbleText: "Hello\nTreats?",
       }),
     );
-    expect(saved.spriteSrc).toBe(getSkinSource("classic"));
+    expect(saved.spriteSrc).toBe(getBundledSkinSource("classic"));
     expect(saved.bubbleText).toBe("Hello\nTreats?");
     const usage = createOnekoUsage(saved);
     expect(usage).toContain(`spriteSrc={${JSON.stringify(saved.spriteSrc)}}`);

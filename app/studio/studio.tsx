@@ -8,12 +8,17 @@ import OnekoPlayground from "../oneko-playground";
 import { OnekoTweaks } from "@/components/oneko-tweaks";
 import { OnekoWorld } from "@/components/oneko-world";
 import { useOnekoPlayground } from "@/components/oneko-playground-context";
-import { getSkinSource, ONEKO_SKINS } from "@/lib/oneko/skins";
+import { getBundledSkinSource } from "@/lib/bundled-skins";
+import { ONEKO_SKINS } from "@/lib/oneko/skins";
 
 function Companion() {
   const { state, actions } = useOnekoPlayground();
   const portraitRef = useRef<HTMLSpanElement>(null);
-  useSpriteAppearance(portraitRef, state.spriteSrc || getSkinSource(state.skin), state.hueRotate);
+  useSpriteAppearance(
+    portraitRef,
+    state.spriteSrc || getBundledSkinSource(state.skin),
+    state.hueRotate,
+  );
   const name = state.spriteSrc
     ? "Your custom companion"
     : (ONEKO_SKINS.find((skin) => skin.id === state.skin)?.name ?? "Classic");

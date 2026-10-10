@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_ONEKO_PLAYGROUND_STATE } from "./playground-defaults";
-import { getSkinSource } from "./skins";
+import { getBundledSkinSource } from "../bundled-skins";
 import {
   createShareURL,
   MAX_CONFIGURATION_BYTES,
@@ -23,7 +23,7 @@ describe("portable configuration", () => {
   it("round-trips a complete configuration without dropping artwork or Unicode thoughts", () => {
     const settings = {
       ...DEFAULT_ONEKO_PLAYGROUND_STATE,
-      spriteSrc: getSkinSource("calico"),
+      spriteSrc: getBundledSkinSource("calico"),
       spriteName: "我的猫.png",
       bubbleText: "म्याऊँ 🐈\nTreats?",
       meow: true,
@@ -88,8 +88,14 @@ describe("portable configuration", () => {
   it("rejects oversized input before reading and undecodable custom sprites before applying", async () => {
     const text = vi.fn();
     await expect(
-      readConfiguration({ size: MAX_CONFIGURATION_BYTES + 1, text } as unknown as File),
-    ).resolves.toMatchObject({ ok: false, error: expect.stringContaining("512 KB") });
+      readConfiguration({
+        size: MAX_CONFIGURATION_BYTES + 1,
+        text,
+      } as unknown as File),
+    ).resolves.toMatchObject({
+      ok: false,
+      error: expect.stringContaining("512 KB"),
+    });
     expect(text).not.toHaveBeenCalled();
     vi.stubGlobal(
       "Image",
@@ -99,10 +105,13 @@ describe("portable configuration", () => {
         }
       },
     );
-    const raw = JSON.stringify(configuration({ spriteSrc: getSkinSource("classic") }));
+    const raw = JSON.stringify(configuration({ spriteSrc: getBundledSkinSource("classic") }));
     await expect(
       readConfiguration({ size: raw.length, text: async () => raw } as File),
-    ).resolves.toMatchObject({ ok: false, error: expect.stringContaining("PNG") });
+    ).resolves.toMatchObject({
+      ok: false,
+      error: expect.stringContaining("PNG"),
+    });
     vi.stubGlobal(
       "Image",
       class {
@@ -131,11 +140,17 @@ describe("share links", () => {
     expect(url.origin).toBe("https://example.com");
     expect(url.pathname).toBe("/studio");
     expect(url.search).toBe("");
-    expect(parseShareFragment(url.hash)).toEqual({ ok: true, value: { version: 1, settings } });
+    expect(parseShareFragment(url.hash)).toEqual({
+      ok: true,
+      value: { version: 1, settings },
+    });
   });
 
   it("keeps custom artwork intact through a file fallback", () => {
-    const settings = { ...DEFAULT_ONEKO_PLAYGROUND_STATE, spriteSrc: getSkinSource("classic") };
+    const settings = {
+      ...DEFAULT_ONEKO_PLAYGROUND_STATE,
+      spriteSrc: getBundledSkinSource("classic"),
+    };
     expect(createShareURL("https://example.com/studio", settings)).toMatchObject({
       ok: false,
       error: expect.stringContaining("Download"),
@@ -158,7 +173,10 @@ describe("share links", () => {
   });
 
   it("ignores ordinary anchors and reports damaged shared configurations", () => {
-    expect(parseShareFragment("#installation")).toEqual({ ok: true, value: null });
+    expect(parseShareFragment("#installation")).toEqual({
+      ok: true,
+      value: null,
+    });
     expect(parseShareFragment("#oneko=%%%")).toMatchObject({ ok: false });
     expect(parseShareFragment("#oneko=_w")).toMatchObject({ ok: false });
     expect(parseShareFragment("#oneko=" + btoa('{"version":99}'))).toMatchObject({ ok: false });

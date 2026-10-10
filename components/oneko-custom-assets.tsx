@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useOnekoPlayground } from "./oneko-playground-context";
-import { getSkinSource } from "@/lib/oneko/skins";
+import { getBundledSkinSource } from "@/lib/bundled-skins";
 import {
   MAX_THOUGHT_TEXT_LENGTH,
   readSprite,
@@ -55,7 +55,11 @@ export function OnekoCustomAssets({ section }: { section: "sprite" | "thoughts" 
               try {
                 const spriteSrc = await readSprite(file);
                 if (request === pending.current)
-                  actions.update({ spriteSrc, spriteName: file.name, hueRotate: 0 });
+                  actions.update({
+                    spriteSrc,
+                    spriteName: file.name,
+                    hueRotate: 0,
+                  });
               } catch (error) {
                 if (request === pending.current)
                   setSpriteError(
@@ -67,7 +71,7 @@ export function OnekoCustomAssets({ section }: { section: "sprite" | "thoughts" 
             }}
           />
           <div className="oneko-asset-actions">
-            <a href={getSkinSource("classic")} download="oneko-template.png">
+            <a href={getBundledSkinSource("classic")} download="oneko-template.png">
               Download sprite template
             </a>
             {state.spriteSrc && (

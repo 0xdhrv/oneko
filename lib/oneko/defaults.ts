@@ -28,6 +28,7 @@ export const ONEKO_DEFAULTS = {
   zoneAttractionDuration: 4000,
   skin: "classic" as NonNullable<OnekoProps["skin"]>,
   persistPosition: true,
+  reducedMotion: "hide" as NonNullable<OnekoProps["reducedMotion"]>,
   zIndex: DEFAULT_Z_INDEX,
   speed: DEFAULT_SPEED,
   scale: DEFAULT_SCALE,

@@ -1,17 +1,22 @@
 import { useEffect } from "react";
 import { useSpriteAppearance } from "@/hooks/use-sprite-appearance";
 import { applyRuntimeConfig, type CatRuntimeConfig } from "@/lib/oneko/runtime-config";
-import { getSkinSource, type OnekoSkin } from "@/lib/oneko/skins";
+import { useSkinSource } from "@/hooks/use-skin-source";
+import type { OnekoSkin } from "@/lib/oneko/skins";
 import type { CatRuntimeState } from "@/lib/oneko/types";
 
-type SyncableProps = CatRuntimeConfig & { hueRotate: number; skin: OnekoSkin; spriteSrc?: string };
+type SyncableProps = CatRuntimeConfig & {
+  hueRotate: number;
+  skin: OnekoSkin;
+  spriteSrc?: string;
+};
 
 export function useOnekoPropsSync(
   stateRef: { current: CatRuntimeState },
   elRef: { current: HTMLDivElement | null },
   props: SyncableProps,
 ) {
-  useSpriteAppearance(elRef, props.spriteSrc || getSkinSource(props.skin), props.hueRotate);
+  useSpriteAppearance(elRef, useSkinSource(props.skin, props.spriteSrc), props.hueRotate);
 
   // Reapply after a render, including when the animation DOM is remounted.
   useEffect(() => {

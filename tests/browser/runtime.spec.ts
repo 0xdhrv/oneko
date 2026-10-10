@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { getBundledSkinSource } from "../../lib/bundled-skins";
 
 const fixture = "http://127.0.0.1:3102";
 
@@ -13,7 +14,10 @@ test("motion preferences control both engines live and preserve appearance and c
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await expect(page.locator("#oneko-react")).toHaveCount(1);
   await expect(page.locator("#oneko-react")).toHaveCSS("opacity", "0.5");
-  await expect(page.locator("#oneko-react")).toHaveCSS("background-image", /data:image\/png/);
+  // Named skins load on demand; the calico sheet must replace the empty placeholder.
+  await expect
+    .poll(() => page.locator("#oneko-react").evaluate((el) => el.style.backgroundImage))
+    .toContain(getBundledSkinSource("calico").slice(-64));
   const sprite = await page.locator("#oneko-react").evaluate((el) => el.style.backgroundImage);
   await expect(page.locator("body")).toHaveCSS("cursor", "none");
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -33,7 +37,11 @@ test("validates old position data, clamps it, and saves on unmount under the ori
   await page.addInitScript(() => {
     localStorage.setItem(
       "oneko",
-      JSON.stringify({ nekoPosX: 200, nekoPosY: 220, idleAnimation: "invalid" }),
+      JSON.stringify({
+        nekoPosX: 200,
+        nekoPosY: 220,
+        idleAnimation: "invalid",
+      }),
     );
     localStorage.setItem("second-cat", JSON.stringify({ version: 1, x: 1_000_000, y: -100 }));
   });
@@ -74,4 +82,22 @@ test("a fresh install stays silent and disabling persistence leaves storage alon
   await page.getByRole("button", { name: "Hide cat" }).click();
   expect(sounds).toEqual([]);
   expect(await page.evaluate(() => localStorage.getItem("oneko"))).toBe("invalid saved data");
+});
+
+test("reduced motion can leave a still, sleeping cat in place of the animation", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(`${fixture}/?rest&calico&no-persistence`);
+  const resting = page.locator('div[aria-hidden="true"][style*="background-position"]');
+  await expect(resting).toHaveCount(1);
+  await expect(page.locator("#oneko-react")).toHaveCount(0);
+  await expect(resting).toHaveCSS("pointer-events", "none");
+  await expect(resting).toHaveCSS("background-position", "-64px 0px");
+  expect(await resting.evaluate((el) => el.style.backgroundImage)).toContain(
+    getBundledSkinSource("calico").slice(-64),
+  );
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(resting).toHaveCount(0);
+  await expect(page.locator("#oneko-react")).toHaveCount(1);
 });

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "registry:build": "shadcn build && node scripts/build-registry.mjs && oxfmt public/r/*.json",
-    "prebuild": "pnpm run registry:build",
+    "prebuild": "pnpm run registry:build && pnpm run build:vanilla",
+    "build:vanilla": "node scripts/build-vanilla.mjs",
     "build": "next build",
     "build:cloudflare": "opennextjs-cloudflare build",
     "preview": "pnpm build:cloudflare && opennextjs-cloudflare preview",
@@ -19,6 +20,7 @@
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "generate:favicons": "node scripts/generate-favicons.mjs",
+    "generate:og": "node scripts/generate-og-image.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:browser": "playwright test",

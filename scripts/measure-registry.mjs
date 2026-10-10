@@ -34,7 +34,10 @@ async function measure(name) {
           input: entry,
           external: (id) => id === "react" || id.startsWith("react/"),
           preserveEntrySignatures: "strict",
-          output: { format: "es", inlineDynamicImports: true, entryFileNames: "oneko.js" },
+          output: {
+            format: "es",
+            entryFileNames: "oneko.js",
+          },
         },
       },
     });
@@ -42,11 +45,15 @@ async function measure(name) {
     const chunks = outputs
       .flatMap((output) => output.output)
       .filter((file) => file.type === "chunk");
-    if (chunks.length !== 1) throw new Error(`Expected one consumer chunk, got ${chunks.length}`);
+    const size = (files) => ({
+      rawBytes: files.reduce((sum, file) => sum + Buffer.byteLength(file.code), 0),
+      gzipBytes: files.reduce((sum, file) => sum + gzipSync(file.code).length, 0),
+    });
+    // Initial cost is what every page pays; on-demand chunks load only for non-classic skins.
     return {
       variant: name,
-      rawBytes: Buffer.byteLength(chunks[0].code),
-      gzipBytes: gzipSync(chunks[0].code).length,
+      ...size(chunks.filter((file) => file.isEntry)),
+      onDemand: size(chunks.filter((file) => !file.isEntry)),
     };
   } finally {
     rmSync(destination, { recursive: true, force: true });

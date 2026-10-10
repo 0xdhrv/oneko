@@ -94,6 +94,8 @@ export interface OnekoProps {
   volume?: number;
   /** Show a red laser dot in place of the system cursor. Default false */
   laserPointer?: boolean;
+  /** With reduced motion: "hide" the cat, or let it "rest" as a still, sleeping sprite. Default "hide" */
+  reducedMotion?: "hide" | "rest";
 }
 
 export interface ObstacleRect {

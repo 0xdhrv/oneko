@@ -3,16 +3,21 @@ import { useEffect, useRef } from "react";
 /** Soften sprite changes without affecting movement, scale, or the selected tint. */
 export function useSpriteAppearance(
   elRef: { current: HTMLElement | null },
-  source: string,
+  /** Undefined while a skin loads; the current sheet stays until the next one is ready. */
+  source: string | undefined,
   hueRotate = 0,
 ) {
-  const previous = useRef<{ el: HTMLElement; source: string; filter: string } | null>(null);
+  const previous = useRef<{
+    el: HTMLElement;
+    source: string;
+    filter: string;
+  } | null>(null);
   const transition = useRef<Animation | null>(null);
 
   // Check the element too: the animation engine can remount its DOM independently.
   useEffect(() => {
     const el = elRef.current;
-    if (!el) return;
+    if (!el || !source) return;
     const filter = hueRotate ? `hue-rotate(${hueRotate}deg)` : "blur(0px)";
     const last = previous.current;
     if (last?.el === el && last.source === source && last.filter === filter) return;

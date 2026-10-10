@@ -17,3 +17,8 @@ function getSnapshot(): boolean {
 export function useMotionAllowed(): boolean {
   return useSyncExternalStore(subscribe, getSnapshot, () => false);
 }
+
+/** True only on the client when the visitor asks for reduced motion. */
+export function useReducedMotion(): boolean {
+  return !useSyncExternalStore(subscribe, getSnapshot, () => true);
+}

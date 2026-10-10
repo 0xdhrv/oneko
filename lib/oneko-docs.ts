@@ -126,6 +126,13 @@ export const PROP_DOCS = {
     description:
       "Replace the system cursor with a pixel laser toy. Hidden with reduced motion, while paused, or when followCursor is false. Cleanup restores the previous cursor. The toy takes priority over favorites.",
   },
+  reducedMotion: {
+    group: "Paws & play",
+    type: '"hide" | "rest"',
+    default: '"hide"',
+    description:
+      'What happens when the visitor prefers reduced motion. "hide" removes the cat; "rest" shows a still, sleeping sprite at the saved spot (or initialPos, or the bottom-right corner) with no animation, sound, or bubbles.',
+  },
   bubbleEnabled: {
     group: "Bubbles",
     type: "boolean",
@@ -275,17 +282,29 @@ type DocBlock =
   | { kind: "text"; text: string }
   | { kind: "code"; label: string; language: string; code: string }
   | { kind: "list"; items: string[] };
-export type DocSection = { id: string; title: string; blocks: DocBlock[] };
+/** `label` is the plain, searchable name; `title` keeps the cat voice. */
+export type DocSection = {
+  id: string;
+  label: string;
+  title: string;
+  blocks: DocBlock[];
+};
 export const DOC_SECTIONS: DocSection[] = [
   {
     id: "installation",
+    label: "Installation",
     title: "Give your cat a home",
     blocks: [
       {
         kind: "text",
         text: "Oneko is a shadcn registry component for React. The installer copies the component, hooks, animation engine, 24 bundled skins, and skin credits into your project. You own the code. Start from a React project with shadcn configured and a working import alias.",
       },
-      { kind: "code", label: "Install Oneko", language: "bash", code: INSTALL_COMMAND },
+      {
+        kind: "code",
+        label: "Install Oneko",
+        language: "bash",
+        code: INSTALL_COMMAND,
+      },
       {
         kind: "code",
         label: "Classic coat and custom sprites only",
@@ -294,7 +313,7 @@ export const DOC_SECTIONS: DocSection[] = [
       },
       {
         kind: "text",
-        text: "Choose one installation per project. The classic item has the same engine and component path, with only the classic coat embedded. Named skins such as calico need the full item; custom spriteSrc works with either. To switch versions, run the other install command and review overwritten files. Studio exports use the full install command.",
+        text: "Choose one installation per project. The classic item has the same engine and component path, with only the classic coat embedded. Both add about 31 KB gzipped up front; the full item loads its other sheets (about 558 KB) only when a named skin is first rendered. Named skins such as calico need the full item; custom spriteSrc works with either. To switch versions, run the other install command and review overwritten files. Studio exports use the full install command.",
       },
       {
         kind: "text",
@@ -325,12 +344,50 @@ export const DOC_SECTIONS: DocSection[] = [
     ],
   },
   {
+    id: "html",
+    label: "Without React",
+    title: "No React? Still a cat",
+    blocks: [
+      {
+        kind: "text",
+        text: 'Any site can load the hosted build: Astro, Hugo, Jekyll, WordPress, or plain HTML. One script tag brings a cat, configured with data- attributes named after the props in kebab case. Booleans accept a bare attribute or "false"; separate several thoughts with |. Sounds default to the hosted files.',
+      },
+      {
+        kind: "code",
+        label: "One tag",
+        language: "html",
+        code: `<script type="module" src="${DOCS_ORIGIN}/oneko.js" data-skin="calico" data-meow></script>`,
+      },
+      {
+        kind: "code",
+        label: "A cat element",
+        language: "html",
+        code: `<script type="module" src="${DOCS_ORIGIN}/oneko.js"></script>\n<oneko-cat skin="ginger" bubble-text="mrrp?|nap time"></oneko-cat>`,
+      },
+      {
+        kind: "code",
+        label: "JavaScript API",
+        language: "tsx",
+        code: `import { createOneko } from "${DOCS_ORIGIN}/oneko.js";\n\nconst cat = createOneko({ skin: "tuxedo", laserPointer: true });\ncat.update({ paused: true });\ncat.destroy();`,
+      },
+      {
+        kind: "list",
+        items: [
+          "The script is about 33 KB gzipped. Named skins load the first time one is used.",
+          "When the page has a <oneko-cat> element, or the script tag has data-manual, the script does not add its own cat.",
+          "Removing a <oneko-cat> element removes its cat. Removing an attribute returns that option to its default.",
+        ],
+      },
+    ],
+  },
+  {
     id: "options",
+    label: "Props",
     title: "Every cat comfort",
     blocks: [
       {
         kind: "text",
-        text: "All props are optional. These are component defaults; the playground starts with sound off and its own cat thought. The cat and laser stop when reduced motion is enabled and return when it is disabled. The engine runs at 10fps, so 10 active frames is about one second. Hidden tabs and paused cats do not advance those timers.",
+        text: 'All props are optional. These are component defaults; the playground starts with sound off and its own cat thought. The cat and laser stop when reduced motion is enabled and return when it is disabled; set reducedMotion="rest" to keep a still, sleeping cat instead. The engine runs at 10fps, so 10 active frames is about one second. Hidden tabs and paused cats do not advance those timers.',
       },
       {
         kind: "text",
@@ -340,6 +397,7 @@ export const DOC_SECTIONS: DocSection[] = [
   },
   {
     id: "skins",
+    label: "Skins",
     title: "Pick a coat",
     blocks: [
       {
@@ -370,6 +428,7 @@ export const DOC_SECTIONS: DocSection[] = [
   },
   {
     id: "behavior",
+    label: "Behavior",
     title: "Chasing, grooming & naps",
     blocks: [
       {
@@ -392,6 +451,7 @@ export const DOC_SECTIONS: DocSection[] = [
   },
   {
     id: "bubbles",
+    label: "Bubbles",
     title: "A little cat thought",
     blocks: [
       {
@@ -416,6 +476,7 @@ export const DOC_SECTIONS: DocSection[] = [
   },
   {
     id: "zones",
+    label: "Zones",
     title: "Room for paws",
     blocks: [
       {
@@ -448,11 +509,18 @@ export const DOC_SECTIONS: DocSection[] = [
   },
   {
     id: "sounds",
+    label: "Sounds",
     title: "Purrs are optional",
     blocks: [
       {
         kind: "text",
-        text: "Sound is off by default, and the registry does not include audio files. To enable it, set meow and copy public/cat-sounds/ from the source repository into your app’s public assets, preserving the .ogg filenames. Browsers may require user interaction before audio can play.",
+        text: "Sound is off by default, and the registry does not include audio files. The quickest way to enable it is to set meow and point soundBasePath at the hosted copy. To self-host instead, copy public/cat-sounds/ from the source repository into your app’s public assets, preserving the .ogg filenames. Browsers may require user interaction before audio can play.",
+      },
+      {
+        kind: "code",
+        label: "Hosted sounds, no files to copy",
+        language: "tsx",
+        code: `<Oneko meow soundBasePath="${DOCS_ORIGIN}/cat-sounds" />`,
       },
       {
         kind: "code",
@@ -468,6 +536,7 @@ export const DOC_SECTIONS: DocSection[] = [
   },
   {
     id: "studio",
+    label: "Studio",
     title: "Presets and sharing",
     blocks: [
       {
@@ -486,6 +555,7 @@ export const DOC_SECTIONS: DocSection[] = [
   },
   {
     id: "persistence",
+    label: "Persistence",
     title: "Remember a nap spot",
     blocks: [
       {
@@ -506,6 +576,7 @@ export const DOC_SECTIONS: DocSection[] = [
   },
   {
     id: "events",
+    label: "Events",
     title: "Follow your cat’s day",
     blocks: [
       {
@@ -532,13 +603,19 @@ export const DOC_SECTIONS: DocSection[] = [
   },
   {
     id: "agents",
+    label: "Coding agents",
     title: "Let an agent bring the cat",
     blocks: [
       {
         kind: "text",
         text: "Copy this prompt into your coding agent with your project open. It points to the same documentation in Markdown, gives the exact install command, and asks the agent to adapt to your existing app.",
       },
-      { kind: "code", label: "Prompt for your coding agent", language: "text", code: AGENT_PROMPT },
+      {
+        kind: "code",
+        label: "Prompt for your coding agent",
+        language: "text",
+        code: AGENT_PROMPT,
+      },
       {
         kind: "text",
         text: "Agents can read /llms.txt for discovery, /docs.md or /llms-full.txt for the complete guide, and /r/oneko.json for the installable source. These resources are public and need no login. The HTML guide is rendered on the server, so it is readable without JavaScript.",
@@ -547,12 +624,13 @@ export const DOC_SECTIONS: DocSection[] = [
   },
   {
     id: "troubleshooting",
+    label: "Troubleshooting",
     title: "Help your cat settle in",
     blocks: [
       {
         kind: "list",
         items: [
-          "No cat? Check that it is mounted in the browser. Reduced motion is checked when the animation mounts; a matching preference skips the cat. Keep-out zones covering the whole viewport can also hide it.",
+          'No cat? Check that it is mounted in the browser. With reduced motion, the cat is hidden unless reducedMotion="rest". Keep-out zones covering the whole viewport can also hide it.',
           "Cat stays still? Check paused, followCursor, followDistance, and whether the tab is hidden. A resting cat may need the cursor moved farther away before it chases.",
           "Starting spot ignored? A saved position overrides initialPos. Disable persistence or use a new storage key, then remount the component.",
           "No purrs? Check meow, volume, the sound directory and filenames, and whether the page has received a user interaction. Sound files are not part of the registry download.",
@@ -570,7 +648,7 @@ export function createDocsMarkdown(): string {
     `\n> A tiny pixel cat for React. Install it, choose its comforts, and give it a home.\n\nCanonical guide: ${DOCS_ORIGIN}/docs\n`,
   ];
   for (const section of DOC_SECTIONS) {
-    parts.push(`## ${section.title}\n`);
+    parts.push(`## ${section.label}: ${section.title}\n`);
     for (const block of section.blocks) {
       if (block.kind === "text") parts.push(block.text);
       else if (block.kind === "list") parts.push(block.items.map((item) => `- ${item}`).join("\n"));

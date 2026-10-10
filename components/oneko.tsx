@@ -9,9 +9,12 @@ import { useEffect, useRef, useState } from "react";
 import { LaserCursor } from "@/components/laser-cursor";
 import { useCatAnimation } from "@/hooks/use-cat-animation";
 import { useOnekoPropsSync } from "@/hooks/use-oneko-props-sync";
+import { useSkinSource } from "@/hooks/use-skin-source";
 import { ONEKO_DEFAULTS } from "@/lib/oneko/defaults";
-import { useMotionAllowed } from "@/hooks/use-motion-allowed";
+import { useMotionAllowed, useReducedMotion } from "@/hooks/use-motion-allowed";
+import { TILE } from "@/lib/oneko/constants";
 import { createInitialCatState } from "@/lib/oneko/initial-state";
+import { readPersistedPosition } from "@/lib/oneko/persistence";
 import type { CatActivityState, CatLiveState, OnekoProps } from "@/lib/oneko/types";
 
 export type { CatActivityState, CatLiveState, OnekoProps };
@@ -55,8 +58,11 @@ export default function Oneko({
   bubbleText = ONEKO_DEFAULTS.bubbleText,
   volume = ONEKO_DEFAULTS.volume,
   laserPointer = ONEKO_DEFAULTS.laserPointer,
+  reducedMotion = ONEKO_DEFAULTS.reducedMotion,
 }: OnekoProps) {
   const motionAllowed = useMotionAllowed();
+  const prefersReducedMotion = useReducedMotion();
+  const restingSource = useSkinSource(skin, spriteSrc);
   const elRef = useRef<HTMLDivElement | null>(null);
   const lastStateRef = useRef<CatActivityState>("idle");
   const onStateChangeRef = useRef(onStateChange);
@@ -115,5 +121,62 @@ export default function Oneko({
     spriteSrc,
   });
 
+  if (prefersReducedMotion && reducedMotion === "rest" && restingSource) {
+    return (
+      <RestingCat
+        source={restingSource}
+        position={(persistPosition && readPersistedPosition(storageKey)) || initialPos}
+        scale={scale}
+        opacity={opacity}
+        hueRotate={hueRotate}
+        zIndex={zIndex}
+      />
+    );
+  }
+
   return motionAllowed && config.laserPointer ? <LaserCursor zIndex={zIndex} /> : null;
+}
+
+/** Still, sleeping cat for visitors who prefer reduced motion. */
+function RestingCat({
+  source,
+  position,
+  scale,
+  opacity,
+  hueRotate,
+  zIndex,
+}: {
+  source: string;
+  position?: { x: number; y: number };
+  scale: number;
+  opacity: number;
+  hueRotate: number;
+  zIndex: number;
+}) {
+  const inset = (TILE * scale) / 2 + 16;
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: "fixed",
+        left: position ? position.x - TILE / 2 : undefined,
+        top: position ? position.y - TILE / 2 : undefined,
+        right: position ? undefined : inset - TILE / 2,
+        bottom: position ? undefined : inset - TILE / 2,
+        width: TILE,
+        height: TILE,
+        pointerEvents: "none",
+        imageRendering: "pixelated",
+        backgroundImage: `url(${JSON.stringify(source)})`,
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "256px 128px",
+        // Sleeping frame, matching defaultSpriteSets.sleeping[0].
+        backgroundPosition: `-${2 * TILE}px 0`,
+        transform: `scale(${scale})`,
+        opacity,
+        filter: hueRotate ? `hue-rotate(${hueRotate}deg)` : undefined,
+        zIndex,
+      }}
+    />
+  );
 }

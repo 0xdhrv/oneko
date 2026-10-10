@@ -58,6 +58,7 @@ available.
 | `animationSpeed`      | `number`                            | `1`             | Idle animation speed multiplier.                                                                         |
 | `hueRotate`           | `number`                            | `0`             | CSS hue rotation in degrees.                                                                             |
 | `laserPointer`        | `boolean`                           | `false`         | Replace the cursor with a pixel laser pointer.                                                           |
+| `reducedMotion`       | `"hide" \| "rest"`                  | `"hide"`        | With reduced motion, hide the cat or show a still, sleeping sprite.                                      |
 | `liveStateRef`        | `{ current: CatLiveState }`         | `undefined`     | Mutable ref updated each frame for playgrounds.                                                          |
 
 ## Behavior and integration options
@@ -144,7 +145,7 @@ The install panel generates a copyable client component using your current setti
 unchanged component defaults and playground-only visibility.
 Coat changes do not restart the animation. Touch users can tap non-interactive page space to set a
 new destination. Hidden tabs stop the animation timer, and reduced-motion preferences keep the cat
-and laser unmounted. Preference changes apply live, and laser cleanup restores the host cursor. The skin picker remains usable with reduced motion.
+and laser unmounted (or, with `reducedMotion="rest"`, leave a still, sleeping cat; the playground does this). Preference changes apply live, and laser cleanup restores the host cursor. The skin picker remains usable with reduced motion.
 
 The landing page starts with all controls closed. Choose **Customize cat** for coats and settings,
 or **Add a cat to your site** for installation. Customization loads on demand; the install panel is

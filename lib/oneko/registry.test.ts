@@ -8,10 +8,12 @@ import generated from "../../public/r/oneko.json";
 import { deriveClassicItem } from "../../scripts/build-registry.mjs";
 import { DEFAULT_ONEKO_PLAYGROUND_STATE, SETTING_RANGES } from "./playground-defaults";
 import { createOnekoUsage } from "./usage";
-import { getSkinSource, ONEKO_SKINS } from "./skins";
+import { getBundledSkinSource } from "../bundled-skins";
+import { ONEKO_SKINS } from "./skins";
 
 type RegistryItem = typeof generated;
 const SHEET_PATH = "lib/oneko/skin-sheets.json";
+const IDS_PATH = "lib/oneko/skin-ids.json";
 const variants = ["oneko", "oneko-classic"] as const;
 
 function readItem(name: (typeof variants)[number]): RegistryItem {
@@ -91,14 +93,18 @@ it.each(variants)("%s publishes current sources and the intended sprite data", (
   for (const file of item.files) {
     const source = readFileSync(resolve(file.path), "utf8");
     if (name === "oneko-classic" && file.path === SHEET_PATH) {
-      expect(JSON.parse(file.content)).toEqual({ classic: JSON.parse(source).classic });
+      expect(JSON.parse(file.content)).toEqual({
+        classic: JSON.parse(source).classic,
+      });
+    } else if (name === "oneko-classic" && file.path === IDS_PATH) {
+      expect(JSON.parse(file.content)).toEqual(["classic"]);
     } else {
       expect(file.content, `Rebuild the registry: ${file.path} is stale`).toBe(source);
     }
   }
 });
 
-it("derives a classic item by replacing only sprite data", () => {
+it("derives a classic item by replacing only sprite data and skin IDs", () => {
   const classic = deriveClassicItem(generated) as RegistryItem;
   expect(classic.name).toBe("oneko-classic");
   expect(classic.dependencies).toEqual(generated.dependencies);
@@ -107,8 +113,10 @@ it("derives a classic item by replacing only sprite data", () => {
     const counterpart = classic.files.find((entry) => entry.path === file.path)!;
     expect(counterpart.path).toBe(file.path);
     expect(counterpart.type).toBe(file.type);
-    if (file.path !== SHEET_PATH) expect(counterpart).toEqual(file);
-    else expect(Object.keys(JSON.parse(counterpart.content))).toEqual(["classic"]);
+    if (file.path === SHEET_PATH)
+      expect(Object.keys(JSON.parse(counterpart.content))).toEqual(["classic"]);
+    else if (file.path === IDS_PATH) expect(JSON.parse(counterpart.content)).toEqual(["classic"]);
+    else expect(counterpart).toEqual(file);
   }
 });
 
@@ -134,13 +142,17 @@ it.each(variants)(
           .filter(([, value]) => typeof value === "boolean")
           .map(([key, value]) => [key, !value]),
       ),
-      spriteSrc: getSkinSource("calico"),
+      spriteSrc: getBundledSkinSource("calico"),
       spriteName: "my-cat.png",
       bubbleText: 'Hello "friend"\nTreat time!',
     };
     const examples = [
       createOnekoUsage(configured),
-      createOnekoUsage({ ...configured, spriteSrc: "/my-cat.png", bubbleText: "One thought" }),
+      createOnekoUsage({
+        ...configured,
+        spriteSrc: "/my-cat.png",
+        bubbleText: "One thought",
+      }),
       `import Oneko from "@/components/oneko";
      const thoughts = ["Hello", "Treats?"] as const;
      export default function Example() { return <><Oneko /><Oneko spriteSrc="/cat.png" bubbleText={thoughts} /></>; }`,

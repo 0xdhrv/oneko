@@ -9,7 +9,7 @@ import {
 } from "geist/font/pixel";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
-import { getSiteUrl } from "@/lib/site-url";
+import { getSiteUrl, OG_IMAGE } from "@/lib/site-url";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -58,13 +58,13 @@ export const metadata: Metadata = {
     siteName: "Oneko",
     locale: "en_US",
     type: "website",
-    images: [{ url: "/icon-512.png", width: 512, height: 512, alt: "Oneko" }],
+    images: [OG_IMAGE],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title,
     description,
-    images: ["/icon-512.png"],
+    images: [OG_IMAGE.url],
   },
 };
 

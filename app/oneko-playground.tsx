@@ -17,7 +17,12 @@ function PlaygroundOneko() {
   }
   const { showCat: _, spriteName: _name, ...config } = state;
   return (
-    <Oneko {...config} bubbleText={thoughtsForProp(state.bubbleText)} liveStateRef={liveStateRef} />
+    <Oneko
+      {...config}
+      bubbleText={thoughtsForProp(state.bubbleText)}
+      liveStateRef={liveStateRef}
+      reducedMotion="rest"
+    />
   );
 }
 

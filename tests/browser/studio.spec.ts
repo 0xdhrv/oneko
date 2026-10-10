@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
 import { DEFAULT_ONEKO_PLAYGROUND_STATE } from "../../lib/oneko/playground-defaults";
-import { getSkinSource } from "../../lib/oneko/skins";
+import { getBundledSkinSource } from "../../lib/bundled-skins";
 
 test("presets preserve artwork and user controls, and manual settings update selection", async ({
   page,
@@ -9,7 +9,7 @@ test("presets preserve artwork and user controls, and manual settings update sel
   const initial = {
     ...DEFAULT_ONEKO_PLAYGROUND_STATE,
     skin: "calico",
-    spriteSrc: getSkinSource("calico"),
+    spriteSrc: getBundledSkinSource("calico"),
     spriteName: "my-cat.png",
     bubbleText: "my own thoughts",
     paused: true,
@@ -47,7 +47,9 @@ test("share links restore Unicode thoughts and built-in settings ahead of saved 
   context,
   baseURL,
 }) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: baseURL! });
+  await context.grantPermissions(["clipboard-read", "clipboard-write"], {
+    origin: baseURL!,
+  });
   const settings = {
     ...DEFAULT_ONEKO_PLAYGROUND_STATE,
     skin: "calico",
@@ -103,7 +105,7 @@ test("custom artwork round-trips through files and malformed imports leave the c
 }) => {
   const settings = {
     ...DEFAULT_ONEKO_PLAYGROUND_STATE,
-    spriteSrc: getSkinSource("calico"),
+    spriteSrc: getBundledSkinSource("calico"),
     spriteName: "my-cat.png",
     bubbleText: "Keep my artwork",
   };
@@ -149,7 +151,11 @@ test("custom artwork round-trips through files and malformed imports leave the c
 
 test("invalid share links retain existing preferences on a narrow screen", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  const settings = { ...DEFAULT_ONEKO_PLAYGROUND_STATE, skin: "ginger", speed: 12 };
+  const settings = {
+    ...DEFAULT_ONEKO_PLAYGROUND_STATE,
+    skin: "ginger",
+    speed: 12,
+  };
   await page.addInitScript(
     (value) => localStorage.setItem("oneko:playground:v1", JSON.stringify(value)),
     settings,

@@ -20,7 +20,8 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
     },
     {
-      command: "node tests/browser/prepare-fixture.mjs && pnpm test:browser:fixture",
+      command:
+        "node tests/browser/prepare-fixture.mjs && node scripts/build-vanilla.mjs && pnpm test:browser:fixture",
       url: "http://127.0.0.1:3102",
       reuseExistingServer: false,
     },

@@ -15,28 +15,40 @@ export function parsePersistedPosition(value: unknown): PersistedPosition | null
   return { version: 1, x, y };
 }
 
-export function loadPersistedCatState(
-  stateRef: { current: CatRuntimeState },
-  el: HTMLDivElement,
+/** Saved position clamped to the viewport, or null when absent or invalid. */
+export function readPersistedPosition(
   storageKey = ONEKO_DEFAULTS.storageKey,
-): void {
+): { x: number; y: number } | null {
   let position: PersistedPosition | null;
   try {
     position = parsePersistedPosition(
       JSON.parse(window.localStorage.getItem(storageKey) ?? "null"),
     );
   } catch {
-    return;
+    return null;
   }
-  if (!position) return;
-
+  if (!position) return null;
   const clamp = (value: number, extent: number) => {
     const inset = Math.min(TILE / 2, Math.max(0, extent / 2));
     return Math.max(inset, Math.min(Math.max(inset, extent - inset), value));
   };
+  return {
+    x: clamp(position.x, window.innerWidth),
+    y: clamp(position.y, window.innerHeight),
+  };
+}
+
+export function loadPersistedCatState(
+  stateRef: { current: CatRuntimeState },
+  el: HTMLDivElement,
+  storageKey = ONEKO_DEFAULTS.storageKey,
+): void {
+  const position = readPersistedPosition(storageKey);
+  if (!position) return;
+
   const state = stateRef.current;
-  state.nekoPosX = state.mousePosX = clamp(position.x, window.innerWidth);
-  state.nekoPosY = state.mousePosY = clamp(position.y, window.innerHeight);
+  state.nekoPosX = state.mousePosX = position.x;
+  state.nekoPosY = state.mousePosY = position.y;
   state.nekoVelX = state.nekoVelY = 0;
   state.currentPath = [];
   state.pathWaypointIdx = 0;
@@ -50,7 +62,11 @@ export function createPersistHandler(
 ): () => void {
   return () => {
     const state = stateRef.current;
-    const position = parsePersistedPosition({ version: 1, x: state.nekoPosX, y: state.nekoPosY });
+    const position = parsePersistedPosition({
+      version: 1,
+      x: state.nekoPosX,
+      y: state.nekoPosY,
+    });
     if (!position) return;
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(position));

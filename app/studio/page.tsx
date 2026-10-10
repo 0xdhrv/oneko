@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { OG_IMAGE } from "@/lib/site-url";
 import OnekoStudio from "./studio";
 
 const description =
@@ -13,13 +14,13 @@ export const metadata: Metadata = {
     description,
     url: "/studio",
     type: "website",
-    images: ["/icon-512.png"],
+    images: [OG_IMAGE],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Oneko Pixel Cat Studio — Custom Skins & Animations",
     description,
-    images: ["/icon-512.png"],
+    images: [OG_IMAGE.url],
   },
 };
 

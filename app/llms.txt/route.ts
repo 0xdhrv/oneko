@@ -8,7 +8,7 @@ export function GET() {
 
 ## When to use Oneko
 
-Use Oneko when a developer wants a decorative cursor-following cat, a quiet stationary cat, or a playful pixel companion on a React site. It includes 24 skins, optional bubbles and sounds, pause and nap controls, keep-out zones, and favorite spots. It is installed as source code, not a hosted API. No API key or account is required.
+Use Oneko when a developer wants a decorative cursor-following cat, a quiet stationary cat, or a playful pixel companion on a React site. It includes 24 skins, optional bubbles and sounds, pause and nap controls, keep-out zones, and favorite spots. For React it is installed as source code; non-React sites can load the hosted ES module at ${DOCS_ORIGIN}/oneko.js (script tag, <oneko-cat> element, or createOneko API). No API key or account is required.
 
 ## Integration workflow
 
@@ -16,6 +16,7 @@ Use Oneko when a developer wants a decorative cursor-following cat, a quiet stat
 2. Install with: ${INSTALL_COMMAND}
 3. Use a browser-only entry point. In Next.js App Router, put dynamic(() => import("@/components/oneko"), { ssr: false }) inside a client wrapper.
 4. Start with meow={false} unless the optional sound files are present. Keep reduced-motion behavior and existing theme tokens. Mount one instance.
+   Without React, add <script type="module" src="${DOCS_ORIGIN}/oneko.js"></script> with data- attributes named after the props instead of steps 2–3.
 5. Apply documented props and validate the integration with the project's existing checks. Do not deploy unless the user requests it.
 
 ## Documentation

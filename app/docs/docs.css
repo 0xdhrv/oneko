@@ -216,6 +216,15 @@
   line-height: 1.3;
   font-weight: 400;
 }
+.docs-section-label {
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
 .docs-section h2 a:hover {
   text-decoration: underline;
 }

@@ -43,6 +43,10 @@
           "type": "registry:hook"
         },
         {
+          "path": "hooks/use-skin-source.ts",
+          "type": "registry:hook"
+        },
+        {
           "path": "lib/oneko/animation-loop.ts",
           "type": "registry:lib"
         },
@@ -182,6 +186,16 @@
           "path": "lib/oneko/skin-sheets.json",
           "type": "registry:lib",
           "target": "lib/oneko/skin-sheets.json"
+        },
+        {
+          "path": "lib/oneko/skin-classic.json",
+          "type": "registry:lib",
+          "target": "lib/oneko/skin-classic.json"
+        },
+        {
+          "path": "lib/oneko/skin-ids.json",
+          "type": "registry:lib",
+          "target": "lib/oneko/skin-ids.json"
         },
         {
           "path": "lib/oneko/skin-catalog.ts",
@@ -254,6 +268,10 @@
           "type": "registry:hook"
         },
         {
+          "path": "hooks/use-skin-source.ts",
+          "type": "registry:hook"
+        },
+        {
           "path": "lib/oneko/animation-loop.ts",
           "type": "registry:lib"
         },
@@ -393,6 +411,16 @@
           "path": "lib/oneko/skin-sheets.json",
           "type": "registry:lib",
           "target": "lib/oneko/skin-sheets.json"
+        },
+        {
+          "path": "lib/oneko/skin-classic.json",
+          "type": "registry:lib",
+          "target": "lib/oneko/skin-classic.json"
+        },
+        {
+          "path": "lib/oneko/skin-ids.json",
+          "type": "registry:lib",
+          "target": "lib/oneko/skin-ids.json"
         },
         {
           "path": "lib/oneko/skin-catalog.ts",

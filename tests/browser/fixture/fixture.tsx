@@ -8,6 +8,7 @@ const options: OnekoProps = {
   paused: params.has("paused"),
   persistPosition: !params.has("no-persistence"),
   ...(params.has("calico") ? { skin: "calico", scale: 2, opacity: 0.5 } : {}),
+  ...(params.has("rest") ? { reducedMotion: "rest" } : {}),
 };
 
 function Fixture() {
