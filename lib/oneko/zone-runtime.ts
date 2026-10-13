@@ -135,14 +135,17 @@ export function updateZoneTarget(
     }
   }
   const favorite = favorites.find((zone) => zone.id === zones.targetId);
-  const desired = !s.followCursorCfg
-    ? { x: s.nekoPosX, y: s.nekoPosY }
-    : favorite
-      ? {
-          x: (favorite.rect.left + favorite.rect.right) / 2,
-          y: (favorite.rect.top + favorite.rect.bottom) / 2,
-        }
-      : { x: s.mousePosX, y: s.mousePosY };
+  // Priority: stay put, a perch the pointer rests on, a favorite spot, the lead cat, the cursor.
+  const desired =
+    !s.followCursorCfg || s.typingNap || s.held
+      ? { x: s.nekoPosX, y: s.nekoPosY }
+      : (s.perchTarget ??
+        (favorite
+          ? {
+              x: (favorite.rect.left + favorite.rect.right) / 2,
+              y: (favorite.rect.top + favorite.rect.bottom) / 2,
+            }
+          : (s.leaderTarget ?? { x: s.mousePosX, y: s.mousePosY })));
   zones.movementTarget = zones.blocked.length
     ? (nearestSafePoint(desired, zones.blocked, width, height, radius) ?? {
         x: s.nekoPosX,

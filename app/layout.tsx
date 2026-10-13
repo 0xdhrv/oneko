@@ -31,9 +31,9 @@ const geistPixelVariableClassName = [
 ].join(" ");
 
 const siteUrl = getSiteUrl();
-const title = "Oneko — Pixel Cat for React & shadcn";
+const title = "Oneko — A Tiny Pixel Cat for Your Website";
 const description =
-  "Add a cursor-following pixel cat to your React website with Oneko. Try the playground, customize skins and sounds, and install the open-source shadcn component.";
+  "Add a cursor-following pixel cat to any website with Oneko: React, Svelte, Vue, Solid, or one script tag. Try the playground, customize skins and sounds, and make it your own.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

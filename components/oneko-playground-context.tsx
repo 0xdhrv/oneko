@@ -13,6 +13,7 @@ import {
 } from "react";
 import type { CatLiveState } from "@/components/oneko";
 import { parseShareFragment } from "@/lib/oneko/configuration";
+import { loadRemoteSprite, spriteNameFromURL } from "@/lib/oneko/custom-assets";
 import {
   DEFAULT_ONEKO_PLAYGROUND_STATE,
   PLAYGROUND_STORAGE_KEY,
@@ -85,6 +86,20 @@ export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
     };
     applySharedConfiguration();
     window.addEventListener("hashchange", applySharedConfiguration);
+    // /studio?sprite=https://… wears a hosted coat, after checking it is a valid sheet.
+    const sprite = new URLSearchParams(window.location.search).get("sprite");
+    if (sprite) {
+      loadRemoteSprite(sprite).then(
+        (spriteSrc) => {
+          dispatch({
+            type: "update",
+            changes: { spriteSrc, spriteName: spriteNameFromURL(spriteSrc), hueRotate: 0 },
+          });
+          setConfigurationStatus(`Wearing a coat from ${new URL(spriteSrc).hostname}.`);
+        },
+        (error: Error) => setConfigurationStatus(`${error.message} Your settings are unchanged.`),
+      );
+    }
     setRestored(true);
     return () => window.removeEventListener("hashchange", applySharedConfiguration);
   }, []);

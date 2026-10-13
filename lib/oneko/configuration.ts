@@ -1,4 +1,5 @@
 import {
+  isRemoteSprite,
   isSavedSprite,
   MAX_SPRITE_BYTES,
   MAX_THOUGHT_TEXT_LENGTH,
@@ -6,6 +7,7 @@ import {
 } from "./custom-assets";
 import {
   DEFAULT_ONEKO_PLAYGROUND_STATE,
+  LATER_SETTINGS,
   SETTING_RANGES,
   type OnekoPlaygroundState,
 } from "./playground-defaults";
@@ -45,7 +47,10 @@ export function parseConfiguration(raw: string): Result<ConfigurationV1> {
   const extra = Object.keys(parsed).find((key) => key !== "version" && key !== "settings");
   if (extra !== undefined) return fail(`Unknown configuration field: ${JSON.stringify(extra)}.`);
   if (!isRecord(parsed.settings)) return fail("The configuration is missing its settings object.");
-  const settings = parsed.settings;
+  const settings: Record<string, unknown> = { ...parsed.settings };
+  for (const key of LATER_SETTINGS)
+    if (!Object.hasOwn(settings, key))
+      settings[key] = DEFAULT_ONEKO_PLAYGROUND_STATE[key as keyof OnekoPlaygroundState];
   const keys = Object.keys(DEFAULT_ONEKO_PLAYGROUND_STATE) as (keyof OnekoPlaygroundState)[];
   const unknown = Object.keys(settings).find(
     (key) => !Object.hasOwn(DEFAULT_ONEKO_PLAYGROUND_STATE, key),
@@ -61,9 +66,11 @@ export function parseConfiguration(raw: string): Result<ConfigurationV1> {
       if (value !== "auto" && value !== "above" && value !== "below")
         return fail("bubblePlacement must be auto, above, or below.");
     } else if (key === "spriteSrc") {
-      if (value !== "" && !isSavedSprite(value))
-        return fail("spriteSrc must be an embedded 256 × 128 PNG smaller than 256 KB, or empty.");
-      if (typeof value === "string" && value) {
+      if (value !== "" && !isSavedSprite(value) && !isRemoteSprite(value))
+        return fail(
+          "spriteSrc must be an embedded 256 × 128 PNG smaller than 256 KB, an https link, or empty.",
+        );
+      if (isSavedSprite(value)) {
         try {
           if (atob(value.slice(22)).length > MAX_SPRITE_BYTES)
             return fail("spriteSrc must be smaller than 256 KB.");
@@ -103,7 +110,7 @@ export function serializeConfiguration(settings: OnekoPlaygroundState): string {
 }
 
 export function createShareURL(base: string, settings: OnekoPlaygroundState): Result<string> {
-  if (settings.spriteSrc)
+  if (isSavedSprite(settings.spriteSrc))
     return fail(
       "Custom artwork travels in a configuration file. Download your configuration to share this cat.",
     );
@@ -134,7 +141,7 @@ export function parseShareFragment(fragment: string): Result<ConfigurationV1 | n
       Uint8Array.from(binary, (character) => character.charCodeAt(0)),
     );
     const result = parseConfiguration(text);
-    if (result.ok && result.value.settings.spriteSrc)
+    if (result.ok && isSavedSprite(result.value.settings.spriteSrc))
       return fail(
         "Custom artwork needs a configuration file. Import the downloaded configuration instead.",
       );

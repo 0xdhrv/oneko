@@ -2,66 +2,43 @@
   <br />
   <img src="./public/icon-512.png" alt="Oneko pixel cat" width="112" />
   <h1>Oneko</h1>
-  <p>A tiny pixel cat for your website: a React component, or one script tag.</p>
+  <p>A tiny pixel cat for your website. React, Svelte, Vue, Solid, or one script tag.</p>
   <p>
     <a href="https://oneko.dhrv.pw">Playground</a>
     ·
     <a href="https://oneko.dhrv.pw/studio">Studio</a>
     ·
     <a href="https://oneko.dhrv.pw/docs">Documentation</a>
-    ·
-    <a href="https://oneko.dhrv.pw/docs.md">Markdown guide</a>
   </p>
   <p>
     <a href="https://github.com/0xdhrv/oneko/stargazers"><img src="https://shieldcn.dev/github/stars/0xdhrv/oneko.svg?variant=secondary" alt="GitHub stars" /></a>
     <a href="https://github.com/0xdhrv/oneko/blob/main/LICENSE"><img src="https://shieldcn.dev/github/license/0xdhrv/oneko.svg?variant=secondary" alt="License: MIT" /></a>
     <a href="https://github.com/0xdhrv/oneko/commits"><img src="https://shieldcn.dev/github/commits/0xdhrv/oneko.svg?variant=secondary" alt="Last commit" /></a>
-  </p>
-  <p>
     <a href="https://buymeacoffee.com/0xdhrv"><img alt="Buy Me a Coffee" src="https://shieldcn.dev/badge/buymecoffee-FFDD04.svg?size=default&amp;theme=neutral&amp;logo=buymeacoffee" /></a>
-    <a href="https://github.com/0xdhrv"><img alt="GitHub" src="https://shieldcn.dev/badge/github-181717.svg?size=default&amp;theme=neutral&amp;logo=github" /></a>
-    <a href="https://x.com/0xdhrv"><img alt="X (Twitter)" src="https://shieldcn.dev/badge/twitter-1DA1F2.svg?size=default&amp;theme=neutral&amp;logo=x" /></a>
   </p>
-  <img src="./public/og.png" alt="Six pixel cats in different skins: idle, running, scratching, alert, tired, and sleeping" width="720" />
   <br />
 </div>
 
-Oneko is an installable [shadcn registry](https://ui.shadcn.com/docs/registry) component that adds a
-pixel-art cat to your React app. It follows the pointer, naps when things are quiet, shares
-cat-themed thoughts, and can be tailored to feel at home on your site.
+Oneko follows the pointer, naps when things are quiet, and shares cat-themed thoughts. It comes
+with 24 pixel-art coats, optional sounds, keep-out zones, and a studio for designing your own cat.
 
-## Install
+- **A parade of cats:** mount several and set `chase="cat"` so each follows the one before it.
+- **Page reactions:** `napWhileTyping`, `followFocus`, and `perchOnHover`.
+- **Visitor controls:** a remembered hide toggle (`setCatsHidden` or `data-oneko-toggle`) and a
+  keyboard-reachable `pettable` cat.
+- **Hosted coats:** wear any 256 × 128 sprite sheet by URL, and share it with
+  `/studio?sprite=https://…`.
+
+## React
+
+Install the [shadcn registry](https://ui.shadcn.com/docs/registry) item. You get the source, so
+the code is yours to change.
 
 ```bash
 npx shadcn@latest add https://oneko.dhrv.pw/r/oneko.json
 ```
 
-The registry installs the component, hooks, animation engine, bundled skins, and skin credits into
-your project—so you can own and customize the code.
-
-For a smaller installation with the classic coat and custom sprite support:
-
-```bash
-npx shadcn@latest add https://oneko.dhrv.pw/r/oneko-classic.json
-```
-
-| Install         | Skins                 | Initial bundle (gzip) | Loaded on demand                             |
-| --------------- | --------------------- | --------------------- | -------------------------------------------- |
-| `oneko`         | 24 named skins        | ~31 KB                | ~558 KB, the first time a named skin is used |
-| `oneko-classic` | Classic + `spriteSrc` | ~31 KB                | none                                         |
-
-The classic coat ships inline. The other sheets load in one chunk only when a non-classic `skin`
-is rendered. Measured with `node scripts/measure-registry.mjs` (React excluded).
-
-Both versions use the same component and animation engine. Choose the full version above for all
-24 named skins. They install to the same paths, so choose one version per project. To switch,
-install the other version and review the files the installer asks to overwrite. Studio examples
-that use another named `skin` require the full version; custom `spriteSrc` works with either.
-
-## Use it
-
-Render one `Oneko` from a client component. It mounts itself on `document.body`, keeping it above
-your app without adding layout wrappers.
+Render one `Oneko` from a client component. It mounts itself on `document.body`.
 
 ```tsx
 "use client";
@@ -69,194 +46,112 @@ your app without adding layout wrappers.
 import Oneko from "@/components/oneko";
 
 export function CatLayer() {
-  return <Oneko />;
+  return <Oneko skin="calico" bubbleText="treat inspection in progress" />;
 }
 ```
 
-For SSR-enabled apps, render this client component from the appropriate client-only boundary. In
-Next.js App Router, a client wrapper with `dynamic(..., { ssr: false })` is a convenient option—see
-the [installation guide](https://oneko.dhrv.pw/docs#installation) for the complete setup.
+In Next.js App Router, load it with `dynamic(..., { ssr: false })` from a client wrapper. See the
+[installation guide](https://oneko.dhrv.pw/docs#installation).
 
-### Without React
+Named skins load in one chunk the first time one is used. For the classic coat only (plus custom
+sprites), install `https://oneko.dhrv.pw/r/oneko-classic.json` instead.
 
-Astro, Hugo, Jekyll, WordPress, or a plain HTML page can load the hosted build instead. One tag
-brings a cat; options are `data-` attributes named after the props:
+## Svelte, Vue, and Solid
+
+Download the component into your project. It takes the same props as the React component.
+
+```bash
+curl -o src/lib/Oneko.svelte https://oneko.dhrv.pw/frameworks/Oneko.svelte
+```
+
+```svelte
+<script>
+  import Oneko from "$lib/Oneko.svelte";
+</script>
+
+<Oneko skin="calico" meow />
+```
+
+```bash
+curl -o src/components/Oneko.vue https://oneko.dhrv.pw/frameworks/Oneko.vue
+```
+
+```vue
+<script setup>
+import Oneko from "./components/Oneko.vue";
+</script>
+
+<template>
+  <Oneko skin="calico" :speed="12" meow @state-change="console.log" />
+</template>
+```
+
+```bash
+curl -o src/components/Oneko.tsx https://oneko.dhrv.pw/frameworks/Oneko.solid.tsx
+```
+
+```tsx
+import Oneko from "./components/Oneko";
+
+export default function App() {
+  return <Oneko skin="calico" meow onStateChange={console.log} />;
+}
+```
+
+Each loads the engine from the hosted build in the browser, so SvelteKit, Nuxt, and SolidStart
+can render them during SSR. See the [framework guide](https://oneko.dhrv.pw/docs#frameworks).
+
+## Any other site
+
+Astro, Hugo, WordPress, or plain HTML can use one script tag. Options are `data-` attributes named
+after the props.
 
 ```html
 <script type="module" src="https://oneko.dhrv.pw/oneko.js" data-skin="calico" data-meow></script>
 ```
 
-Or place the element where you like and change its attributes at runtime:
-
-```html
-<script type="module" src="https://oneko.dhrv.pw/oneko.js"></script>
-<oneko-cat skin="ginger" bubble-text="mrrp?|nap time"></oneko-cat>
-```
-
-For full control, import the API and keep the instance:
-
-```js
-import { createOneko } from "https://oneko.dhrv.pw/oneko.js";
-
-const cat = createOneko({ skin: "tuxedo", laserPointer: true });
-cat.update({ paused: true });
-cat.destroy();
-```
-
-The script is about 33 KB gzipped; named skins load on first use. Sounds default to the hosted
-files, so `data-meow` works without copying anything. Add `data-manual` to load the script without
-the automatic cat.
-
-## Make it yours
-
-```tsx
-<Oneko
-  skin="calico"
-  speed={12}
-  bubbleText="treat inspection in progress"
-  bubblePlacement="above"
-  sleepEnabled
-  meow={false}
-/>
-```
-
-| It comes with             | Why it matters                                                             |
-| ------------------------- | -------------------------------------------------------------------------- |
-| 24 pixel-art coats        | Switch skins instantly without restarting the animation.                   |
-| Pointer and touch support | The cat follows the cursor; on touch, tap an empty spot to call it over.   |
-| Bubbles and naps          | Tune the cat’s thoughts, placement, size, chattiness, and sleepy moments.  |
-| Optional sounds           | Add the supplied `.ogg` files when you want audio, or keep `meow={false}`. |
-| Zones                     | Keep the cat clear of important UI or give it favorite places to visit.    |
-| Integration controls      | Pause it, persist its position, change its layer, observe state, and more. |
-
-### Bring your own text and sprites
-
-Open **Thoughts** in the studio (`/studio`) to type multiple thoughts or import a `.txt` file
-(one thought per line). Under **Appearance → Use your own sprite**, upload a sprite sheet.
-Download the template and keep its 8 × 4 layout:
-256 × 128 pixels, with 32 × 32 frames. PNG uploads can be up to 256 KB.
-
-Your files stay in the browser, persist with your preferences, and appear in the generated React
-example. You can also provide hosted assets directly:
-
-```tsx
-<Oneko
-  spriteSrc="/my-sprite.png"
-  bubbleText={["Treat inspection in progress", "A little adventure awaits"]}
-  meow={false}
-/>
-```
-
-These props are included in the shadcn component. In the studio’s **Export** tab, **Copy your cat**
-produces a standalone React example with your selected settings, embedded sprite, and thought pool.
-The studio editor itself stays on this site; the installed cat does not depend on it.
-
-Thoughts are picked without immediate repeats; naps and zoomies keep their own messages.
-
-### Pick a personality or share your cat
-
-The studio's **Behavior** tab offers Sleepy, Curious, and Playful presets. They change movement
-settings while preserving your artwork, thoughts, sound, pause, and visibility choices. Adjusting
-the sliders updates the selected preset automatically.
-
-In **Export**, **Copy share link** opens your built-in coat and settings in the studio. Links keep
-the configuration in the URL fragment. Custom artwork and settings too large for a link travel
-in **Download configuration**, which saves every setting and the embedded sprite in a JSON file.
-Use **Import configuration** to restore that file. Invalid files leave your current cat unchanged.
-
-### Keep the cat out of the way
-
-Mark elements the cat should avoid, or spots it should enjoy visiting:
-
-```tsx
-<header data-oneko-zone="avoid">Navigation</header>
-<aside data-oneko-zone="attract">Cat-approved reading nook</aside>
-<Oneko />
-```
-
-You can also provide selector- and rectangle-based zones through the `zones` prop. Read the
-[zones guide](https://oneko.dhrv.pw/docs#zones) for options and examples.
-
-### Add sound
-
-Sound is off by default. The quickest way to enable it is to use the hosted files:
-
-```tsx
-<Oneko meow soundBasePath="https://oneko.dhrv.pw/cat-sounds" />
-```
-
-To self-host, copy this repository’s `public/cat-sounds/` directory into your app’s public assets
-and render `<Oneko meow />` with the default `soundBasePath="/cat-sounds"`. Browsers may wait for a
-visitor’s first interaction before playing audio.
-
-The cat and laser follow changes to the visitor's reduced-motion preference. Set
-`reducedMotion="rest"` to show a still, sleeping cat instead of hiding it. Position saving
-uses validated coordinates and runs when the page hides or the component unmounts.
+You can also use a `<oneko-cat>` element, which fires `statechange` events and works in Angular,
+Lit, and other frameworks, or the `createOneko()` API. See
+[Without React](https://oneko.dhrv.pw/docs#html).
 
 ## Documentation
 
-The [documentation](https://oneko.dhrv.pw/docs) is the complete source of truth for props,
-framework recipes, sound setup, zones, public types, and a prompt for coding agents. Prefer its
-[Markdown version](https://oneko.dhrv.pw/docs.md) when working from a terminal or with an agent.
+The [documentation](https://oneko.dhrv.pw/docs) covers every prop, skins, zones, sounds, events,
+and the studio. Agents can read the [Markdown version](https://oneko.dhrv.pw/docs.md) or
+[llms.txt](https://oneko.dhrv.pw/llms.txt).
 
-## Develop the playground
-
-This repository hosts the Oneko playground and the registry output served at
-`/r/oneko.json`.
+## Development
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-Useful checks:
-
 ```bash
 pnpm lint
 pnpm fmt:check
 pnpm test
+pnpm test:browser
 pnpm build
 ```
 
-`pnpm build` regenerates the registry and the hosted `public/oneko.js` before building the site. Use `pnpm run registry:build` when
-you only need to refresh the full and classic registry files. See [development notes](docs/development.md)
-for installed-component browser checks. `pnpm test:browser` also covers the hosted script.
-After changing skins or the title, run `pnpm generate:og` to refresh the social preview image.
+`pnpm build` regenerates the registry and `public/oneko.js` before building the site. To deploy
+to Cloudflare Workers, run `pnpm preview` locally, then `pnpm deploy`. See the
+[development notes](docs/development.md) for details.
 
-### Deploy to Cloudflare Workers
+| Path                      | Purpose                                     |
+| ------------------------- | ------------------------------------------- |
+| `components/oneko.tsx`    | Installable React component.                |
+| `hooks/` and `lib/oneko/` | Animation hook and engine.                  |
+| `lib/oneko/vanilla*.ts`   | Framework-free build served as `/oneko.js`. |
+| `public/frameworks/`      | Svelte and Vue components.                  |
+| `registry.json`           | Source manifest for the shadcn registry.    |
+| `app/`                    | Playground, studio, and documentation.      |
 
-```bash
-pnpm install --frozen-lockfile
-pnpm preview
-```
-
-`pnpm preview` builds the registry and site with OpenNext, then runs the result in the local
-Cloudflare Workers runtime. To publish it:
-
-```bash
-pnpm exec wrangler login
-pnpm deploy
-```
-
-See [Cloudflare deployment notes](docs/development.md#cloudflare-workers) for Git builds,
-canonical URLs, and deployment checks.
-
-## Project map
-
-| Path                      | Purpose                                            |
-| ------------------------- | -------------------------------------------------- |
-| `components/oneko.tsx`    | Thin, installable React component shell.           |
-| `hooks/` and `lib/oneko/` | Animation hook and engine.                         |
-| `registry.json`           | Source manifest for the shadcn registry item.      |
-| `public/r/`               | Generated registry JSON served to installers.      |
-| `lib/oneko/vanilla*.ts`   | Framework-free build served as `/oneko.js`.        |
-| `app/`                    | Next.js playground and documentation routes.       |
-| `docs/`                   | Component API, skins, and local-development notes. |
-
-## Credits and license
+## Credits
 
 Oneko is inspired by [adryd325/oneko.js](https://github.com/adryd325/oneko.js) and the skin gallery
 in [oneko-swift](https://github.com/oneko-swift/oneko-swift). The sprite artwork belongs to its
-original creators; see [skin credits](docs/skins.md) for attribution and sources.
+original creators; see [skin credits](docs/skins.md).
 
-The code is available under the [MIT License](LICENSE).
+Code is available under the [MIT License](LICENSE).

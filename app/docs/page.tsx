@@ -66,8 +66,8 @@ export default async function DocsPage() {
               for little paws<span aria-hidden="true">.</span>
             </h1>
             <p>
-              Install the Oneko shadcn component in your React or Next.js app. This guide covers
-              setup, every prop, custom skins, and your cat’s little habits.
+              Bring Oneko to React, Svelte, Vue, Solid, or any page with one script tag. This guide
+              covers setup, every prop, custom skins, and your cat’s little habits.
             </p>
             <div className="docs-intro-links">
               <a href="#installation">
@@ -78,7 +78,7 @@ export default async function DocsPage() {
               </a>
             </div>
           </div>
-          {highlightedSections.map((section, index) => (
+          {highlightedSections.map((section) => (
             <section
               className="docs-section"
               id={section.id}
@@ -86,7 +86,6 @@ export default async function DocsPage() {
               aria-labelledby={`${section.id}-title`}
             >
               <div className="docs-section-heading">
-                <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
                 <h2 id={`${section.id}-title`}>
                   <span className="docs-section-label">{section.label}</span>
                   <a href={`#${section.id}`}>{section.title}</a>

@@ -158,6 +158,11 @@ export function OnekoSettings({
                   ["paused", "Pause your cat"],
                   ["followCursor", "Let your cat follow the cursor"],
                   ["sleepEnabled", "Let your cat nap"],
+                  ["friend", "Bring a kitten along"],
+                  ["napWhileTyping", "Nap while you type"],
+                  ["followFocus", "Follow keyboard focus"],
+                  ["perchOnHover", "Sit on links you rest the pointer on"],
+                  ["pettable", "Let keyboard users pet your cat"],
                 ] as const
               ).map(([key, label]) => (
                 <label className="oneko-checkbox" key={key}>
@@ -174,6 +179,9 @@ export function OnekoSettings({
               )}
               {!state.followCursor && (
                 <p className="oneko-note">Your cat stays cozy in one spot.</p>
+              )}
+              {state.pettable && (
+                <p className="oneko-note">Press Tab to reach your cat, then Enter to pet it.</p>
               )}
               <label className="oneko-checkbox">
                 <input

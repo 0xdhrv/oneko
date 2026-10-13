@@ -48,6 +48,52 @@ export function isSavedSprite(value: unknown): value is string {
   }
 }
 
+export const MAX_SPRITE_URL_LENGTH = 2048;
+
+/** A hosted sprite sheet: an https URL without credentials, short enough for a share link. */
+export function isRemoteSprite(value: unknown): value is string {
+  if (typeof value !== "string" || value.length > MAX_SPRITE_URL_LENGTH) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
+
+/** Either an embedded PNG or a hosted https sprite sheet. */
+export function isSpriteSource(value: unknown): value is string {
+  return isSavedSprite(value) || isRemoteSprite(value);
+}
+
+/** Load a hosted sheet and confirm its size before the cat wears it. */
+export async function loadRemoteSprite(value: string): Promise<string> {
+  const source = value.trim();
+  if (!isRemoteSprite(source))
+    throw new Error("Use an https:// link to a PNG, up to 2048 characters.");
+  const image = new Image();
+  image.referrerPolicy = "no-referrer";
+  image.src = source;
+  try {
+    await image.decode();
+  } catch {
+    throw new Error("That image couldn’t be opened. Check the link and that it allows hotlinking.");
+  }
+  if (image.naturalWidth !== 256 || image.naturalHeight !== 128)
+    throw new Error("Use a 256 × 128 sprite sheet with 8 columns and 4 rows of 32 × 32 frames.");
+  return source;
+}
+
+/** A readable name for a hosted sheet, such as "cats.example/ginger.png". */
+export function spriteNameFromURL(value: string): string {
+  try {
+    const url = new URL(value);
+    return `${url.hostname}${url.pathname}`.slice(0, 255);
+  } catch {
+    return "";
+  }
+}
+
 export async function readSprite(file: File): Promise<string> {
   if (file.size > MAX_SPRITE_BYTES) throw new Error("Choose a PNG smaller than 256 KB.");
   const source = await new Promise<string>((resolve, reject) => {

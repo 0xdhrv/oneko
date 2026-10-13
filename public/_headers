@@ -16,3 +16,9 @@
 /oneko/*
   Cache-Control: public, max-age=31536000, immutable
   Access-Control-Allow-Origin: *
+
+# Svelte, Vue, and Solid wrappers, downloaded with curl or opened in a browser.
+/frameworks/*
+  Cache-Control: public, max-age=3600
+  Content-Type: text/plain; charset=utf-8
+  Access-Control-Allow-Origin: *

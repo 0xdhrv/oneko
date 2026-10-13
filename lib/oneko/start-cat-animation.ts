@@ -1,6 +1,7 @@
 import { ONEKO_DEFAULTS } from "./defaults";
 import { refreshZones } from "./zone-runtime";
 import { hideBubble, showBubble } from "./animation/bubbles";
+import { makePettable, watchPage } from "./animation/attention";
 import { createFrameLoop } from "./animation/frame";
 import { createMouseMoveHandler } from "./animation/mouse";
 import { startAnimationLoop } from "./animation-loop";
@@ -8,6 +9,7 @@ import { BUBBLE_DISPLAY_FRAMES, OBSTACLE_INTERVAL, PATH_RECALC_INTERVAL } from "
 import { createDebugControls } from "./debug-controls/index";
 import { createBubble, createCatElement, createDebugHUD, createDebugSVG } from "./dom";
 import { createKonamiHandler } from "./konami";
+import { joinPack } from "./pack";
 import { createPersistHandler, loadPersistedCatState } from "./persistence";
 import { teardownCatAnimation } from "./teardown";
 import type { CatActivityState, CatLiveState, CatRuntimeState } from "./types";
@@ -21,6 +23,8 @@ export interface StartCatAnimationOptions {
   persistPosition: boolean;
   storageKey?: string;
   zIndex: number;
+  /** Make the cat a keyboard-reachable "Pet the cat" button. */
+  pettable?: boolean;
 }
 
 function createDebugWrapper(
@@ -54,6 +58,7 @@ export function startCatAnimation({
   persistPosition,
   storageKey = ONEKO_DEFAULTS.storageKey,
   zIndex,
+  pettable = ONEKO_DEFAULTS.pettable,
 }: StartCatAnimationOptions): () => void {
   stateRef.current.bubbleVisible = false;
   stateRef.current.bubbleTimer = 0;
@@ -132,9 +137,15 @@ export function startCatAnimation({
   const onKeyDown = createKonamiHandler(stateRef, debugSVG, debugWrapper);
   document.addEventListener("keydown", onKeyDown);
 
+  const leavePack = joinPack(stateRef.current);
+  const stopWatchingPage = watchPage(deps);
+  const stopPetting = pettable ? makePettable(deps) : undefined;
   const stopAnimationLoop = startAnimationLoop(stateRef, frame);
 
   return () => {
+    stopPetting?.();
+    stopWatchingPage();
+    leavePack();
     persist?.();
     teardownCatAnimation(
       { el, debugSVG, debugWrapper, bubbleEl },

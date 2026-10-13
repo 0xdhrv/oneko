@@ -38,6 +38,10 @@ function minimalRuntimeState(): CatRuntimeState {
     freerunMode: false,
     freerunTimer: 0,
     lastFreerunMsg: -1,
+    typingNap: false,
+    held: false,
+    perchTarget: null,
+    leaderTarget: null,
   };
 }
 

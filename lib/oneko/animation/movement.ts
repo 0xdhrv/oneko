@@ -8,6 +8,7 @@ import {
   WAYPOINT_REACH_DIST,
 } from "../constants";
 import { findRoute, nearestWalkable, worldToCell } from "../pathfinding";
+import { stopDistance } from "./attention";
 import type { CatAnimationDeps } from "./deps";
 import { maybeStartIdleAnimation } from "./idle";
 import { clearRotation, directionFromDelta, setSprite } from "./sprites";
@@ -174,12 +175,13 @@ function chaseCursor(deps: CatAnimationDeps) {
 export function followPath(deps: CatAnimationDeps, overallDist: number) {
   const s = deps.stateRef.current;
   const lastWaypoint = s.currentPath.at(-1);
+  const stop = stopDistance(s);
   const reachedPathEnd =
     !s.freerunMode &&
     lastWaypoint &&
     s.pathWaypointIdx === s.currentPath.length - 1 &&
-    Math.hypot(lastWaypoint.x - s.nekoPosX, lastWaypoint.y - s.nekoPosY) < s.followDistanceCfg;
-  if (overallDist < s.followDistanceCfg || reachedPathEnd) {
+    Math.hypot(lastWaypoint.x - s.nekoPosX, lastWaypoint.y - s.nekoPosY) < stop;
+  if (overallDist < stop || reachedPathEnd) {
     restNearCursor(deps);
     return;
   }

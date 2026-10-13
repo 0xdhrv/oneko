@@ -124,6 +124,10 @@ The checks start the studio on port 3101 and a Vite consumer fixture on port 310
 extracts the generated full registry into `.codex/browser-consumer`, so runtime checks exercise
 the installed files. They cover live motion preferences, cursor restoration, position storage,
 quiet defaults, presets, share links, configuration files, and a narrow viewport.
+`reactions.spec.ts` checks several cats, typing naps, focus following, perching, petting, and the
+remembered hide toggle against the hosted build. `frameworks.spec.ts` compiles the Svelte, Vue, and Solid wrappers in `public/frameworks/` through
+the same fixture server and checks mounting, prop updates, state events, and cleanup against the
+local `public/oneko.js` build.
 
 If Chrome is already installed, `PLAYWRIGHT_CHANNEL=chrome pnpm test:browser` uses it instead.
 Playwright saves traces for failed checks under `test-results/`. Rebuild the registry after

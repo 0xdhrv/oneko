@@ -14,6 +14,7 @@ export function useCatAnimation({
   persistPosition,
   storageKey,
   zIndex,
+  pettable,
 }: {
   enabled: boolean;
   stateRef: { current: CatRuntimeState };
@@ -24,6 +25,7 @@ export function useCatAnimation({
   persistPosition: boolean;
   storageKey: string;
   zIndex: number;
+  pettable: boolean;
 }) {
   useEffect(() => {
     if (!enabled || typeof window === "undefined") {
@@ -39,6 +41,7 @@ export function useCatAnimation({
       persistPosition,
       storageKey,
       zIndex,
+      pettable,
     });
   }, [
     enabled,
@@ -49,6 +52,7 @@ export function useCatAnimation({
     persistPosition,
     storageKey,
     zIndex,
+    pettable,
     liveStateRef,
   ]);
 }

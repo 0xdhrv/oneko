@@ -175,3 +175,31 @@ test("invalid share links retain existing preferences on a narrow screen", async
     await page.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1")!).skin),
   ).toBe("ginger");
 });
+
+test("a ?sprite= link dresses the cat in a hosted coat after checking its size", async ({
+  page,
+}) => {
+  const png = (skin: "ginger" | "classic") =>
+    Buffer.from(getBundledSkinSource(skin).split(",")[1], "base64");
+  await page.route("https://cats.oneko.test/**", (route) =>
+    route.request().url().endsWith("ginger.png")
+      ? route.fulfill({ body: png("ginger"), contentType: "image/png" })
+      : // A 32 × 32 favicon is not a sprite sheet.
+        readFile("public/icon-dark-32x32.png").then((body) =>
+          route.fulfill({ body, contentType: "image/png" }),
+        ),
+  );
+  await page.goto("/studio?sprite=https://cats.oneko.test/ginger.png");
+  await expect(page.getByText("Wearing a coat from cats.oneko.test.")).toBeVisible();
+  await expect
+    .poll(() => page.locator("#oneko-react").evaluate((el) => el.style.backgroundImage))
+    .toContain("https://cats.oneko.test/ginger.png");
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1")!));
+  expect(saved.spriteSrc).toBe("https://cats.oneko.test/ginger.png");
+
+  await page.goto("/studio?sprite=https://cats.oneko.test/tiny.png");
+  await expect(page.getByText(/Use a 256 × 128 sprite sheet/)).toBeVisible();
+  await expect
+    .poll(() => page.locator("#oneko-react").evaluate((el) => el.style.backgroundImage))
+    .toContain("https://cats.oneko.test/ginger.png");
+});

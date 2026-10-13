@@ -233,6 +233,19 @@ export const DEFAULT_FOLLOW_DISTANCE = 20;
 export const DEFAULT_ANIMATION_SPEED = 1;
 
 // Played once when the cat catches the laser dot
+export const PET_MESSAGES = [
+  "purrrr",
+  "right there. yes. there.",
+  "you may continue",
+  "head scritches accepted",
+  "*slow blink*",
+  "best hooman",
+];
+export const PET_SOUND_POOL = [
+  "/cat-sounds/Cat_purr1.ogg",
+  "/cat-sounds/Cat_purr2.ogg",
+  "/cat-sounds/Cat_purreow1.ogg",
+];
 export const LASER_CATCH_POOL = ["/cat-sounds/Cat_eat1.ogg", "/cat-sounds/Cat_eat2.ogg"];
 
 // Sound pools keyed by activity label

@@ -221,26 +221,14 @@
 .oneko-intro {
   margin-bottom: 36px;
 }
-.oneko-intro > *,
-.oneko-landing-actions,
-.oneko-world,
+/* The landing intro, actions, and garden stagger in with Motion (components/landing-motion.ts).
+   The server-rendered summary and footer follow with CSS. */
+.studio-companion .oneko-world,
 .oneko-guide-summary,
 .oneko-footer {
   animation: oneko-enter 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.oneko-intro h1 {
-  animation-delay: 40ms;
-}
-.oneko-intro > p:first-of-type {
-  animation-delay: 110ms;
-}
-.oneko-intro > p:not(:first-of-type) {
-  animation-delay: 170ms;
-}
-.oneko-landing-actions {
-  animation-delay: 230ms;
-}
-.oneko-world {
+.studio-companion .oneko-world {
   animation-name: oneko-enter-world;
   animation-delay: 310ms;
 }
@@ -258,8 +246,11 @@
   letter-spacing: -0.035em;
   margin-bottom: 12px;
 }
-.oneko-intro h1 span {
+.oneko-intro h1 span:not(.oneko-wordmark-letter) {
   color: var(--muted-foreground);
+}
+.oneko-intro h1 span {
+  display: inline-block;
 }
 .oneko-intro p {
   font-size: 14px;
@@ -665,9 +656,15 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  /* Motion keeps the landing fades; pin positions so nothing waits offset for its turn. */
   .oneko-intro > *,
+  .oneko-intro h1 span,
   .oneko-landing-actions,
-  .oneko-world,
+  .oneko-landing-world {
+    transform: none !important;
+    filter: none !important;
+  }
+  .studio-companion .oneko-world,
   .oneko-guide-summary,
   .oneko-footer {
     animation: none;
@@ -1390,6 +1387,29 @@
   min-height: 44px;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+.oneko-sprite-url {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.oneko-sprite-url > div {
+  display: flex;
+  gap: 8px;
+}
+.oneko-sprite-url input {
+  flex: 1;
+  min-width: 0;
+}
+.oneko-sprite-url button {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.oneko-sprite-url button:disabled {
+  opacity: 0.5;
 }
 .oneko-upload-preview {
   display: flex;

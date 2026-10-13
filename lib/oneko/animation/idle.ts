@@ -1,4 +1,5 @@
 import { defaultSpriteSets, IDLE_ANIMATION_DURATIONS, SLEEPING_MESSAGES } from "../constants";
+import { napmateNearby } from "../pack";
 import type { CatRuntimeState, IdleActivityState } from "../types";
 import { pickFromPool } from "./bubbles";
 import type { CatAnimationDeps } from "./deps";
@@ -42,7 +43,8 @@ export function maybeStartIdleAnimation(deps: CatAnimationDeps) {
   }
 
   s.idleAnimationFrame = 0;
-  if (s.sleepEnabledCfg && s.idleTime > threshold * 3) {
+  // Sleep is catching: a cat resting beside a napping friend dozes off without the usual wait.
+  if (s.sleepEnabledCfg && (s.idleTime > threshold * 3 || napmateNearby(s))) {
     startSleepingAnimation(deps);
     return;
   }

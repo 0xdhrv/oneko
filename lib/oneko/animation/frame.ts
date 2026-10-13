@@ -1,4 +1,5 @@
 import { refreshZones, updateZoneTarget } from "../zone-runtime";
+import { tickAttention } from "./attention";
 import { createDebugRenderer } from "./debug-render";
 import type { CatAnimationDeps } from "./deps";
 import { tickLiveState } from "./frame/tick-live-state";
@@ -14,6 +15,7 @@ export function createFrameLoop(deps: CatAnimationDeps) {
     if (s.pausedCfg) return;
     if (!refreshZones(deps)) return;
     tickPrelude(s);
+    tickAttention(deps);
     updateZoneTarget(s, window.innerWidth, window.innerHeight);
     const dist = Math.hypot(s.mousePosX - s.nekoPosX, s.mousePosY - s.nekoPosY);
     tickMovement(deps, dist);

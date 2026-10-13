@@ -5,7 +5,7 @@
  * oneko.js (MIT): https://github.com/adryd325/oneko.js/
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { LaserCursor } from "@/components/laser-cursor";
 import { useCatAnimation } from "@/hooks/use-cat-animation";
 import { useOnekoPropsSync } from "@/hooks/use-oneko-props-sync";
@@ -14,12 +14,19 @@ import { ONEKO_DEFAULTS } from "@/lib/oneko/defaults";
 import { useMotionAllowed, useReducedMotion } from "@/hooks/use-motion-allowed";
 import { TILE } from "@/lib/oneko/constants";
 import { createInitialCatState } from "@/lib/oneko/initial-state";
+import { areCatsHidden, onCatsHiddenChange, setCatsHidden } from "@/lib/oneko/pack";
 import { readPersistedPosition } from "@/lib/oneko/persistence";
 import type { CatActivityState, CatLiveState, OnekoProps } from "@/lib/oneko/types";
 
 export type { CatActivityState, CatLiveState, OnekoProps };
 export type { OnekoSkin } from "@/lib/oneko/skins";
 export type { OnekoZone } from "@/lib/oneko/zones";
+export { setCatsHidden };
+
+/** The visitor's remembered choice to hide every cat on the site. Pair with setCatsHidden. */
+export function useCatsHidden(): boolean {
+  return useSyncExternalStore(onCatsHiddenChange, areCatsHidden, () => false);
+}
 
 export default function Oneko({
   paused = ONEKO_DEFAULTS.paused,
@@ -59,8 +66,14 @@ export default function Oneko({
   volume = ONEKO_DEFAULTS.volume,
   laserPointer = ONEKO_DEFAULTS.laserPointer,
   reducedMotion = ONEKO_DEFAULTS.reducedMotion,
+  chase = ONEKO_DEFAULTS.chase,
+  napWhileTyping = ONEKO_DEFAULTS.napWhileTyping,
+  followFocus = ONEKO_DEFAULTS.followFocus,
+  perchOnHover = ONEKO_DEFAULTS.perchOnHover,
+  pettable = ONEKO_DEFAULTS.pettable,
 }: OnekoProps) {
-  const motionAllowed = useMotionAllowed();
+  const hidden = useCatsHidden();
+  const motionAllowed = useMotionAllowed() && !hidden;
   const prefersReducedMotion = useReducedMotion();
   const restingSource = useSkinSource(skin, spriteSrc);
   const elRef = useRef<HTMLDivElement | null>(null);
@@ -98,6 +111,10 @@ export default function Oneko({
     meow,
     volume,
     laserPointer: laserPointer && followCursor && !paused,
+    chase,
+    napWhileTyping,
+    followFocus,
+    perchOnHover,
   };
 
   const [initialState] = useState(() => createInitialCatState({ initialPos, ...config }));
@@ -113,6 +130,7 @@ export default function Oneko({
     persistPosition,
     storageKey,
     zIndex,
+    pettable,
   });
   useOnekoPropsSync(stateRef, elRef, {
     ...config,
@@ -121,7 +139,7 @@ export default function Oneko({
     spriteSrc,
   });
 
-  if (prefersReducedMotion && reducedMotion === "rest" && restingSource) {
+  if (!hidden && prefersReducedMotion && reducedMotion === "rest" && restingSource) {
     return (
       <RestingCat
         source={restingSource}

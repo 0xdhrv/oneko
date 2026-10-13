@@ -196,7 +196,7 @@ export function OnekoTweaks() {
                     ))}
                   </div>
 
-                  <More title="Use your own sprite" hint="Upload a PNG">
+                  <More title="Use your own sprite" hint="Upload or link a PNG">
                     <OnekoCustomAssets section="sprite" key={assetsVersion} />
                   </More>
                   <More title="Fine-tune the look" hint="Size, tint & wiggle">

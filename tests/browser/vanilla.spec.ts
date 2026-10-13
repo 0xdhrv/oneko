@@ -17,7 +17,10 @@ async function open(page: Page, body: string) {
     });
   });
   await page.route(SITE, (route) =>
-    route.fulfill({ body: `<!doctype html><body>${body}</body>`, contentType: "text/html" }),
+    route.fulfill({
+      body: `<!doctype html><body>${body}</body>`,
+      contentType: "text/html",
+    }),
   );
   await page.goto(SITE);
 }
@@ -69,6 +72,23 @@ test("createOneko is importable and destroy removes everything it added", async 
   await expect(page.locator("body")).not.toHaveCSS("cursor", "none");
 });
 
+test("update with an undefined option returns it to the default", async ({ page }) => {
+  await open(
+    page,
+    `<script type="module">
+       import { createOneko } from "${CDN}/oneko.js";
+       window.cat = createOneko({ skin: "ginger", persistPosition: false });
+     </script>`,
+  );
+  await expect.poll(() => sprite(page)).toContain(tail("ginger"));
+  await page.evaluate(() =>
+    (window as unknown as { cat: { update(o: object): void } }).cat.update({
+      skin: undefined,
+    }),
+  );
+  await expect.poll(() => sprite(page)).toContain(tail("classic"));
+});
+
 test("reduced motion hides the scripted cat or leaves it resting", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await open(
@@ -81,4 +101,23 @@ test("reduced motion hides the scripted cat or leaves it resting", async ({ page
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await expect(resting).toHaveCount(0);
   await expect(cat(page)).toHaveCount(1);
+});
+
+test("<oneko-cat> dispatches statechange events", async ({ page }) => {
+  await open(
+    page,
+    `<oneko-cat persist-position="false"></oneko-cat>
+     <script type="module">
+       window.states = [];
+       document.querySelector("oneko-cat")
+         .addEventListener("statechange", (event) => window.states.push(event.detail.state));
+     </script>
+     <script type="module" src="${CDN}/oneko.js"></script>`,
+  );
+  await expect(cat(page)).toHaveCount(1);
+  await page.mouse.move(40, 40);
+  await page.mouse.move(900, 700, { steps: 10 });
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { states: string[] }).states))
+    .toContain("moving");
 });

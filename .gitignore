@@ -12,6 +12,7 @@ next.user-config.*
 
 # Common ignores
 node_modules
+.pnpm-store/
 coverage/
 .next/
 .open-next/

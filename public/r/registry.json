@@ -55,6 +55,10 @@
           "type": "registry:lib"
         },
         {
+          "path": "lib/oneko/animation/attention.ts",
+          "type": "registry:lib"
+        },
+        {
           "path": "lib/oneko/animation/bubbles.ts",
           "type": "registry:lib"
         },
@@ -168,6 +172,10 @@
         },
         {
           "path": "lib/oneko/obstacle-filters.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/pack.ts",
           "type": "registry:lib"
         },
         {
@@ -280,6 +288,10 @@
           "type": "registry:lib"
         },
         {
+          "path": "lib/oneko/animation/attention.ts",
+          "type": "registry:lib"
+        },
+        {
           "path": "lib/oneko/animation/bubbles.ts",
           "type": "registry:lib"
         },
@@ -393,6 +405,10 @@
         },
         {
           "path": "lib/oneko/obstacle-filters.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/pack.ts",
           "type": "registry:lib"
         },
         {

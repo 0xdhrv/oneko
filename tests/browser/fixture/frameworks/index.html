@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Oneko framework wrappers</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      // ?svelte, ?vue, or ?solid picks the wrapper under test.
+      const entries = {
+        svelte: () => import("./svelte.ts"),
+        vue: () => import("./vue.ts"),
+        solid: () => import("./solid.ts"),
+      };
+      await entries[location.search.slice(1)]();
+    </script>
+  </body>
+</html>

@@ -4,8 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { useOnekoPlayground } from "./oneko-playground-context";
 import { getBundledSkinSource } from "@/lib/bundled-skins";
 import {
+  isRemoteSprite,
+  loadRemoteSprite,
+  MAX_SPRITE_URL_LENGTH,
   MAX_THOUGHT_TEXT_LENGTH,
   readSprite,
+  spriteNameFromURL,
   readThoughts,
   thoughtLines,
   validateThoughts,
@@ -17,6 +21,9 @@ export function OnekoCustomAssets({ section }: { section: "sprite" | "thoughts" 
   const [spriteError, setSpriteError] = useState("");
   const [textError, setTextError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [spriteURL, setSpriteURL] = useState(
+    isRemoteSprite(state.spriteSrc) ? state.spriteSrc : "",
+  );
   const pending = useRef(0);
   const textRequest = useRef(0);
   useEffect(() => {
@@ -70,6 +77,52 @@ export function OnekoCustomAssets({ section }: { section: "sprite" | "thoughts" 
               }
             }}
           />
+          <form
+            className="oneko-sprite-url"
+            onSubmit={async (event) => {
+              event.preventDefault();
+              const request = ++pending.current;
+              setLoading(true);
+              setSpriteError("");
+              try {
+                const spriteSrc = await loadRemoteSprite(spriteURL);
+                if (request === pending.current)
+                  actions.update({
+                    spriteSrc,
+                    spriteName: spriteNameFromURL(spriteSrc),
+                    hueRotate: 0,
+                  });
+              } catch (error) {
+                if (request === pending.current)
+                  setSpriteError(
+                    error instanceof Error ? error.message : "Couldn’t open this sprite sheet.",
+                  );
+              } finally {
+                if (request === pending.current) setLoading(false);
+              }
+            }}
+          >
+            <label htmlFor="cat-sprite-url">Or wear a hosted coat</label>
+            <p className="oneko-note" id="cat-sprite-url-help">
+              An https link to a 256 × 128 PNG. Hosted coats fit in share links.
+            </p>
+            <div>
+              <input
+                id="cat-sprite-url"
+                type="url"
+                inputMode="url"
+                placeholder="https://…/my-cat.png"
+                maxLength={MAX_SPRITE_URL_LENGTH}
+                value={spriteURL}
+                disabled={loading}
+                aria-describedby="cat-sprite-url-help"
+                onChange={(event) => setSpriteURL(event.target.value)}
+              />
+              <button type="submit" disabled={loading || !spriteURL.trim()}>
+                Wear coat
+              </button>
+            </div>
+          </form>
           <div className="oneko-asset-actions">
             <a href={getBundledSkinSource("classic")} download="oneko-template.png">
               Download sprite template
@@ -81,6 +134,7 @@ export function OnekoCustomAssets({ section }: { section: "sprite" | "thoughts" 
                   pending.current++;
                   setLoading(false);
                   setSpriteError("");
+                  setSpriteURL("");
                   actions.update({ spriteSrc: "", spriteName: "" });
                 }}
               >
@@ -176,7 +230,9 @@ export function OnekoCustomAssets({ section }: { section: "sprite" | "thoughts" 
       )}
       <p className="oneko-note">
         {section === "sprite"
-          ? "Your image stays in this browser and comes with your exported code."
+          ? isRemoteSprite(state.spriteSrc)
+            ? "Your cat loads this coat from its host, wherever your code runs."
+            : "Your image stays in this browser and comes with your exported code."
           : "Picked at random while awake. Naps and zoomies keep their own messages."}
       </p>
     </div>

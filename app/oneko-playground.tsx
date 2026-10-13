@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
 import { thoughtsForProp } from "@/lib/oneko/custom-assets";
+import { friendProps } from "@/lib/oneko/playground-defaults";
 import { OnekoPlaygroundProvider, useOnekoPlayground } from "@/components/oneko-playground-context";
 import { GlobalClickSound } from "@/components/global-click-sound";
 import { OnekoLanding } from "@/components/oneko-landing";
@@ -15,14 +16,28 @@ function PlaygroundOneko() {
   if (!state.showCat) {
     return null;
   }
-  const { showCat: _, spriteName: _name, ...config } = state;
+  const { showCat: _, spriteName: _name, friend, ...config } = state;
   return (
-    <Oneko
-      {...config}
-      bubbleText={thoughtsForProp(state.bubbleText)}
-      liveStateRef={liveStateRef}
-      reducedMotion="rest"
-    />
+    <>
+      <Oneko
+        {...config}
+        bubbleText={thoughtsForProp(state.bubbleText)}
+        liveStateRef={liveStateRef}
+        reducedMotion="rest"
+      />
+      {friend && (
+        <Oneko
+          {...friendProps(state)}
+          paused={state.paused}
+          followCursor={state.followCursor}
+          sleepEnabled={state.sleepEnabled}
+          napWhileTyping={state.napWhileTyping}
+          bubbleEnabled={false}
+          persistPosition={state.persistPosition}
+          reducedMotion="rest"
+        />
+      )}
+    </>
   );
 }
 

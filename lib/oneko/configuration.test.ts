@@ -76,7 +76,9 @@ describe("portable configuration", () => {
     ["skin", "missing"],
     ["bubblePlacement", "left"],
     ["spriteName", "x".repeat(256)],
-    ["spriteSrc", "https://example.com/cat.png"],
+    ["spriteSrc", "http://example.com/cat.png"],
+    ["spriteSrc", "https://user:secret@example.com/cat.png"],
+    ["spriteSrc", "javascript:alert(1)"],
     ["spriteSrc", "data:image/png;base64,broken"],
     ["bubbleText", "x".repeat(121)],
     ["bubbleText", Array(51).fill("Meow").join("\n")],
@@ -158,6 +160,34 @@ describe("share links", () => {
     expect(parseConfiguration(serializeConfiguration(settings))).toMatchObject({
       ok: true,
       value: { settings: { spriteSrc: settings.spriteSrc } },
+    });
+  });
+
+  it("shares hosted coats by link", () => {
+    const settings = {
+      ...DEFAULT_ONEKO_PLAYGROUND_STATE,
+      spriteSrc: "https://cats.example/ginger.png",
+      spriteName: "cats.example/ginger.png",
+    };
+    const result = createShareURL("https://example.com/studio", settings);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(parseShareFragment(new URL(result.value).hash)).toEqual({
+      ok: true,
+      value: { version: 1, settings },
+    });
+  });
+
+  it("accepts files and links made before newer settings existed", () => {
+    const {
+      napWhileTyping: _,
+      pettable: _p,
+      friend: _f,
+      ...older
+    } = DEFAULT_ONEKO_PLAYGROUND_STATE;
+    expect(parseConfiguration(JSON.stringify({ version: 1, settings: older }))).toEqual({
+      ok: true,
+      value: { version: 1, settings: DEFAULT_ONEKO_PLAYGROUND_STATE },
     });
   });
 

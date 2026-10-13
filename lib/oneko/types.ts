@@ -96,6 +96,16 @@ export interface OnekoProps {
   laserPointer?: boolean;
   /** With reduced motion: "hide" the cat, or let it "rest" as a still, sleeping sprite. Default "hide" */
   reducedMotion?: "hide" | "rest";
+  /** What to chase: the cursor, or the cat mounted just before this one. Default "cursor" */
+  chase?: "cursor" | "cat";
+  /** Doze off while the visitor types in a field; wake on the next pointer move. Default false */
+  napWhileTyping?: boolean;
+  /** Walk over to whatever receives keyboard focus. Default false */
+  followFocus?: boolean;
+  /** Sit on a link or button after the pointer rests on it. Default false */
+  perchOnHover?: boolean;
+  /** Make the cat a keyboard-reachable "Pet the cat" button. Default false */
+  pettable?: boolean;
 }
 
 export interface ObstacleRect {
@@ -171,4 +181,16 @@ export interface CatRuntimeState {
   lastFreerunMsg: number;
   laserPointerCfg: boolean;
   laserCaught: boolean;
+  chaseCfg: NonNullable<OnekoProps["chase"]>;
+  napWhileTypingCfg: boolean;
+  followFocusCfg: boolean;
+  perchOnHoverCfg: boolean;
+  /** Dozing because the visitor is typing; cleared by pointer movement. */
+  typingNap: boolean;
+  /** Holding still while keyboard focus is on the cat. */
+  held: boolean;
+  /** Top of the hovered element the cat walks to and sits on. */
+  perchTarget: PathPoint | null;
+  /** Position of the cat this one chases, when chase is "cat" and one exists. */
+  leaderTarget: PathPoint | null;
 }

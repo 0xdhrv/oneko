@@ -3,17 +3,24 @@
  *   <script type="module" src="https://oneko.dhrv.pw/oneko.js" data-skin="calico"></script>
  *   <oneko-cat skin="calico" meow></oneko-cat>
  *   import { createOneko } from "https://oneko.dhrv.pw/oneko.js";
+ * Any element with data-oneko-toggle hides or shows every cat, and the choice is remembered.
  */
 import { ONEKO_DEFAULTS } from "./defaults";
-import { createOneko, type OnekoInstance, type OnekoOptions } from "./vanilla";
+import { areCatsHidden, onCatsHiddenChange, setCatsHidden } from "./pack";
+import { createOneko as createCat, type OnekoInstance, type OnekoOptions } from "./vanilla";
 
-export { createOneko };
 export type { OnekoInstance, OnekoOptions };
+export { areCatsHidden, setCatsHidden };
 
 // Sounds sit next to the hosted script, so meow works without copying files.
 const HOSTED_DEFAULTS: OnekoOptions = {
   soundBasePath: new URL(/* @vite-ignore */ "./cat-sounds", import.meta.url).href,
 };
+
+/** Mount a cat. Options passed as undefined, now or in update(), use the defaults. */
+export function createOneko(options: OnekoOptions = {}): OnekoInstance {
+  return createCat(options, HOSTED_DEFAULTS);
+}
 
 const OPTION_KEYS = [...Object.keys(ONEKO_DEFAULTS), "spriteSrc"] as (keyof OnekoOptions)[];
 const kebab = (key: string) => key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
@@ -39,8 +46,13 @@ class OnekoCatElement extends HTMLElement {
   static observedAttributes = OPTION_KEYS.map(kebab);
   #cat: OnekoInstance | undefined;
 
-  #options() {
-    return { ...HOSTED_DEFAULTS, ...readOptions((name) => this.getAttribute(name)) };
+  #options(): OnekoOptions {
+    return {
+      ...readOptions((name) => this.getAttribute(name)),
+      // Lets frameworks without a wrapper listen with addEventListener("statechange", ...).
+      onStateChange: (state) =>
+        this.dispatchEvent(new CustomEvent("statechange", { detail: { state } })),
+    };
   }
 
   connectedCallback() {
@@ -54,7 +66,8 @@ class OnekoCatElement extends HTMLElement {
 
   attributeChangedCallback() {
     // Attributes removed since the last update return to their defaults.
-    this.#cat?.update({ ...ONEKO_DEFAULTS, ...this.#options() });
+    const reset = Object.fromEntries(OPTION_KEYS.map((key) => [key, undefined]));
+    this.#cat?.update({ ...reset, ...this.#options() });
   }
 }
 
@@ -66,10 +79,20 @@ const script = [...document.querySelectorAll<HTMLScriptElement>("script[src]")].
 );
 const autoStart = () => {
   if (!script || script.hasAttribute("data-manual") || document.querySelector("oneko-cat")) return;
-  createOneko({
-    ...HOSTED_DEFAULTS,
-    ...readOptions((name) => script.getAttribute(`data-${name}`)),
-  });
+  createOneko(readOptions((name) => script.getAttribute(`data-${name}`)));
 };
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", autoStart);
 else autoStart();
+
+// <button data-oneko-toggle>Hide cat</button> works without any JavaScript of your own.
+const syncToggles = () => {
+  for (const toggle of document.querySelectorAll("[data-oneko-toggle]"))
+    toggle.setAttribute("aria-pressed", String(areCatsHidden()));
+};
+document.addEventListener("click", (event) => {
+  const toggle = event.target instanceof Element && event.target.closest("[data-oneko-toggle]");
+  if (toggle) setCatsHidden(!areCatsHidden());
+});
+onCatsHiddenChange(syncToggles);
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncToggles);
+else syncToggles();

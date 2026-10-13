@@ -35,6 +35,10 @@ type RuntimeConfigStateFields = Pick<
   | "lastBubbleMsg"
   | "laserPointerCfg"
   | "laserCaught"
+  | "chaseCfg"
+  | "napWhileTypingCfg"
+  | "followFocusCfg"
+  | "perchOnHoverCfg"
 >;
 
 export function defaultRuntimeConfigState(): RuntimeConfigStateFields {
@@ -69,12 +73,25 @@ export function defaultRuntimeConfigState(): RuntimeConfigStateFields {
     lastBubbleMsg: -1,
     laserPointerCfg: ONEKO_DEFAULTS.laserPointer,
     laserCaught: false,
+    chaseCfg: ONEKO_DEFAULTS.chase,
+    napWhileTypingCfg: ONEKO_DEFAULTS.napWhileTyping,
+    followFocusCfg: ONEKO_DEFAULTS.followFocus,
+    perchOnHoverCfg: ONEKO_DEFAULTS.perchOnHover,
   };
 }
 
 export type CatRuntimeConfig = Pick<
   OnekoProps,
-  "paused" | "followCursor" | "sleepEnabled" | "bubblePlacement" | "bubbleScale" | "soundBasePath"
+  | "paused"
+  | "followCursor"
+  | "sleepEnabled"
+  | "bubblePlacement"
+  | "bubbleScale"
+  | "soundBasePath"
+  | "chase"
+  | "napWhileTyping"
+  | "followFocus"
+  | "perchOnHover"
 > & {
   zones?: readonly OnekoZone[];
   zoneAttractionChance?: number;
@@ -148,4 +165,10 @@ export function applyRuntimeConfig(state: CatRuntimeState, config: CatRuntimeCon
   if (!config.laserPointer) {
     state.laserCaught = false;
   }
+  state.chaseCfg = config.chase === "cat" ? "cat" : "cursor";
+  state.napWhileTypingCfg = config.napWhileTyping ?? ONEKO_DEFAULTS.napWhileTyping;
+  state.followFocusCfg = config.followFocus ?? ONEKO_DEFAULTS.followFocus;
+  state.perchOnHoverCfg = config.perchOnHover ?? ONEKO_DEFAULTS.perchOnHover;
+  if (!state.napWhileTypingCfg) state.typingNap = false;
+  if (!state.perchOnHoverCfg) state.perchTarget = null;
 }

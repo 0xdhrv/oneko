@@ -9,7 +9,9 @@ export interface BubbleElements {
 
 export function createCatElement(state: CatRuntimeState, zIndex: number): HTMLDivElement {
   const el = document.createElement("div");
-  el.id = "oneko-react";
+  // The first cat keeps the historical id; every cat carries data-oneko-cat.
+  if (!document.getElementById("oneko-react")) el.id = "oneko-react";
+  el.setAttribute("data-oneko-cat", "");
   el.setAttribute("aria-hidden", "true");
   el.style.cssText = [
     `width:${TILE}px`,

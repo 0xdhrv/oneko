@@ -1,4 +1,4 @@
-import { isSavedSprite, normalizeThoughts, MAX_THOUGHT_TEXT_LENGTH } from "./custom-assets";
+import { isSpriteSource, normalizeThoughts, MAX_THOUGHT_TEXT_LENGTH } from "./custom-assets";
 import { isOnekoSkin } from "./skins";
 import { ONEKO_DEFAULTS } from "./defaults";
 
@@ -33,9 +33,36 @@ export const DEFAULT_ONEKO_PLAYGROUND_STATE = {
   hueRotate: ONEKO_DEFAULTS.hueRotate,
   zoneAttractionChance: ONEKO_DEFAULTS.zoneAttractionChance,
   zoneAttractionDuration: ONEKO_DEFAULTS.zoneAttractionDuration,
+  napWhileTyping: ONEKO_DEFAULTS.napWhileTyping,
+  followFocus: ONEKO_DEFAULTS.followFocus,
+  perchOnHover: ONEKO_DEFAULTS.perchOnHover,
+  pettable: ONEKO_DEFAULTS.pettable,
+  /** Playground only: a second cat that chases the first. */
+  friend: false,
 };
 
+/** Settings added after version 1 shipped; older files and links may leave them out. */
+export const LATER_SETTINGS = new Set<string>([
+  "napWhileTyping",
+  "followFocus",
+  "perchOnHover",
+  "pettable",
+  "friend",
+]);
+
 export type OnekoPlaygroundState = typeof DEFAULT_ONEKO_PLAYGROUND_STATE;
+
+/**
+ * The playground friend: a classic-coat kitten that chases your cat. The classic coat ships in
+ * every install, so exported code compiles with either registry item.
+ */
+export function friendProps(state: Pick<OnekoPlaygroundState, "scale">) {
+  return {
+    chase: "cat" as const,
+    scale: Math.max(0.5, state.scale / 2),
+    storageKey: "oneko:friend",
+  };
+}
 
 export const PLAYGROUND_STORAGE_KEY = "oneko:playground:v1";
 
@@ -76,7 +103,7 @@ export function restorePlaygroundState(raw: string | null): OnekoPlaygroundState
         if (typeof value === "string")
           state.bubbleText = normalizeThoughts(value.slice(0, MAX_THOUGHT_TEXT_LENGTH));
       } else if (key === "spriteSrc") {
-        if (isSavedSprite(value)) state.spriteSrc = value;
+        if (isSpriteSource(value)) state.spriteSrc = value;
       } else if (key === "spriteName") {
         if (typeof value === "string") state.spriteName = value.slice(0, 255);
       } else if (key in SETTING_RANGES) {

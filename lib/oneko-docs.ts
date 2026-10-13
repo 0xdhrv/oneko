@@ -133,6 +133,41 @@ export const PROP_DOCS = {
     description:
       'What happens when the visitor prefers reduced motion. "hide" removes the cat; "rest" shows a still, sleeping sprite at the saved spot (or initialPos, or the bottom-right corner) with no animation, sound, or bubbles.',
   },
+  chase: {
+    group: "Paws & play",
+    type: '"cursor" | "cat"',
+    default: '"cursor"',
+    description:
+      'What the cat chases. "cat" follows the cat mounted just before this one, so several cats form a little parade; the first cat still chases the cursor. A cat resting beside a napping friend dozes off too.',
+  },
+  napWhileTyping: {
+    group: "Paws & play",
+    type: "boolean",
+    default: "false",
+    description:
+      "Doze off where it is while the visitor types in a text field, textarea, or editable area. The next pointer movement wakes it. Shortcut keys do not count as typing.",
+  },
+  followFocus: {
+    group: "Paws & play",
+    type: "boolean",
+    default: "false",
+    description:
+      "Walk over to the element that receives keyboard focus, settling just below it (or above, near the bottom of the screen). Pointer focus is ignored, except on text fields.",
+  },
+  perchOnHover: {
+    group: "Paws & play",
+    type: "boolean",
+    default: "false",
+    description:
+      "When the pointer rests on a link or button for 0.7 seconds, the cat climbs on top of it. Add data-oneko-perch to any other element to make it a perch. Moving the pointer or scrolling ends the visit.",
+  },
+  pettable: {
+    group: "Paws & play",
+    type: "boolean",
+    default: "false",
+    description:
+      'Makes the cat a focusable "Pet the cat" button in the tab order. While focused it holds still; Enter or Space pets it, with a purr, a bubble, and a polite screen-reader announcement. Changing this remounts the animation DOM.',
+  },
   bubbleEnabled: {
     group: "Bubbles",
     type: "boolean",
@@ -376,7 +411,74 @@ export const DOC_SECTIONS: DocSection[] = [
           "The script is about 33 KB gzipped. Named skins load the first time one is used.",
           "When the page has a <oneko-cat> element, or the script tag has data-manual, the script does not add its own cat.",
           "Removing a <oneko-cat> element removes its cat. Removing an attribute returns that option to its default.",
+          "A <oneko-cat> element fires a statechange event whose detail.state is the cat's activity.",
         ],
+      },
+    ],
+  },
+  {
+    id: "frameworks",
+    label: "Svelte, Vue, Solid",
+    title: "Cats speak Svelte, Vue, and Solid",
+    blocks: [
+      {
+        kind: "text",
+        text: "Download one small component into your project. It takes the same props as the React component, follows prop changes, and removes the cat on unmount. The engine loads from the hosted build in the browser, so SvelteKit, Nuxt, and SolidStart can render it during SSR.",
+      },
+      {
+        kind: "code",
+        label: "Svelte 5 or SvelteKit",
+        language: "bash",
+        code: `curl -o src/lib/Oneko.svelte ${DOCS_ORIGIN}/frameworks/Oneko.svelte`,
+      },
+      {
+        kind: "code",
+        label: "src/routes/+layout.svelte",
+        language: "html",
+        code: '<script>\n  import Oneko from "$lib/Oneko.svelte";\n\n  let { children } = $props();\n</script>\n\n<Oneko skin="calico" meow />\n{@render children()}',
+      },
+      {
+        kind: "code",
+        label: "Vue 3 or Nuxt",
+        language: "bash",
+        code: `curl -o src/components/Oneko.vue ${DOCS_ORIGIN}/frameworks/Oneko.vue`,
+      },
+      {
+        kind: "code",
+        label: "App.vue",
+        language: "html",
+        code: '<script setup>\nimport Oneko from "./components/Oneko.vue";\n</script>\n\n<template>\n  <Oneko skin="calico" :speed="12" meow @state-change="console.log" />\n  <RouterView />\n</template>',
+      },
+      {
+        kind: "code",
+        label: "Solid or SolidStart",
+        language: "bash",
+        code: `curl -o src/components/Oneko.tsx ${DOCS_ORIGIN}/frameworks/Oneko.solid.tsx`,
+      },
+      {
+        kind: "code",
+        label: "App.tsx",
+        language: "tsx",
+        code: 'import Oneko from "./components/Oneko";\n\nexport default function App() {\n  return <Oneko skin="calico" meow onStateChange={console.log} />;\n}',
+      },
+      {
+        kind: "list",
+        items: [
+          "In Nuxt, save the file as components/Oneko.vue and it is auto-imported.",
+          "Svelte and Solid take onStateChange as a prop; Vue emits state-change.",
+          "Setting a prop to undefined returns that option to its default.",
+          "To self-host, serve public/oneko.js and its oneko/ folder yourself and change ONEKO_URL at the top of the component.",
+        ],
+      },
+      {
+        kind: "text",
+        text: "Angular, Lit, Astro, and other frameworks can use the <oneko-cat> element from the hosted script. In Angular, add CUSTOM_ELEMENTS_SCHEMA to the component's schemas, bind options with [attr.skin], and listen with (statechange).",
+      },
+      {
+        kind: "code",
+        label: "Angular template",
+        language: "html",
+        code: '<oneko-cat [attr.skin]="skin" meow (statechange)="activity = $event.detail.state"></oneko-cat>',
       },
     ],
   },
@@ -446,6 +548,76 @@ export const DOC_SECTIONS: DocSection[] = [
           "The laser toy is hidden while paused or when cursor-follow is disabled. While active, it takes priority over favorite spots.",
           "On touch screens, a tap on non-interactive space gives the cat a destination. Taps on buttons, links, and form controls are ignored.",
         ],
+      },
+    ],
+  },
+  {
+    id: "pack",
+    label: "Several cats",
+    title: "A parade of cats",
+    blocks: [
+      {
+        kind: "text",
+        text: 'Mount more than one Oneko. With chase="cat", each cat follows the one mounted before it, and the first one chases the cursor. When the leader naps, cats resting beside it doze off too. Give each cat its own storageKey so their nap spots are saved separately.',
+      },
+      {
+        kind: "code",
+        label: "Three cats in a row",
+        language: "tsx",
+        code: '<Oneko skin="ginger" storageKey="cat:ginger" />\n<Oneko skin="calico" chase="cat" storageKey="cat:calico" />\n<Oneko skin="tuxedo" chase="cat" storageKey="cat:tuxedo" scale={0.5} />',
+      },
+      {
+        kind: "text",
+        text: 'The same works with the hosted script: add several <oneko-cat> elements, using chase="cat" on all but the first. Every cat element carries data-oneko-cat; only the first keeps the id oneko-react.',
+      },
+    ],
+  },
+  {
+    id: "page",
+    label: "Page reactions",
+    title: "A cat that notices",
+    blocks: [
+      {
+        kind: "code",
+        label: "Reacting to the page",
+        language: "tsx",
+        code: "<Oneko napWhileTyping followFocus perchOnHover />",
+      },
+      {
+        kind: "list",
+        items: [
+          "napWhileTyping: the cat curls up while visitors write, and wakes when the pointer moves again. With sleepEnabled={false} it sits quietly instead.",
+          "followFocus: keyboard users get a companion too. The cat trots to whatever Tab lands on.",
+          "perchOnHover: rest the pointer on a link or button and the cat hops on top. Mark other elements with data-oneko-perch.",
+          "All three are off by default and can be toggled live.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "accessibility",
+    label: "Visitor controls",
+    title: "Let visitors decide",
+    blocks: [
+      {
+        kind: "text",
+        text: "Give visitors a way to send the cat away. setCatsHidden(true) hides every cat on the site, in every open tab, and the choice is remembered in localStorage under oneko:hidden. useCatsHidden() reads it in React.",
+      },
+      {
+        kind: "code",
+        label: "A remembered toggle in React",
+        language: "tsx",
+        code: '"use client";\n\nimport { setCatsHidden, useCatsHidden } from "@/components/oneko";\n\nexport function CatToggle() {\n  const hidden = useCatsHidden();\n  return (\n    <button type="button" aria-pressed={hidden} onClick={() => setCatsHidden(!hidden)}>\n      Hide the cat\n    </button>\n  );\n}',
+      },
+      {
+        kind: "code",
+        label: "The same with the hosted script",
+        language: "html",
+        code: `<script type="module" src="${DOCS_ORIGIN}/oneko.js"></script>\n<button type="button" data-oneko-toggle>Hide the cat</button>`,
+      },
+      {
+        kind: "text",
+        text: 'The hosted script keeps aria-pressed on every data-oneko-toggle element in sync and also exports setCatsHidden and areCatsHidden. Add pettable to make the cat a "Pet the cat" button that keyboard and screen-reader users can reach. It holds still while focused; Enter or Space pets it.',
       },
     ],
   },

@@ -6,6 +6,7 @@ import { TILE } from "./constants";
 import { ONEKO_DEFAULTS } from "./defaults";
 import { createInitialCatState } from "./initial-state";
 import { mountLaserCursor } from "./laser-cursor-dom";
+import { areCatsHidden, onCatsHiddenChange } from "./pack";
 import { readPersistedPosition } from "./persistence";
 import { applyRuntimeConfig } from "./runtime-config";
 import { getSkinSource, loadSkinSource } from "./skins";
@@ -15,7 +16,7 @@ import type { CatActivityState, OnekoProps } from "./types";
 export type OnekoOptions = Omit<OnekoProps, "liveStateRef">;
 
 export interface OnekoInstance {
-  /** Merge new options into the running cat. Engine-level options restart it in place. */
+  /** Merge new options into the running cat; undefined resets one. Engine-level options restart it in place. */
   update(options: OnekoOptions): void;
   /** Remove the cat, bubble, laser, and listeners. Saves the position when persistence is on. */
   destroy(): void;
@@ -27,8 +28,20 @@ type Resolved = Omit<OnekoOptions, keyof Defaults> & {
   [K in keyof Defaults]: K extends keyof OnekoOptions ? NonNullable<OnekoOptions[K]> : Defaults[K];
 };
 
-export function createOneko(initial: OnekoOptions = {}): OnekoInstance {
-  let options: Resolved = { ...ONEKO_DEFAULTS, ...defined(initial) };
+/**
+ * Mount a cat on document.body. `base` overrides the built-in defaults, so options passed as
+ * undefined (now or in a later update) return to the base value.
+ */
+export function createOneko(initial: OnekoOptions = {}, base: OnekoOptions = {}): OnekoInstance {
+  const fallback = { ...ONEKO_DEFAULTS, ...base } as Resolved;
+  const resolve = (next: OnekoOptions) =>
+    Object.fromEntries(
+      Object.entries(next).map(([key, value]) => [
+        key,
+        value === undefined ? fallback[key as keyof Resolved] : value,
+      ]),
+    ) as OnekoOptions;
+  let options: Resolved = { ...fallback, ...resolve(initial) };
   const stateRef = { current: createInitialCatState(runtimeConfig(options)) };
   const elRef: { current: HTMLDivElement | null } = { current: null };
   const lastStateRef = { current: "idle" as CatActivityState };
@@ -73,6 +86,7 @@ export function createOneko(initial: OnekoOptions = {}): OnekoInstance {
 
   const start = () => {
     stop();
+    if (areCatsHidden()) return;
     if (reducedMotion()) {
       if (options.reducedMotion === "rest") {
         resting = createRestingCat(options);
@@ -89,6 +103,7 @@ export function createOneko(initial: OnekoOptions = {}): OnekoInstance {
       persistPosition: options.persistPosition,
       storageKey: options.storageKey,
       zIndex: options.zIndex,
+      pettable: options.pettable,
     });
     if (options.laserPointer && options.followCursor && !options.paused)
       stopLaser = mountLaserCursor(options.zIndex);
@@ -96,17 +111,25 @@ export function createOneko(initial: OnekoOptions = {}): OnekoInstance {
   };
 
   motionQuery?.addEventListener("change", start);
+  const stopWatchingHidden = onCatsHiddenChange(start);
   start();
 
   return {
     update(next) {
       if (destroyed) return;
       const previous = options;
-      options = { ...options, ...defined(next) };
+      options = { ...options, ...resolve(next) };
       onStateChangeRef.current = options.onStateChange;
       applyRuntimeConfig(stateRef.current, runtimeConfig(options));
       const restart = (
-        ["zIndex", "storageKey", "persistPosition", "reducedMotion", "laserPointer"] as const
+        [
+          "zIndex",
+          "storageKey",
+          "persistPosition",
+          "reducedMotion",
+          "laserPointer",
+          "pettable",
+        ] as const
       ).some((key) => previous[key] !== options[key]);
       const laserChanged =
         previous.followCursor !== options.followCursor || previous.paused !== options.paused;
@@ -117,6 +140,7 @@ export function createOneko(initial: OnekoOptions = {}): OnekoInstance {
       if (destroyed) return;
       destroyed = true;
       motionQuery?.removeEventListener("change", start);
+      stopWatchingHidden();
       stop();
     },
   };
@@ -127,13 +151,6 @@ function runtimeConfig(options: Resolved) {
     ...options,
     laserPointer: options.laserPointer && options.followCursor && !options.paused,
   };
-}
-
-/** Drop undefined values so they fall back to defaults instead of overriding them. */
-function defined(options: OnekoOptions): OnekoOptions {
-  return Object.fromEntries(
-    Object.entries(options).filter(([, value]) => value !== undefined),
-  ) as OnekoOptions;
 }
 
 /** Still, sleeping cat for visitors who prefer reduced motion, matching the React component. */

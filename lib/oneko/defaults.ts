@@ -48,4 +48,9 @@ export const ONEKO_DEFAULTS = {
   bubbleText: "",
   volume: DEFAULT_VOLUME,
   laserPointer: false,
+  chase: "cursor" as NonNullable<OnekoProps["chase"]>,
+  napWhileTyping: false,
+  followFocus: false,
+  perchOnHover: false,
+  pettable: false,
 };
