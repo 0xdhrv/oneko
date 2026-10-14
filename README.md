@@ -17,6 +17,7 @@
     <a href="https://buymeacoffee.com/0xdhrv"><img alt="Buy Me a Coffee" src="https://shieldcn.dev/badge/buymecoffee-FFDD04.svg?size=default&amp;theme=neutral&amp;logo=buymeacoffee" /></a>
   </p>
   <br />
+  <img src="./public/oneko-loop.svg" alt="Oneko pixel cat waking up, running, and going back to sleep" width="672" />
 </div>
 
 Oneko follows the pointer, naps when things are quiet, and shares cat-themed thoughts. It comes

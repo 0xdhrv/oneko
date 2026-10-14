@@ -8,6 +8,7 @@
     "registry:build": "shadcn build && node scripts/build-registry.mjs && oxfmt public/r/*.json",
     "prebuild": "pnpm run registry:build && pnpm run build:vanilla",
     "build:vanilla": "node scripts/build-vanilla.mjs",
+    "readme:svg": "node scripts/generate-readme-svg.mjs",
     "build:package": "node scripts/build-package.mjs",
     "build:extension": "node scripts/build-extension.mjs",
     "build": "next build",
