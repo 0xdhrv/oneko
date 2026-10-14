@@ -282,14 +282,12 @@ export const SOUND_POOLS: Record<CatActivityState, string[]> = {
     "/cat-sounds/Cat_royal_ambient2.ogg",
     "/cat-sounds/Cat_royal_ambient3.ogg",
     "/cat-sounds/Cat_royal_ambient4.ogg",
-    "/cat-sounds/Cat_royal_ambient5.ogg",
-    "/cat-sounds/Cat_royal_ambient6.ogg",
   ],
   alert: [
-    "/cat-sounds/Stray_cat_idle1.ogg",
-    "/cat-sounds/Stray_cat_idle2.ogg",
-    "/cat-sounds/Stray_cat_idle3.ogg",
-    "/cat-sounds/Stray_cat_idle4.ogg",
+    "/cat-sounds/Cat_idle1.ogg",
+    "/cat-sounds/Cat_idle2.ogg",
+    "/cat-sounds/Cat_idle3.ogg",
+    "/cat-sounds/Cat_idle4.ogg",
   ],
 };
 
