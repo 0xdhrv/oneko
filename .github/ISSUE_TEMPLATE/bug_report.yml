@@ -1,0 +1,75 @@
+name: Bug report
+description: Report broken behavior in Oneko, its integrations, or the website.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe one problem per report. A small reproduction helps us investigate.
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the open and closed issues for this problem.
+          required: true
+  - type: dropdown
+    id: installation
+    attributes:
+      label: How are you using Oneko?
+      options:
+        - Playground or studio website
+        - React shadcn registry item
+        - npm package
+        - Downloaded Svelte, Vue, or Solid component
+        - Script tag, web component, or vanilla API
+        - Chrome extension
+        - Local development or build
+        - Other or unsure
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment and version
+      description: Include your browser and OS versions. For integrations, include the framework and version, installation URL or command, and package version or download date. For a local build, include the commit and Node.js version. For the extension, include its version.
+      placeholder: |
+        Browser and OS:
+        Framework, if used:
+        Oneko version, install URL, download date, or commit:
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: List the steps and relevant props, data attributes, or studio settings. A minimal code sample, repository, or studio share URL is helpful. If the problem is intermittent, say how often it happens.
+      placeholder: |
+        1. Open or install...
+        2. Set...
+        3. Move, click, or type...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happens instead? Include any error message.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots, recordings, or logs
+      description: Optional. Attach evidence that helps explain the problem. Remove private information from logs and URLs.
+  - type: textarea
+    id: context
+    attributes:
+      label: Other context
+      description: Optional. Include a last working version, workaround, or relevant settings such as reduced motion, custom sprites, sound paths, or site permissions.

@@ -1,0 +1,34 @@
+name: Feature request
+description: Suggest a new capability or improvement to Oneko.
+body:
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the open and closed issues for this idea.
+          required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would this help you do?
+      description: Describe the use case and what is difficult or missing today. Mention where you use Oneko.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe how you would use the feature and what a successful result looks like. An example is helpful; implementation details are optional.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or workarounds
+      description: Optional. What have you tried, and why does it fall short?
+  - type: textarea
+    id: context
+    attributes:
+      label: Examples or references
+      description: Optional. Add sketches, screenshots, links, or related issues.

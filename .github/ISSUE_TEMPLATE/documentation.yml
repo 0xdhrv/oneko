@@ -1,0 +1,30 @@
+name: Documentation issue
+description: Report an incorrect example, missing instruction, or unclear explanation.
+body:
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the open and closed issues for this documentation problem.
+          required: true
+  - type: input
+    id: location
+    attributes:
+      label: Page or file
+      description: Link to the page or give the file path and section. For missing documentation, say where you expected to find it.
+      placeholder: https://oneko.dhrv.pw/docs#installation
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is missing or unclear?
+      description: Explain what you were trying to do and where the instructions let you down. Include your integration and version if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested correction
+      description: Optional. Share clearer wording, a working example, or the question the documentation should answer.

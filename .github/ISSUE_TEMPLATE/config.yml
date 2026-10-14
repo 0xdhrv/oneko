@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Oneko documentation
+    url: https://oneko.dhrv.pw/docs
+    about: Installation, options, skins, sounds, and framework guides.
