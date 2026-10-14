@@ -16,4 +16,3 @@ Use case: precise-object-edit. Edit the supplied Classic Oneko sprite atlas into
 ### peach
 
 Use case: precise-object-edit. Edit the supplied Classic Oneko sprite atlas into a PEACH coat variant: soft pastel apricot-peach fur, warm vanilla muzzle belly and paw tips, muted terracotta outlines, tiny coral ear interiors. A pale peach-and-cream cat distinct from a strong orange ginger coat. Preserve every original pose, facing direction, silhouette and frame position exactly. All 32 frames remain in the same 8-column by 4-row grid. Important: preserve rear-facing poses as rear-facing, two sleeping frames with Z marks, scratching and grooming. Transparent background, original 256x128 dimensions if possible, 32x32 cells. Simple limited-palette flat pixel art with hard edges. No gradients, glow, blur, shadows, labels, grid lines or accessories. Recolor only; do not redesign the cat or crop any frames.
-

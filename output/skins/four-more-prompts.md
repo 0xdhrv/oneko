@@ -19,4 +19,3 @@ Edit target: supplied Classic Oneko sprite atlas. Create a MINT coat: fresh ligh
 ## midnight-blue
 
 Edit target: supplied Classic Oneko sprite atlas. Create a MIDNIGHT BLUE coat: deep muted navy-blue fur, silver-blue muzzle chest and paw tips, near-black indigo outlines, tiny amber eyes where visible and slate blue ear interiors. Dark fur must remain readable. Preserve every original pose and facing direction exactly in its original cell, all 32 frames in 8 columns by 4 rows. Preserve paired walking poses, scratching, grooming, rear views, and sleep Z marks. Transparent background. Prefer 256x128 pixels with 32x32 cells. Keep original compact silhouette, consistent markings, flat limited-palette hard-edged pixel art. No gradients, glow, stars, shadows, text labels, grid lines or accessories. Coat recoloring only. Do not crop feet, ears or tails.
-
