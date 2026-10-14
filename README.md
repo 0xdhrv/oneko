@@ -1,6 +1,6 @@
 <div align="center">
   <br />
-  <img src="./public/icon-512.png" alt="Oneko pixel cat" width="112" />
+    <img src="./public/oneko-loop.svg" alt="Oneko pixel cat waking up, running, and going back to sleep" width="672" />
   <h1>Oneko</h1>
   <p>A tiny pixel cat for your website. React, Svelte, Vue, Solid, one script tag, or every site in Chrome.</p>
   <p>
@@ -17,7 +17,6 @@
     <a href="https://buymeacoffee.com/0xdhrv"><img alt="Buy Me a Coffee" src="https://shieldcn.dev/badge/buymecoffee-FFDD04.svg?size=default&amp;theme=neutral&amp;logo=buymeacoffee" /></a>
   </p>
   <br />
-  <img src="./public/oneko-loop.svg" alt="Oneko pixel cat waking up, running, and going back to sleep" width="672" />
 </div>
 
 Oneko follows the pointer, naps when things are quiet, and shares cat-themed thoughts. It comes
