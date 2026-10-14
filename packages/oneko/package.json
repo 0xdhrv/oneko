@@ -1,0 +1,84 @@
+{
+  "name": "oneko",
+  "version": "0.3.0",
+  "description": "A tiny pixel cat for React, Vue, Svelte, Solid, and the browser. Bundled engine and 24 coats, no CDN required.",
+  "keywords": [
+    "cat",
+    "oneko",
+    "pixel-art",
+    "react",
+    "solid",
+    "svelte",
+    "vue"
+  ],
+  "homepage": "https://oneko.dhrv.pw",
+  "bugs": "https://github.com/0xdhrv/oneko/issues",
+  "license": "MIT",
+  "author": "0xdhrv",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0xdhrv/oneko.git",
+    "directory": "packages/oneko"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "SKIN-CREDITS.md"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/types/packages/oneko/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/packages/oneko/src/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./vanilla": {
+      "types": "./dist/types/packages/oneko/src/vanilla.d.ts",
+      "default": "./dist/vanilla.js"
+    },
+    "./vue": {
+      "types": "./dist/types/packages/oneko/src/vue.d.ts",
+      "default": "./dist/vue.js"
+    },
+    "./svelte": {
+      "types": "./dist/svelte/Oneko.svelte.d.ts",
+      "svelte": "./dist/svelte/Oneko.svelte",
+      "default": "./dist/svelte/Oneko.svelte"
+    },
+    "./solid": {
+      "types": "./dist/types/packages/oneko/src/solid.d.ts",
+      "default": "./dist/solid.js"
+    },
+    "./cat-sounds/*": "./dist/cat-sounds/*",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "prepack": "node ../../scripts/build-package.mjs"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0 <20",
+    "solid-js": "^1.9.0",
+    "svelte": "^5.0.0",
+    "vue": "^3.3.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    },
+    "svelte": {
+      "optional": true
+    },
+    "solid-js": {
+      "optional": true
+    }
+  }
+}

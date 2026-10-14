@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Oneko</title>
+    <link rel="stylesheet" href="popup.css" />
+    <script type="module" src="popup.js"></script>
+  </head>
+  <body>
+    <header>
+      <div id="preview" aria-hidden="true"></div>
+      <h1>Oneko</h1>
+      <label class="switch">
+        <input id="enabled" type="checkbox" role="switch" aria-label="Show the cat" />
+      </label>
+    </header>
+    <section>
+      <label class="row">
+        <span id="site-label">On this site</span>
+        <input id="site" type="checkbox" role="switch" />
+      </label>
+      <label class="row">
+        <span>Coat</span>
+        <select id="skin"></select>
+      </label>
+      <label class="row">
+        <span>Size</span>
+        <select id="scale">
+          <option value="1">Small</option>
+          <option value="1.5">Medium</option>
+          <option value="2">Large</option>
+        </select>
+      </label>
+      <label class="row"><span>Meow</span><input id="meow" type="checkbox" role="switch" /></label>
+      <label class="row">
+        <span>Laser pointer</span>
+        <input id="laser" type="checkbox" role="switch" />
+      </label>
+      <label class="row">
+        <span>Pet on click</span>
+        <input id="pettable" type="checkbox" role="switch" />
+      </label>
+    </section>
+    <footer>
+      <a href="https://oneko.dhrv.pw" target="_blank" rel="noreferrer">oneko.dhrv.pw</a>
+    </footer>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 {
   "name": "oneko",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "license": "MIT",
   "scripts": {
@@ -8,6 +8,8 @@
     "registry:build": "shadcn build && node scripts/build-registry.mjs && oxfmt public/r/*.json",
     "prebuild": "pnpm run registry:build && pnpm run build:vanilla",
     "build:vanilla": "node scripts/build-vanilla.mjs",
+    "build:package": "node scripts/build-package.mjs",
+    "build:extension": "node scripts/build-extension.mjs",
     "build": "next build",
     "build:cloudflare": "opennextjs-cloudflare build",
     "preview": "pnpm build:cloudflare && opennextjs-cloudflare preview",
@@ -51,6 +53,7 @@
     "@playwright/test": "^1.63.0",
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@tailwindcss/postcss": "^4.2.2",
+    "@types/chrome": "^0.3.4",
     "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",

@@ -2,7 +2,7 @@
   <br />
   <img src="./public/icon-512.png" alt="Oneko pixel cat" width="112" />
   <h1>Oneko</h1>
-  <p>A tiny pixel cat for your website. React, Svelte, Vue, Solid, or one script tag.</p>
+  <p>A tiny pixel cat for your website. React, Svelte, Vue, Solid, one script tag, or every site in Chrome.</p>
   <p>
     <a href="https://oneko.dhrv.pw">Playground</a>
     ·
@@ -101,6 +101,24 @@ export default function App() {
 Each loads the engine from the hosted build in the browser, so SvelteKit, Nuxt, and SolidStart
 can render them during SSR. See the [framework guide](https://oneko.dhrv.pw/docs#frameworks).
 
+## npm
+
+To bundle the engine and coats instead of loading them from oneko.dhrv.pw, install the package.
+
+```bash
+npm install oneko
+```
+
+```tsx
+import Oneko from "oneko"; // React
+import Oneko from "oneko/vue";
+import Oneko from "oneko/svelte";
+import Oneko from "oneko/solid";
+import { createOneko } from "oneko/vanilla";
+```
+
+See the [package README](packages/oneko/README.md) for sounds and SSR notes.
+
 ## Any other site
 
 Astro, Hugo, WordPress, or plain HTML can use one script tag. Options are `data-` attributes named
@@ -113,6 +131,11 @@ after the props.
 You can also use a `<oneko-cat>` element, which fires `statechange` events and works in Angular,
 Lit, and other frameworks, or the `createOneko()` API. See
 [Without React](https://oneko.dhrv.pw/docs#html).
+
+## Chrome extension
+
+The [extension](extension/README.md) puts the cat on every site you visit, with a toolbar popup
+for the coat, size, sounds, and a per-site switch.
 
 ## Documentation
 
@@ -135,7 +158,9 @@ pnpm test:browser
 pnpm build
 ```
 
-`pnpm build` regenerates the registry and `public/oneko.js` before building the site. To deploy
+`pnpm build` regenerates the registry and `public/oneko.js` before building the site.
+`pnpm build:package` builds the npm package in `packages/oneko/dist`, and `pnpm build:extension`
+builds the Chrome extension and its Web Store zip in `dist/`. To deploy
 to Cloudflare Workers, run `pnpm preview` locally, then `pnpm deploy`. See the
 [development notes](docs/development.md) for details.
 
@@ -145,6 +170,8 @@ to Cloudflare Workers, run `pnpm preview` locally, then `pnpm deploy`. See the
 | `hooks/` and `lib/oneko/` | Animation hook and engine.                  |
 | `lib/oneko/vanilla*.ts`   | Framework-free build served as `/oneko.js`. |
 | `public/frameworks/`      | Svelte and Vue components.                  |
+| `packages/oneko/`         | npm package and its framework entries.      |
+| `extension/`              | Chrome extension.                           |
 | `registry.json`           | Source manifest for the shadcn registry.    |
 | `app/`                    | Playground, studio, and documentation.      |
 

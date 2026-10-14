@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Oneko",
+  "version": "0.3.0",
+  "description": "A tiny pixel cat that chases your cursor on every site. 24 coats, optional meows.",
+  "homepage_url": "https://oneko.dhrv.pw",
+  "minimum_chrome_version": "111",
+  "icons": {
+    "16": "icons/16.png",
+    "32": "icons/32.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "action": {
+    "default_title": "Oneko",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/16.png",
+      "32": "icons/32.png"
+    }
+  },
+  "permissions": ["storage", "activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["loader.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["content.js", "chunks/*", "cat-sounds/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

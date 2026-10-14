@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "incremental": false,
+    "types": ["chrome"],
+    "plugins": []
+  },
+  "include": ["src/**/*.ts", "../types/**/*.d.ts"]
+}
