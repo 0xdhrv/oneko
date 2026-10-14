@@ -34,8 +34,7 @@ const html = `<!doctype html><html><head><style>
 body { width: 1200px; height: 630px; background: #0a0a0a; color: #fafafa;
   font-family: Pixel, monospace; display: flex; flex-direction: column;
   justify-content: space-between; padding: 72px 80px; }
-.eyebrow { font-size: 22px; letter-spacing: 0.08em; color: #e89f5e; }
-h1 { font-size: 132px; font-weight: 400; line-height: 1; margin-top: 18px; }
+h1 { font-size: 132px; font-weight: 400; line-height: 1; }
 p { font-size: 34px; color: #a1a1a1; margin-top: 18px; }
 .row { display: flex; align-items: flex-end; justify-content: space-between; }
 .cats { display: flex; gap: 8px; }
@@ -43,7 +42,7 @@ p { font-size: 34px; color: #a1a1a1; margin-top: 18px; }
   background-size: ${256 * SCALE}px ${128 * SCALE}px; }
 .url { font-size: 24px; color: #a1a1a1; padding-bottom: 12px; }
 </style></head><body>
-<div><div class="eyebrow">REACT · SHADCN REGISTRY</div><h1>Oneko</h1>
+<div><h1>Oneko</h1>
 <p>A tiny pixel cat that follows your cursor.</p></div>
 <div class="row"><div class="cats">${catHtml}</div><div class="url">oneko.dhrv.pw</div></div>
 </body></html>`;
