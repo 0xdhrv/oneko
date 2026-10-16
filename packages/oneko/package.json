@@ -1,6 +1,6 @@
 {
   "name": "oneko",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "A tiny pixel cat for React, Vue, Svelte, Solid, and the browser. Bundled engine and 24 coats, no CDN required.",
   "keywords": [
     "cat",

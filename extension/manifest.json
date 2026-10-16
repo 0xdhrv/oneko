@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Oneko",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "A tiny pixel cat that chases your cursor on every site. 24 coats, optional meows.",
   "homepage_url": "https://oneko.dhrv.pw",
   "minimum_chrome_version": "111",
