@@ -5,7 +5,14 @@
  * oneko.js (MIT): https://github.com/adryd325/oneko.js/
  */
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type Ref,
+} from "react";
 import { LaserCursor } from "@/components/laser-cursor";
 import { useCatAnimation } from "@/hooks/use-cat-animation";
 import { useOnekoPropsSync } from "@/hooks/use-oneko-props-sync";
@@ -13,12 +20,14 @@ import { useSkinSource } from "@/hooks/use-skin-source";
 import { ONEKO_DEFAULTS } from "@/lib/oneko/defaults";
 import { useMotionAllowed, useReducedMotion } from "@/hooks/use-motion-allowed";
 import { TILE } from "@/lib/oneko/constants";
+import { createCatControls, type OnekoControls } from "@/lib/oneko/controls";
 import { createInitialCatState } from "@/lib/oneko/initial-state";
 import { areCatsHidden, onCatsHiddenChange, setCatsHidden } from "@/lib/oneko/pack";
 import { readPersistedPosition } from "@/lib/oneko/persistence";
 import type { CatActivityState, CatLiveState, OnekoProps } from "@/lib/oneko/types";
 
-export type { CatActivityState, CatLiveState, OnekoProps };
+export type { CatActivityState, CatLiveState, OnekoControls, OnekoProps };
+export type { OnekoSeason } from "@/lib/oneko/seasons";
 export type { OnekoSkin } from "@/lib/oneko/skins";
 export type { OnekoZone } from "@/lib/oneko/zones";
 export { setCatsHidden };
@@ -71,7 +80,21 @@ export default function Oneko({
   followFocus = ONEKO_DEFAULTS.followFocus,
   perchOnHover = ONEKO_DEFAULTS.perchOnHover,
   pettable = ONEKO_DEFAULTS.pettable,
-}: OnekoProps) {
+  seasonal = ONEKO_DEFAULTS.seasonal,
+  grabbable = ONEKO_DEFAULTS.grabbable,
+  treats = ONEKO_DEFAULTS.treats,
+  timeOfDay = ONEKO_DEFAULTS.timeOfDay,
+  affection = ONEKO_DEFAULTS.affection,
+  onPet,
+  onCatchCursor,
+  onSleep,
+  onToss,
+  onTreat,
+  ref,
+}: OnekoProps & {
+  /** Imperative controls: goTo, say, sit, follow, pet, and dropTreat. */
+  ref?: Ref<OnekoControls>;
+}) {
   const hidden = useCatsHidden();
   const motionAllowed = useMotionAllowed() && !hidden;
   const prefersReducedMotion = useReducedMotion();
@@ -115,10 +138,21 @@ export default function Oneko({
     napWhileTyping,
     followFocus,
     perchOnHover,
+    seasonal,
+    grabbable,
+    treats,
+    timeOfDay,
+    affection,
+    onPet,
+    onCatchCursor,
+    onSleep,
+    onToss,
+    onTreat,
   };
 
   const [initialState] = useState(() => createInitialCatState({ initialPos, ...config }));
   const stateRef = useRef(initialState);
+  useImperativeHandle(ref, () => createCatControls(stateRef), []);
 
   useCatAnimation({
     enabled: motionAllowed,

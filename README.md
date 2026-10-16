@@ -26,6 +26,14 @@ with 24 pixel-art coats, optional sounds, keep-out zones, and a studio for desig
 - **Page reactions:** `napWhileTyping`, `followFocus`, and `perchOnHover`.
 - **Visitor controls:** a remembered hide toggle (`setCatsHidden` or `data-oneko-toggle`) and a
   keyboard-reachable `pettable` cat.
+- **Play:** `grabbable` cats can be tossed, `treats` turns a double-click into a fish, and
+  `data-oneko-knockable` and `data-oneko-box` give resting cats something to knock over or sit in.
+- **Tour cat:** `goTo`, `say`, `sit`, and `follow` from a React ref, `createOneko`, or
+  `<oneko-cat>`, plus `data-oneko-say` comments and `onPet`, `onCatchCursor`, `onSleep`,
+  `onToss`, and `onTreat` events.
+- **Seasons and moods:** a holiday hat around Halloween, the winter holidays, and New Year
+  (`seasonal={false}` to opt out), cat hours with `timeOfDay`, and greetings for returning
+  visitors with `affection`.
 - **Hosted coats:** wear any 256 × 128 sprite sheet by URL, and share it with
   `/studio?sprite=https://…`.
 

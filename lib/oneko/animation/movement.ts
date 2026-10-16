@@ -68,7 +68,7 @@ function moveToward(deps: CatAnimationDeps, targetX: number, targetY: number) {
     s.nekoVelY *= 0.5;
     return;
   }
-  const currentSpeed = s.currentSpeed;
+  const currentSpeed = s.currentSpeed * s.mood.speed;
   s.nekoVelX += ((dx / dist) * currentSpeed - s.nekoVelX) * STEER_LERP;
   s.nekoVelY += ((dy / dist) * currentSpeed - s.nekoVelY) * STEER_LERP;
   const velMag = Math.hypot(s.nekoVelX, s.nekoVelY);
@@ -163,7 +163,7 @@ function chaseCursor(deps: CatAnimationDeps) {
     tickFreerun(deps);
     return;
   }
-  if (!s.noFollow && Math.random() < s.freerunChanceCfg) {
+  if (!s.noFollow && !s.errand && Math.random() < s.freerunChanceCfg * s.mood.freerun) {
     enterFreerun(deps);
     moveToward(deps, s.zoneState.movementTarget.x, s.zoneState.movementTarget.y);
     return;

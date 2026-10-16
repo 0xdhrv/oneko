@@ -10,6 +10,10 @@ vi.mock("./zone-runtime", async (importOriginal) => ({
   refreshZones: vi.fn(),
 }));
 vi.mock("./animation/frame", () => ({ createFrameLoop: () => vi.fn() }));
+vi.mock("./animation/play", () => ({
+  createPlay: () => ({ upkeep: vi.fn(), tickGrab: vi.fn(), tickErrand: vi.fn(), dispose: vi.fn() }),
+  restoreKnocked: vi.fn(),
+}));
 vi.mock("./debug-controls/index", () => ({
   createDebugControls: () => ({ wrapper: document.createElement("div") }),
 }));

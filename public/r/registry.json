@@ -47,6 +47,10 @@
           "type": "registry:hook"
         },
         {
+          "path": "lib/oneko/affection.ts",
+          "type": "registry:lib"
+        },
+        {
           "path": "lib/oneko/animation-loop.ts",
           "type": "registry:lib"
         },
@@ -68,6 +72,10 @@
         },
         {
           "path": "lib/oneko/animation/deps.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/errand-point.ts",
           "type": "registry:lib"
         },
         {
@@ -115,11 +123,23 @@
           "type": "registry:lib"
         },
         {
+          "path": "lib/oneko/animation/play-types.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/play.ts",
+          "type": "registry:lib"
+        },
+        {
           "path": "lib/oneko/animation/sprites.ts",
           "type": "registry:lib"
         },
         {
           "path": "lib/oneko/constants.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/controls.ts",
           "type": "registry:lib"
         },
         {
@@ -171,6 +191,10 @@
           "type": "registry:lib"
         },
         {
+          "path": "lib/oneko/mood.ts",
+          "type": "registry:lib"
+        },
+        {
           "path": "lib/oneko/obstacle-filters.ts",
           "type": "registry:lib"
         },
@@ -187,7 +211,19 @@
           "type": "registry:lib"
         },
         {
+          "path": "lib/oneko/pixel-art.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/play-messages.ts",
+          "type": "registry:lib"
+        },
+        {
           "path": "lib/oneko/runtime-config.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/seasons.ts",
           "type": "registry:lib"
         },
         {
@@ -219,6 +255,10 @@
         },
         {
           "path": "lib/oneko/teardown.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/treats.ts",
           "type": "registry:lib"
         },
         {
@@ -280,6 +320,10 @@
           "type": "registry:hook"
         },
         {
+          "path": "lib/oneko/affection.ts",
+          "type": "registry:lib"
+        },
+        {
           "path": "lib/oneko/animation-loop.ts",
           "type": "registry:lib"
         },
@@ -301,6 +345,10 @@
         },
         {
           "path": "lib/oneko/animation/deps.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/errand-point.ts",
           "type": "registry:lib"
         },
         {
@@ -348,11 +396,23 @@
           "type": "registry:lib"
         },
         {
+          "path": "lib/oneko/animation/play-types.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/animation/play.ts",
+          "type": "registry:lib"
+        },
+        {
           "path": "lib/oneko/animation/sprites.ts",
           "type": "registry:lib"
         },
         {
           "path": "lib/oneko/constants.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/controls.ts",
           "type": "registry:lib"
         },
         {
@@ -404,6 +464,10 @@
           "type": "registry:lib"
         },
         {
+          "path": "lib/oneko/mood.ts",
+          "type": "registry:lib"
+        },
+        {
           "path": "lib/oneko/obstacle-filters.ts",
           "type": "registry:lib"
         },
@@ -420,7 +484,19 @@
           "type": "registry:lib"
         },
         {
+          "path": "lib/oneko/pixel-art.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/play-messages.ts",
+          "type": "registry:lib"
+        },
+        {
           "path": "lib/oneko/runtime-config.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/seasons.ts",
           "type": "registry:lib"
         },
         {
@@ -452,6 +528,10 @@
         },
         {
           "path": "lib/oneko/teardown.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/treats.ts",
           "type": "registry:lib"
         },
         {

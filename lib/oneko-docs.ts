@@ -51,6 +51,13 @@ export const PROP_DOCS = {
     default: "0",
     description: "Coat hue rotation in degrees. The playground offers 0–360.",
   },
+  seasonal: {
+    group: "Coat & appearance",
+    type: 'boolean | "halloween" | "winter" | "newYear"',
+    default: "true",
+    description:
+      "Dress up for the season with a pixel hat and a few themed thoughts, using the visitor's local date: a witch hat Oct 20–31, a Santa hat Dec 18–29, and a party hat Dec 30–Jan 2. Pass a season name to force one, or false to opt out. The coat is never changed.",
+  },
   rotationAmount: {
     group: "Coat & appearance",
     type: "number",
@@ -167,6 +174,34 @@ export const PROP_DOCS = {
     default: "false",
     description:
       'Makes the cat a focusable "Pet the cat" button in the tab order. While focused it holds still; Enter or Space pets it, with a purr, a bubble, and a polite screen-reader announcement. Changing this remounts the animation DOM.',
+  },
+  grabbable: {
+    group: "Paws & play",
+    type: "boolean",
+    default: "false",
+    description:
+      "Visitors can pick the cat up and toss it. It spins through the air, bounces off the screen edges, and lands on its feet with a purr, or a hiss after a hard throw. A click without dragging pets it. The cat then catches clicks where it sits, so keep it off busy controls with keep-out zones.",
+  },
+  treats: {
+    group: "Paws & play",
+    type: "boolean",
+    default: "false",
+    description:
+      "Double-click empty page space to drop a fish treat; the nearest cat runs over and eats it. Double-clicks on text, links, buttons, and fields are left alone. Up to five treats wait on the floor. dropTreat() works without this option.",
+  },
+  timeOfDay: {
+    group: "Paws & play",
+    type: "boolean",
+    default: "false",
+    description:
+      "Follow the visitor's local clock, like a real cat: faster with more zoomies at dawn (5–8) and dusk (17–21), drowsy after lunch, and quick to nap from 23:00 to 5:00. Scales speed, freerunChance, and idleThreshold.",
+  },
+  affection: {
+    group: "Paws & play",
+    type: "boolean",
+    default: "false",
+    description:
+      'Remember pets and treats in localStorage under storageKey + ":affection". Visitors returning after 30 minutes get a greeting that warms up from stranger to best friend, and petting a good friend earns fonder thoughts.',
   },
   bubbleEnabled: {
     group: "Bubbles",
@@ -290,6 +325,39 @@ export const PROP_DOCS = {
     default: "undefined",
     description:
       "Called when activity changes. Use it for React UI that displays the cat’s current activity.",
+  },
+  onPet: {
+    group: "Home & integration",
+    type: "(detail: { affection: number }) => void",
+    default: "undefined",
+    description:
+      "Called when the cat is petted by keyboard, by a click on a grabbable cat, or with pet().",
+  },
+  onCatchCursor: {
+    group: "Home & integration",
+    type: "() => void",
+    default: "undefined",
+    description:
+      "Called when the cat reaches the cursor after chasing it from more than 160 pixels away. Handy for little games.",
+  },
+  onSleep: {
+    group: "Home & integration",
+    type: "() => void",
+    default: "undefined",
+    description: "Called each time the cat falls asleep.",
+  },
+  onToss: {
+    group: "Home & integration",
+    type: "(detail: { speed: number }) => void",
+    default: "undefined",
+    description:
+      "Called when a visitor throws a grabbable cat; speed is the release speed in pixels per second.",
+  },
+  onTreat: {
+    group: "Home & integration",
+    type: "(detail: { affection: number }) => void",
+    default: "undefined",
+    description: "Called when the cat eats a treat.",
   },
   liveStateRef: {
     group: "Home & integration",
@@ -595,6 +663,73 @@ export const DOC_SECTIONS: DocSection[] = [
     ],
   },
   {
+    id: "play",
+    label: "Play",
+    title: "Toss, treat, and topple",
+    blocks: [
+      {
+        kind: "code",
+        label: "Toys for the cat",
+        language: "tsx",
+        code: '<Oneko grabbable treats />\n\n<img src="/mug.png" alt="Coffee mug" data-oneko-knockable />\n<div className="shipping-box" data-oneko-box />',
+      },
+      {
+        kind: "list",
+        items: [
+          "grabbable: drag the cat and let go to toss it. A plain click pets it.",
+          "treats: double-click empty space to drop a fish. The nearest cat eats it.",
+          "data-oneko-knockable: now and then, a resting cat walks up to the element, stares at you, and paws it off the screen. It returns a few seconds later. Only marked elements are touched, and only with a temporary animation.",
+          "data-oneko-box: if it fits, it sits. A resting cat visits the box and naps in it for about 15 seconds. The box must be at least three quarters of the cat wide.",
+          "timeOfDay and affection add moods by the clock and greetings for returning visitors. All of these are off by default and can be toggled live.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "tour",
+    label: "Tour cat",
+    title: "A cat that shows the way",
+    blocks: [
+      {
+        kind: "text",
+        text: "Every cat comes with controls: goTo walks to an element, selector, or point and stays there; say shows a bubble now; sit holds still; follow goes back to the cursor; pet and dropTreat do what they say. goTo resolves true on arrival and false if the cat is sent elsewhere first.",
+      },
+      {
+        kind: "code",
+        label: "An onboarding tour in React",
+        language: "tsx",
+        code: '"use client";\n\nimport { useRef } from "react";\nimport Oneko, { type OnekoControls } from "@/components/oneko";\n\nexport function TourCat() {\n  const cat = useRef<OnekoControls>(null);\n  async function tour() {\n    if (await cat.current?.goTo("#pricing")) cat.current?.say("the plans live here");\n    await new Promise((done) => setTimeout(done, 3000));\n    if (await cat.current?.goTo("#signup")) cat.current?.say("click me. I mean, this");\n    setTimeout(() => cat.current?.follow(), 3000);\n  }\n  return (\n    <>\n      <Oneko ref={cat} />\n      <button type="button" onClick={tour}>Show me around</button>\n    </>\n  );\n}',
+      },
+      {
+        kind: "code",
+        label: "The same with the hosted script",
+        language: "html",
+        code: `<oneko-cat id="guide"></oneko-cat>\n<script type="module" src="${DOCS_ORIGIN}/oneko.js"></script>\n<script type="module">\n  const cat = document.querySelector("#guide");\n  await customElements.whenDefined("oneko-cat");\n  if (await cat.goTo("#pricing")) cat.say("the plans live here");\n</script>`,
+      },
+      {
+        kind: "text",
+        text: 'createOneko() returns the same controls next to update and destroy. Vue template refs and Svelte bind:this expose them too, and the Solid component takes ref={(controls) => ...}. Add data-oneko-say="text" to any element and the nearest cat comments when the pointer rests on it or keyboard focus lands on it. say() and data-oneko-say speak even when bubbleEnabled is false; data-oneko-say stays quiet when it is off.',
+      },
+    ],
+  },
+  {
+    id: "seasons",
+    label: "Seasons",
+    title: "Dressed for the occasion",
+    blocks: [
+      {
+        kind: "text",
+        text: "Cats wear a pixel witch hat from October 20 to 31, a Santa hat from December 18 to 29, and a party hat from December 30 to January 2, based on the visitor's local date, with a few themed thoughts mixed in. The hat follows the head in every frame and works with any coat. Set seasonal={false} to opt out, or force a season while testing.",
+      },
+      {
+        kind: "code",
+        label: "Preview Halloween today",
+        language: "tsx",
+        code: '<Oneko seasonal="halloween" />',
+      },
+    ],
+  },
+  {
     id: "accessibility",
     label: "Visitor controls",
     title: "Let visitors decide",
@@ -769,7 +904,17 @@ export const DOC_SECTIONS: DocSection[] = [
       },
       {
         kind: "text",
-        text: "CatLiveState exposes activity, position, speed, idle ticks, cursor distance, total ticks, zoomies status/time, bubble visibility, and nearby movement information. Public types OnekoProps, OnekoSkin, OnekoZone, CatActivityState, and CatLiveState are exported from @/components/oneko.",
+        text: "onPet, onCatchCursor, onSleep, onToss, and onTreat report moments worth celebrating. With the hosted script, listen for pet, catchcursor, sleep, toss, and treat events on the <oneko-cat> element; the details match the callbacks. Vue components emit pet, catchCursor, sleep, toss, and treat.",
+      },
+      {
+        kind: "code",
+        label: "Count catches",
+        language: "tsx",
+        code: "<Oneko onCatchCursor={() => setCatches((count) => count + 1)} onPet={({ affection }) => setAffection(affection)} affection />",
+      },
+      {
+        kind: "text",
+        text: "CatLiveState exposes activity, position, speed, idle ticks, cursor distance, total ticks, zoomies status/time, bubble visibility, and nearby movement information. Public types OnekoProps, OnekoControls, OnekoSeason, OnekoSkin, OnekoZone, CatActivityState, and CatLiveState are exported from @/components/oneko.",
       },
     ],
   },

@@ -1,5 +1,6 @@
 import { createZoneState } from "./zone-runtime";
 import { describe, expect, it } from "vitest";
+import { defaultPlayState } from "./initial-state";
 import { applyRuntimeConfig, defaultRuntimeConfigState } from "./runtime-config";
 import type { CatRuntimeState } from "./types";
 
@@ -31,6 +32,7 @@ function minimalRuntimeState(): CatRuntimeState {
     stateLocked: false,
     noFollow: false,
     ...defaultRuntimeConfigState(),
+    ...defaultPlayState(),
     laserPointerCfg: true,
     laserCaught: true,
     loopPrevAngle: null,

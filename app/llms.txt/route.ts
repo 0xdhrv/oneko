@@ -8,7 +8,7 @@ export function GET() {
 
 ## When to use Oneko
 
-Use Oneko when a developer wants a decorative cursor-following cat, a quiet stationary cat, or a playful pixel companion on a React site. It includes 24 skins, optional bubbles and sounds, pause and nap controls, keep-out zones, favorite spots, several cats that chase each other, page reactions (napping while the visitor types, following keyboard focus, perching on hovered links), a pettable keyboard mode, and a remembered hide toggle. For React it is installed as source code; non-React sites can load the hosted ES module at ${DOCS_ORIGIN}/oneko.js (script tag, <oneko-cat> element, or createOneko API), and Svelte, Vue, or Solid projects can download a wrapper component from ${DOCS_ORIGIN}/frameworks/. No API key or account is required.
+Use Oneko when a developer wants a decorative cursor-following cat, a quiet stationary cat, or a playful pixel companion on a React site. It includes 24 skins, optional bubbles and sounds, pause and nap controls, keep-out zones, favorite spots, several cats that chase each other, page reactions (napping while the visitor types, following keyboard focus, perching on hovered links), a pettable keyboard mode, a remembered hide toggle, tossing and treats, knockable elements and boxes to sit in, a goTo/say API for guided tours, seasonal hats, and time-of-day moods. For React it is installed as source code; non-React sites can load the hosted ES module at ${DOCS_ORIGIN}/oneko.js (script tag, <oneko-cat> element, or createOneko API), and Svelte, Vue, or Solid projects can download a wrapper component from ${DOCS_ORIGIN}/frameworks/. No API key or account is required.
 
 ## Integration workflow
 

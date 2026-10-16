@@ -1,5 +1,6 @@
 import { isSpriteSource, normalizeThoughts, MAX_THOUGHT_TEXT_LENGTH } from "./custom-assets";
 import { isOnekoSkin } from "./skins";
+import { isOnekoSeason } from "./seasons";
 import { ONEKO_DEFAULTS } from "./defaults";
 
 export const DEFAULT_ONEKO_PLAYGROUND_STATE = {
@@ -37,6 +38,11 @@ export const DEFAULT_ONEKO_PLAYGROUND_STATE = {
   followFocus: ONEKO_DEFAULTS.followFocus,
   perchOnHover: ONEKO_DEFAULTS.perchOnHover,
   pettable: ONEKO_DEFAULTS.pettable,
+  seasonal: ONEKO_DEFAULTS.seasonal,
+  grabbable: ONEKO_DEFAULTS.grabbable,
+  treats: ONEKO_DEFAULTS.treats,
+  timeOfDay: ONEKO_DEFAULTS.timeOfDay,
+  affection: ONEKO_DEFAULTS.affection,
   /** Playground only: a second cat that chases the first. */
   friend: false,
 };
@@ -48,6 +54,11 @@ export const LATER_SETTINGS = new Set<string>([
   "perchOnHover",
   "pettable",
   "friend",
+  "seasonal",
+  "grabbable",
+  "treats",
+  "timeOfDay",
+  "affection",
 ]);
 
 export type OnekoPlaygroundState = typeof DEFAULT_ONEKO_PLAYGROUND_STATE;
@@ -99,6 +110,8 @@ export function restorePlaygroundState(raw: string | null): OnekoPlaygroundState
       } else if (key === "bubblePlacement") {
         if (value === "auto" || value === "above" || value === "below")
           state.bubblePlacement = value;
+      } else if (key === "seasonal") {
+        if (typeof value === "boolean" || isOnekoSeason(value)) state.seasonal = value;
       } else if (key === "bubbleText") {
         if (typeof value === "string")
           state.bubbleText = normalizeThoughts(value.slice(0, MAX_THOUGHT_TEXT_LENGTH));

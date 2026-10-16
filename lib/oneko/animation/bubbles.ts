@@ -10,6 +10,7 @@ import {
   TIRED_MESSAGES,
   WALL_SCRATCH_MESSAGES,
 } from "../constants";
+import { SEASON_MESSAGES } from "../seasons";
 import type { CatAnimationDeps } from "./deps";
 
 export function pickFromPool(deps: CatAnimationDeps, pool: readonly string[]) {
@@ -56,6 +57,9 @@ function messageForActivity(deps: CatAnimationDeps): string {
   if (idleAnimationMessage) {
     return idleAnimationMessage;
   }
+  if (s.season && Math.random() < 0.35) {
+    return pickFromPool(deps, SEASON_MESSAGES[s.season]);
+  }
   if (s.idleTime > 0) {
     return pickFromPool(deps, IDLE_MESSAGES);
   }
@@ -80,6 +84,7 @@ export function showBubble(deps: CatAnimationDeps) {
 export function hideBubble(deps: CatAnimationDeps) {
   const s = deps.stateRef.current;
   s.bubbleVisible = false;
+  s.bubbleForced = false;
   deps.bubbleEl.style.opacity = "0";
   s.bubbleCooldown = s.bubbleCooldownFramesCfg;
 }
@@ -158,7 +163,16 @@ function shouldTriggerBubble(deps: CatAnimationDeps): boolean {
 
 export function updateBubble(deps: CatAnimationDeps) {
   const s = deps.stateRef.current;
-  if (!s.bubbleEnabledCfg) {
+  if (s.sayRequest) {
+    // say() and data-oneko-say speak even when automatic bubbles are off.
+    s.bubbleVisible = true;
+    s.bubbleForced = true;
+    s.bubbleTimer = s.sayRequest.frames;
+    deps.bubbleTextEl.textContent = s.sayRequest.text;
+    deps.bubbleEl.style.opacity = "1";
+    s.sayRequest = null;
+  }
+  if (!s.bubbleEnabledCfg && !s.bubbleForced) {
     if (s.bubbleVisible) {
       hideBubble(deps);
     }

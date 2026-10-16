@@ -53,4 +53,9 @@ export const ONEKO_DEFAULTS = {
   followFocus: false,
   perchOnHover: false,
   pettable: false,
+  seasonal: true as NonNullable<OnekoProps["seasonal"]>,
+  grabbable: false,
+  treats: false,
+  timeOfDay: false,
+  affection: false,
 };

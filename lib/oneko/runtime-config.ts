@@ -1,6 +1,7 @@
 import { ONEKO_DEFAULTS } from "./defaults";
 import { EMPTY_ZONES } from "./zone-runtime";
 import type { OnekoZone } from "./zones";
+import { isOnekoSeason } from "./seasons";
 import type { CatRuntimeState, OnekoProps } from "./types";
 
 type RuntimeConfigStateFields = Pick<
@@ -39,6 +40,12 @@ type RuntimeConfigStateFields = Pick<
   | "napWhileTypingCfg"
   | "followFocusCfg"
   | "perchOnHoverCfg"
+  | "seasonalCfg"
+  | "grabbableCfg"
+  | "treatsCfg"
+  | "timeOfDayCfg"
+  | "affectionCfg"
+  | "handlers"
 >;
 
 export function defaultRuntimeConfigState(): RuntimeConfigStateFields {
@@ -77,6 +84,12 @@ export function defaultRuntimeConfigState(): RuntimeConfigStateFields {
     napWhileTypingCfg: ONEKO_DEFAULTS.napWhileTyping,
     followFocusCfg: ONEKO_DEFAULTS.followFocus,
     perchOnHoverCfg: ONEKO_DEFAULTS.perchOnHover,
+    seasonalCfg: ONEKO_DEFAULTS.seasonal,
+    grabbableCfg: ONEKO_DEFAULTS.grabbable,
+    treatsCfg: ONEKO_DEFAULTS.treats,
+    timeOfDayCfg: ONEKO_DEFAULTS.timeOfDay,
+    affectionCfg: ONEKO_DEFAULTS.affection,
+    handlers: {},
   };
 }
 
@@ -92,6 +105,16 @@ export type CatRuntimeConfig = Pick<
   | "napWhileTyping"
   | "followFocus"
   | "perchOnHover"
+  | "seasonal"
+  | "grabbable"
+  | "treats"
+  | "timeOfDay"
+  | "affection"
+  | "onPet"
+  | "onCatchCursor"
+  | "onSleep"
+  | "onToss"
+  | "onTreat"
 > & {
   zones?: readonly OnekoZone[];
   zoneAttractionChance?: number;
@@ -171,4 +194,18 @@ export function applyRuntimeConfig(state: CatRuntimeState, config: CatRuntimeCon
   state.perchOnHoverCfg = config.perchOnHover ?? ONEKO_DEFAULTS.perchOnHover;
   if (!state.napWhileTypingCfg) state.typingNap = false;
   if (!state.perchOnHoverCfg) state.perchTarget = null;
+  const seasonal = config.seasonal ?? ONEKO_DEFAULTS.seasonal;
+  state.seasonalCfg = typeof seasonal === "boolean" || isOnekoSeason(seasonal) ? seasonal : true;
+  state.grabbableCfg = config.grabbable ?? ONEKO_DEFAULTS.grabbable;
+  state.treatsCfg = config.treats ?? ONEKO_DEFAULTS.treats;
+  state.timeOfDayCfg = config.timeOfDay ?? ONEKO_DEFAULTS.timeOfDay;
+  state.affectionCfg = config.affection ?? ONEKO_DEFAULTS.affection;
+  state.handlers = {
+    onPet: config.onPet,
+    onCatchCursor: config.onCatchCursor,
+    onSleep: config.onSleep,
+    onToss: config.onToss,
+    onTreat: config.onTreat,
+  };
+  if (!state.grabbableCfg && state.grab?.phase === "held") state.grab = null;
 }

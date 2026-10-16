@@ -1,4 +1,5 @@
 import { defaultSpriteSets, DIRECTION_RANGES, TILE } from "../constants";
+import { hatOffset } from "../seasons";
 import type { CatAnimationDeps } from "./deps";
 
 export function setSprite(
@@ -12,6 +13,11 @@ export function setSprite(
   }
   const sprite = sprites[frame % sprites.length];
   deps.el.style.backgroundPosition = `${sprite[0] * TILE}px ${sprite[1] * TILE}px`;
+  if (deps.hat) {
+    const offset = hatOffset(sprite[0], sprite[1]);
+    deps.hat.style.display = offset ? "" : "none";
+    if (offset) deps.hat.style.transform = `translate(${offset.left}px, ${offset.top}px)`;
+  }
 }
 
 function getDirectionFromAngle(angle: number): string {

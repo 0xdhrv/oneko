@@ -1,5 +1,11 @@
 import { defineComponent, onBeforeUnmount, onMounted, watch, type PropType } from "vue";
-import { createOneko, type OnekoOptions, type CatActivityState } from "./vanilla";
+import {
+  createOneko,
+  type CatActivityState,
+  type OnekoControls,
+  type OnekoInstance,
+  type OnekoOptions,
+} from "./vanilla";
 import { createPropsUpdater } from "./adapter";
 
 export default defineComponent({
@@ -44,19 +50,50 @@ export default defineComponent({
     followFocus: { type: Boolean, default: undefined },
     perchOnHover: { type: Boolean, default: undefined },
     pettable: { type: Boolean, default: undefined },
+    seasonal: {
+      type: [Boolean, String] as PropType<OnekoOptions["seasonal"]>,
+      default: undefined,
+    },
+    grabbable: { type: Boolean, default: undefined },
+    treats: { type: Boolean, default: undefined },
+    timeOfDay: { type: Boolean, default: undefined },
+    affection: { type: Boolean, default: undefined },
   },
-  emits: { stateChange: (_state: CatActivityState) => true },
-  setup(props, { emit }) {
+  emits: {
+    stateChange: (_state: CatActivityState) => true,
+    pet: (_detail: { affection: number }) => true,
+    catchCursor: () => true,
+    sleep: () => true,
+    toss: (_detail: { speed: number }) => true,
+    treat: (_detail: { affection: number }) => true,
+  },
+  setup(props, { emit, expose }) {
     let update: ReturnType<typeof createPropsUpdater> | undefined;
     let destroy: (() => void) | undefined;
     const options = () => ({
       ...props,
       onStateChange: (state: CatActivityState) => emit("stateChange", state),
+      onPet: (detail: { affection: number }) => emit("pet", detail),
+      onCatchCursor: () => emit("catchCursor"),
+      onSleep: () => emit("sleep"),
+      onToss: (detail: { speed: number }) => emit("toss", detail),
+      onTreat: (detail: { affection: number }) => emit("treat", detail),
     });
+    let cat: OnekoInstance | undefined;
+    expose({
+      goTo: (target: Parameters<OnekoControls["goTo"]>[0]) =>
+        cat?.goTo(target) ?? Promise.resolve(false),
+      say: (text: string, options?: { duration?: number }) => cat?.say(text, options),
+      sit: () => cat?.sit(),
+      follow: () => cat?.follow(),
+      pet: () => cat?.pet(),
+      dropTreat: (x?: number, y?: number) => cat?.dropTreat(x, y),
+    } satisfies OnekoControls);
     onMounted(() => {
-      const cat = createOneko();
-      destroy = () => cat.destroy();
-      update = createPropsUpdater(cat);
+      const created = createOneko();
+      cat = created;
+      destroy = () => created.destroy();
+      update = createPropsUpdater(created);
       update(options());
     });
     watch(

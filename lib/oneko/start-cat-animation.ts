@@ -3,13 +3,15 @@ import { refreshZones } from "./zone-runtime";
 import { hideBubble, showBubble } from "./animation/bubbles";
 import { makePettable, watchPage } from "./animation/attention";
 import { createFrameLoop } from "./animation/frame";
+import { createPlay, restoreKnocked } from "./animation/play";
+import { clearTreats } from "./treats";
 import { createMouseMoveHandler } from "./animation/mouse";
 import { startAnimationLoop } from "./animation-loop";
 import { BUBBLE_DISPLAY_FRAMES, OBSTACLE_INTERVAL, PATH_RECALC_INTERVAL } from "./constants";
 import { createDebugControls } from "./debug-controls/index";
 import { createBubble, createCatElement, createDebugHUD, createDebugSVG } from "./dom";
 import { createKonamiHandler } from "./konami";
-import { joinPack } from "./pack";
+import { joinPack, packSize } from "./pack";
 import { createPersistHandler, loadPersistedCatState } from "./persistence";
 import { teardownCatAnimation } from "./teardown";
 import type { CatActivityState, CatLiveState, CatRuntimeState } from "./types";
@@ -62,6 +64,8 @@ export function startCatAnimation({
 }: StartCatAnimationOptions): () => void {
   stateRef.current.bubbleVisible = false;
   stateRef.current.bubbleTimer = 0;
+  stateRef.current.zIndex = zIndex;
+  stateRef.current.affectionKey = `${storageKey}:affection`;
   const el = createCatElement(stateRef.current, zIndex);
   elRef.current = el;
   const debugSVG = createDebugSVG(zIndex);
@@ -81,7 +85,8 @@ export function startCatAnimation({
     liveStateRef,
   };
 
-  const frame = createFrameLoop(deps);
+  const play = createPlay(deps);
+  const frame = createFrameLoop(deps, play);
   const debugControls = createDebugControls({
     stateRef,
     el,
@@ -111,7 +116,9 @@ export function startCatAnimation({
     if (event.pointerType !== "touch") return;
     if (
       event.target instanceof Element &&
-      event.target.closest("button,a,input,select,textarea,label,summary,[role='button']")
+      event.target.closest(
+        "button,a,input,select,textarea,label,summary,[role='button'],[data-oneko-cat]",
+      )
     )
       return;
     onMouseMove(event);
@@ -145,7 +152,12 @@ export function startCatAnimation({
   return () => {
     stopPetting?.();
     stopWatchingPage();
+    play.dispose();
     leavePack();
+    if (packSize() === 0) {
+      clearTreats();
+      restoreKnocked();
+    }
     persist?.();
     teardownCatAnimation(
       { el, debugSVG, debugWrapper, bubbleEl },

@@ -27,6 +27,23 @@ export function leaderPosition(state: CatRuntimeState): PathPoint | null {
   return leader ? { x: leader.nekoPosX, y: leader.nekoPosY } : null;
 }
 
+/** True when no other running cat is closer to a point, so only one cat answers a page event. */
+export function isNearestCat(state: CatRuntimeState, point: PathPoint): boolean {
+  const distance = (cat: CatRuntimeState) =>
+    Math.hypot(cat.nekoPosX - point.x, cat.nekoPosY - point.y);
+  const mine = distance(state);
+  const order = pack.indexOf(state);
+  return pack.every(
+    (cat, index) =>
+      cat === state || distance(cat) > mine || (distance(cat) === mine && index > order),
+  );
+}
+
+/** How many cats are running on the page. */
+export function packSize(): number {
+  return pack.length;
+}
+
 /** True when another cat is asleep close enough to curl up next to. */
 export function napmateNearby(state: CatRuntimeState): boolean {
   const reach = TILE * Math.max(1, state.scale) * 2;

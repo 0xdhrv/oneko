@@ -23,7 +23,8 @@ export function collectObstacles(): ObstacleRect[] {
   const rects: ObstacleRect[] = [];
 
   for (const node of document.querySelectorAll(OBSTACLE_SELECTOR)) {
-    if (node.closest('[data-oneko-zone="attract"]')) continue;
+    // Favorite spots and boxes are places to go, not things to walk around.
+    if (node.closest('[data-oneko-zone="attract"],[data-oneko-box]')) continue;
     const r = node.getBoundingClientRect();
     if (shouldIncludeObstacleRect(r, vw, vh)) {
       rects.push(toObstacleRect(r));

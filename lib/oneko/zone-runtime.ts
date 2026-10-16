@@ -10,6 +10,7 @@ import {
 } from "./zones";
 import type { CatRuntimeState, ObstacleRect, PathPoint } from "./types";
 import type { CatAnimationDeps } from "./animation/deps";
+import { errandPoint } from "./animation/errand-point";
 
 export const EMPTY_ZONES: readonly OnekoZone[] = [];
 export type ZoneRuntimeState = {
@@ -135,17 +136,23 @@ export function updateZoneTarget(
     }
   }
   const favorite = favorites.find((zone) => zone.id === zones.targetId);
-  // Priority: stay put, a perch the pointer rests on, a favorite spot, the lead cat, the cursor.
+  // Priority: an API request (goTo, sit), stay put, an errand (treat, box, knockable), a perch the
+  // pointer rests on, a favorite spot, the lead cat, the cursor.
+  const errand = s.errand && errandPoint(s, s.errand);
+  const requested = s.errand?.kind === "goTo" || s.errand?.kind === "sit";
   const desired =
-    !s.followCursorCfg || s.typingNap || s.held
-      ? { x: s.nekoPosX, y: s.nekoPosY }
-      : (s.perchTarget ??
-        (favorite
-          ? {
-              x: (favorite.rect.left + favorite.rect.right) / 2,
-              y: (favorite.rect.top + favorite.rect.bottom) / 2,
-            }
-          : (s.leaderTarget ?? { x: s.mousePosX, y: s.mousePosY })));
+    errand && requested
+      ? errand
+      : !s.followCursorCfg || s.typingNap || s.held
+        ? { x: s.nekoPosX, y: s.nekoPosY }
+        : (errand ??
+          s.perchTarget ??
+          (favorite
+            ? {
+                x: (favorite.rect.left + favorite.rect.right) / 2,
+                y: (favorite.rect.top + favorite.rect.bottom) / 2,
+              }
+            : (s.leaderTarget ?? { x: s.mousePosX, y: s.mousePosY })));
   zones.movementTarget = zones.blocked.length
     ? (nearestSafePoint(desired, zones.blocked, width, height, radius) ?? {
         x: s.nekoPosX,

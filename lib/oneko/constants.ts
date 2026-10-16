@@ -249,7 +249,7 @@ export const PET_SOUND_POOL = [
 export const LASER_CATCH_POOL = ["/cat-sounds/Cat_eat1.ogg", "/cat-sounds/Cat_eat2.ogg"];
 
 // Sound pools keyed by activity label
-const HISS_POOL = [
+export const HISS_POOL = [
   "/cat-sounds/Cat_hiss1.ogg",
   "/cat-sounds/Cat_hiss2.ogg",
   "/cat-sounds/Cat_hiss3.ogg",

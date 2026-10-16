@@ -1,9 +1,8 @@
-import { PET_MESSAGES, PET_SOUND_POOL, TILE } from "../constants";
+import { TILE } from "../constants";
 import { leaderPosition } from "../pack";
 import type { CatRuntimeState } from "../types";
-import { playSound } from "./activity";
-import { pickFromPool } from "./bubbles";
 import type { CatAnimationDeps } from "./deps";
+import { petCat } from "./play";
 
 /** Links and buttons the cat may sit on when the pointer rests over them. */
 const PERCH_SELECTOR = "a[href],button,[role='button'],[data-oneko-perch]";
@@ -22,7 +21,7 @@ const NOT_TYPED_INPUTS = new Set([
 
 /** How close the cat gets before it settles, depending on what it is after. */
 export function stopDistance(s: CatRuntimeState): number {
-  if (s.perchTarget) return Math.min(s.followDistanceCfg, 8);
+  if (s.errand || s.perchTarget) return Math.min(s.followDistanceCfg, 8);
   if (s.leaderTarget) return Math.max(s.followDistanceCfg, TILE * s.scale);
   return s.followDistanceCfg;
 }
@@ -169,19 +168,7 @@ export function makePettable(deps: CatAnimationDeps): () => void {
   };
 
   const pet = () => {
-    const s = deps.stateRef.current;
-    s.typingNap = false;
-    s.freerunMode = false;
-    s.idleAnimation = null;
-    s.idleAnimationFrame = 0;
-    s.idleTime = Math.max(s.idleTime, 1);
-    if (s.bubbleEnabledCfg) {
-      s.bubbleVisible = true;
-      s.bubbleTimer = s.bubbleDisplayFramesCfg;
-      deps.bubbleTextEl.textContent = pickFromPool(deps, PET_MESSAGES);
-      deps.bubbleEl.style.opacity = "1";
-    }
-    playSound(deps, PET_SOUND_POOL);
+    petCat(deps);
     // Alternate the text so screen readers announce every pet, not just the first.
     announcer.textContent = ++pets % 2 ? "The cat purrs." : "The cat purrs happily.";
   };

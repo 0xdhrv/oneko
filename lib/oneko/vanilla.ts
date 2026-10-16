@@ -4,6 +4,7 @@
  */
 import { TILE } from "./constants";
 import { ONEKO_DEFAULTS } from "./defaults";
+import { createCatControls, type OnekoControls } from "./controls";
 import { createInitialCatState } from "./initial-state";
 import { mountLaserCursor } from "./laser-cursor-dom";
 import { areCatsHidden, onCatsHiddenChange } from "./pack";
@@ -15,7 +16,9 @@ import type { CatActivityState, OnekoProps } from "./types";
 
 export type OnekoOptions = Omit<OnekoProps, "liveStateRef">;
 
-export interface OnekoInstance {
+export type { OnekoControls };
+
+export interface OnekoInstance extends OnekoControls {
   /** Merge new options into the running cat; undefined resets one. Engine-level options restart it in place. */
   update(options: OnekoOptions): void;
   /** Remove the cat, bubble, laser, and listeners. Saves the position when persistence is on. */
@@ -115,6 +118,7 @@ export function createOneko(initial: OnekoOptions = {}, base: OnekoOptions = {})
   start();
 
   return {
+    ...createCatControls(stateRef),
     update(next) {
       if (destroyed) return;
       const previous = options;

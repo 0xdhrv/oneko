@@ -82,7 +82,7 @@ writeFileSync(
 );
 writeFileSync(
   resolve(outDir, "svelte/Oneko.svelte.d.ts"),
-  'import type { Component } from "svelte";\nimport type { OnekoOptions } from "../types/packages/oneko/src/vanilla";\ndeclare const Oneko: Component<OnekoOptions>;\nexport default Oneko;\n',
+  'import type { Component } from "svelte";\nimport type { OnekoControls, OnekoOptions } from "../types/packages/oneko/src/vanilla";\ndeclare const Oneko: Component<OnekoOptions, OnekoControls>;\nexport default Oneko;\n',
 );
 // Also expose sibling types for Svelte's source compiler and editor tooling.
 for (const name of ["vanilla", "adapter"]) {

@@ -6,9 +6,11 @@
  * Any element with data-oneko-toggle hides or shows every cat, and the choice is remembered.
  */
 import { ONEKO_DEFAULTS } from "./defaults";
+import { isOnekoSeason } from "./seasons";
 import { areCatsHidden, onCatsHiddenChange, setCatsHidden } from "./pack";
 import { createOneko as createCat, type OnekoInstance, type OnekoOptions } from "./vanilla";
 
+export type { OnekoControls } from "./controls";
 export type { OnekoInstance, OnekoOptions };
 export { areCatsHidden, setCatsHidden };
 
@@ -32,7 +34,8 @@ export function readOptions(get: (name: string) => string | null): OnekoOptions 
     const raw = get(kebab(key));
     if (raw === null) continue;
     const fallback = ONEKO_DEFAULTS[key as keyof typeof ONEKO_DEFAULTS];
-    if (typeof fallback === "boolean") options[key] = raw !== "false";
+    if (key === "seasonal" && isOnekoSeason(raw)) options[key] = raw;
+    else if (typeof fallback === "boolean") options[key] = raw !== "false";
     else if (typeof fallback === "number") {
       const value = Number(raw);
       if (raw.trim() !== "" && Number.isFinite(value)) options[key] = value;
@@ -47,12 +50,43 @@ class OnekoCatElement extends HTMLElement {
   #cat: OnekoInstance | undefined;
 
   #options(): OnekoOptions {
+    const emit = (type: string) => (detail?: object) =>
+      this.dispatchEvent(new CustomEvent(type, { detail }));
     return {
       ...readOptions((name) => this.getAttribute(name)),
       // Lets frameworks without a wrapper listen with addEventListener("statechange", ...).
-      onStateChange: (state) =>
-        this.dispatchEvent(new CustomEvent("statechange", { detail: { state } })),
+      onStateChange: (state) => emit("statechange")({ state }),
+      onPet: emit("pet"),
+      onCatchCursor: emit("catchcursor"),
+      onSleep: emit("sleep"),
+      onToss: emit("toss"),
+      onTreat: emit("treat"),
     };
+  }
+
+  /** Walk to an element, selector, or point; see OnekoControls. Resolves false before connecting. */
+  goTo(target: Parameters<OnekoInstance["goTo"]>[0]) {
+    return this.#cat?.goTo(target) ?? Promise.resolve(false);
+  }
+
+  say(text: string, options?: { duration?: number }) {
+    this.#cat?.say(text, options);
+  }
+
+  sit() {
+    this.#cat?.sit();
+  }
+
+  follow() {
+    this.#cat?.follow();
+  }
+
+  pet() {
+    this.#cat?.pet();
+  }
+
+  dropTreat(x?: number, y?: number) {
+    this.#cat?.dropTreat(x, y);
   }
 
   connectedCallback() {

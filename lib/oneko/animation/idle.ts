@@ -6,7 +6,7 @@ import type { CatAnimationDeps } from "./deps";
 import { clearRotation, setSprite } from "./sprites";
 
 function idleFrameThreshold(s: CatRuntimeState) {
-  return Math.max(1, Math.round(s.idleThresholdMs / 100));
+  return Math.max(1, Math.round((s.idleThresholdMs * s.mood.idle) / 100));
 }
 
 function wallScratchAnimations(s: CatRuntimeState): IdleActivityState[] {

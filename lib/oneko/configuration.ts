@@ -12,6 +12,7 @@ import {
   type OnekoPlaygroundState,
 } from "./playground-defaults";
 import { isOnekoSkin } from "./skins";
+import { isOnekoSeason } from "./seasons";
 
 export type ConfigurationV1 = {
   version: 1;
@@ -65,6 +66,9 @@ export function parseConfiguration(raw: string): Result<ConfigurationV1> {
     } else if (key === "bubblePlacement") {
       if (value !== "auto" && value !== "above" && value !== "below")
         return fail("bubblePlacement must be auto, above, or below.");
+    } else if (key === "seasonal") {
+      if (typeof value !== "boolean" && !isOnekoSeason(value))
+        return fail("seasonal must be true, false, halloween, winter, or newYear.");
     } else if (key === "spriteSrc") {
       if (value !== "" && !isSavedSprite(value) && !isRemoteSprite(value))
         return fail(

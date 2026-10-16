@@ -22,6 +22,7 @@ export function tickSounds(deps: CatAnimationDeps): CatActivityState {
   if (currentState !== deps.lastStateRef.current) {
     deps.lastStateRef.current = currentState;
     deps.onStateChangeRef.current?.(currentState);
+    if (currentState === "sleeping") deps.stateRef.current.handlers.onSleep?.();
     const pool = SOUND_POOLS[currentState];
     if (pool) {
       playSound(deps, pool);

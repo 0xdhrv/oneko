@@ -4,6 +4,7 @@ import { CaretDown } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { useOnekoPlayground } from "@/components/oneko-playground-context";
 import { SETTING_RANGES } from "@/lib/oneko/playground-defaults";
+import type { OnekoSeason } from "@/lib/oneko/seasons";
 import type { CatActivityState, CatLiveState } from "@/lib/oneko/types";
 
 type NumericSetting = keyof typeof SETTING_RANGES;
@@ -163,6 +164,10 @@ export function OnekoSettings({
                   ["followFocus", "Follow keyboard focus"],
                   ["perchOnHover", "Sit on links you rest the pointer on"],
                   ["pettable", "Let keyboard users pet your cat"],
+                  ["grabbable", "Pick up and toss your cat"],
+                  ["treats", "Double-click to drop a treat"],
+                  ["timeOfDay", "Keep cat hours by your clock"],
+                  ["affection", "Remember pets and treats"],
                 ] as const
               ).map(([key, label]) => (
                 <label className="oneko-checkbox" key={key}>
@@ -183,6 +188,30 @@ export function OnekoSettings({
               {state.pettable && (
                 <p className="oneko-note">Press Tab to reach your cat, then Enter to pet it.</p>
               )}
+              <label className="oneko-text-field" htmlFor="cat-seasonal">
+                Seasonal hat
+                <select
+                  id="cat-seasonal"
+                  value={String(state.seasonal)}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    actions.update({
+                      seasonal:
+                        value === "true"
+                          ? true
+                          : value === "false"
+                            ? false
+                            : (value as OnekoSeason),
+                    });
+                  }}
+                >
+                  <option value="true">Follow the calendar</option>
+                  <option value="halloween">Witch hat</option>
+                  <option value="winter">Santa hat</option>
+                  <option value="newYear">Party hat</option>
+                  <option value="false">No hat</option>
+                </select>
+              </label>
               <label className="oneko-checkbox">
                 <input
                   type="checkbox"

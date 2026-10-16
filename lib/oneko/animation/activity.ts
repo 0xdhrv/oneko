@@ -3,6 +3,9 @@ import type { CatAnimationDeps } from "./deps";
 
 export function getActivityLabel(deps: CatAnimationDeps): CatActivityState {
   const s = deps.stateRef.current;
+  if (s.grab && s.grab.phase !== "landed") {
+    return "alert";
+  }
   if (s.freerunMode) {
     return "freerun";
   }

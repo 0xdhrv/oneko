@@ -1,6 +1,8 @@
 import type { OnekoZone } from "./zones";
 import type { ZoneRuntimeState } from "./zone-runtime";
 import type { OnekoSkin } from "./skins";
+import type { OnekoSeason } from "./seasons";
+import type { Errand, GrabState, Mood } from "./animation/play-types";
 
 export type CatActivityState =
   | "idle"
@@ -106,7 +108,33 @@ export interface OnekoProps {
   perchOnHover?: boolean;
   /** Make the cat a keyboard-reachable "Pet the cat" button. Default false */
   pettable?: boolean;
+  /** Wear a holiday hat around Halloween, the winter holidays, and New Year. A season name forces it. Default true */
+  seasonal?: boolean | OnekoSeason;
+  /** Let visitors pick the cat up and toss it; a click without dragging pets it. Default false */
+  grabbable?: boolean;
+  /** Double-click empty page space to drop a treat the cat runs over to eat. Default false */
+  treats?: boolean;
+  /** Follow the visitor's clock: zoomies at dawn and dusk, sleepy late at night. Default false */
+  timeOfDay?: boolean;
+  /** Remember pets and treats in localStorage and greet returning visitors. Default false */
+  affection?: boolean;
+  /** Called when the cat is petted by keyboard, click, or pet(). */
+  onPet?: (detail: { affection: number }) => void;
+  /** Called when the cat catches up with the cursor after a chase. */
+  onCatchCursor?: () => void;
+  /** Called when the cat falls asleep. */
+  onSleep?: () => void;
+  /** Called when a visitor throws the cat; speed is in CSS pixels per second. */
+  onToss?: (detail: { speed: number }) => void;
+  /** Called when the cat eats a treat. */
+  onTreat?: (detail: { affection: number }) => void;
 }
+
+/** Event callbacks, kept in the runtime state so they update without a restart. */
+export type OnekoEventHandlers = Pick<
+  OnekoProps,
+  "onPet" | "onCatchCursor" | "onSleep" | "onToss" | "onTreat"
+>;
 
 export interface ObstacleRect {
   left: number;
@@ -193,4 +221,32 @@ export interface CatRuntimeState {
   perchTarget: PathPoint | null;
   /** Position of the cat this one chases, when chase is "cat" and one exists. */
   leaderTarget: PathPoint | null;
+  seasonalCfg: boolean | OnekoSeason;
+  grabbableCfg: boolean;
+  treatsCfg: boolean;
+  timeOfDayCfg: boolean;
+  affectionCfg: boolean;
+  handlers: OnekoEventHandlers;
+  /** Season currently worn, re-read from the calendar now and then. */
+  season: OnekoSeason | null;
+  /** Being carried, flying after a toss, or catching its breath after landing. */
+  grab: GrabState | null;
+  /** Something the cat set out to do: eat a treat, sit in a box, knock something over, or an API request. */
+  errand: Errand | null;
+  /** Frames until the cat looks for another box or knockable. */
+  errandCooldown: number;
+  /** Text queued by say() or data-oneko-say, shown on the next tick. */
+  sayRequest: { text: string; frames: number } | null;
+  /** The bubble was requested explicitly and stays up even when automatic bubbles are off. */
+  bubbleForced: boolean;
+  petRequest: boolean;
+  /** Chasing a cursor that was far away; reaching it counts as a catch. */
+  chasingFar: boolean;
+  mood: Mood;
+  moodCheckedFrame: number;
+  affection: number;
+  affectionLoaded: boolean;
+  /** localStorage key for affection, derived from storageKey. */
+  affectionKey: string;
+  zIndex: number;
 }
