@@ -106,7 +106,7 @@ test("reduced motion hides the scripted cat or leaves it resting", async ({ page
 test("<oneko-cat> dispatches statechange events", async ({ page }) => {
   await open(
     page,
-    `<oneko-cat persist-position="false"></oneko-cat>
+    `<oneko-cat persist-position="false" freerun-chance="0"></oneko-cat>
      <script type="module">
        window.states = [];
        document.querySelector("oneko-cat")
