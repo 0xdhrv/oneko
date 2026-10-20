@@ -1,0 +1,47 @@
+name: Publish to npm
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify release version
+        run: |
+          VERSION=$(node -p "require('./packages/oneko/package.json').version")
+          if [ "$GITHUB_REF_NAME" != "v$VERSION" ]; then
+            echo "Release tag must be v$VERSION"
+            exit 1
+          fi
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build npm package
+        run: pnpm build:package
+
+      # Built above; skip prepack so npm doesn't build a second time.
+      - name: Publish to npm
+        working-directory: packages/oneko
+        run: npm publish --access public --ignore-scripts
