@@ -128,7 +128,7 @@ export function restorePlaygroundState(raw: string | null): OnekoPlaygroundState
       }
     }
   } catch {
-    /* Storage can be unavailable or contain an older format. */
+    /* Damaged or older-format JSON restores the defaults. */
   }
   return state;
 }

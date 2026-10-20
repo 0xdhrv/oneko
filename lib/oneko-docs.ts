@@ -368,7 +368,7 @@ export const PROP_DOCS = {
   },
 } satisfies Record<keyof OnekoProps, PropDoc>;
 
-export const AGENT_PROMPT = `Add the Oneko pixel cat to this project using its shadcn registry component.
+const AGENT_PROMPT = `Add the Oneko pixel cat to this project using its shadcn registry component.
 
 Read ${DOCS_ORIGIN}/llms.txt, then ${DOCS_ORIGIN}/docs.md for the full API and integration recipes. Fetch ${DOCS_ORIGIN}/r/oneko.json if you need the exact installable source.
 

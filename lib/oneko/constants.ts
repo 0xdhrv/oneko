@@ -3,24 +3,20 @@ import type { CatActivityState } from "./types";
 export const TILE = 32;
 export const DEFAULT_Z_INDEX = 2_147_483_646;
 
-// Movement config
 export const STEER_LERP = 0.3;
 export const MAX_VEL_FACTOR = 1.5;
 
-// Obstacle config
 export const OBSTACLE_INTERVAL = 30;
 export const MIN_OBSTACLE_AREA = 500;
 export const OBSTACLE_SELECTOR =
   "h1,h2,h3,h4,h5,h6,p,blockquote,a,button,img,svg,picture,video,nav,header,label,[role='button'],[data-oneko-obstacle]";
 
-// Grid / route config
 export const CELL_SIZE = 16;
 export const SPRITE_RADIUS = 8;
 export const PATH_RECALC_INTERVAL = 10;
 export const PATH_RECALC_MOUSE_CELLS = 2;
 export const WAYPOINT_REACH_DIST = CELL_SIZE;
 
-// Chat bubble config
 export const BUBBLE_DISPLAY_FRAMES = 180;
 export const BUBBLE_COOLDOWN_FRAMES = 120;
 /** Pixels between mouse samples before we treat movement as a new heading */
@@ -306,7 +302,6 @@ export const KONAMI_SEQUENCE = [
 ];
 export const KONAMI_TARGET = KONAMI_SEQUENCE.join(",");
 
-// Direction table — module-level so it's not re-allocated every frame
 export const DIRECTION_RANGES = [
   { min: -22.5, max: 22.5, dir: "E" },
   { min: 22.5, max: 67.5, dir: "SE" },
@@ -402,8 +397,6 @@ export const IDLE_ANIMATION_DURATIONS: Record<string, number> = {
   scratchWallW: 24,
 };
 
-// Static colour tokens for the debug overlay. Hoisted to module scope so the
-// object isn't reallocated every time the animation effect mounts/re-runs.
 export const debugColor = {
   panelBg: "color-mix(in srgb, var(--background) 88%, transparent)",
   panelBorder: "color-mix(in srgb, var(--border) 70%, transparent)",

@@ -18,6 +18,7 @@ import {
   DEFAULT_ONEKO_PLAYGROUND_STATE,
   PLAYGROUND_STORAGE_KEY,
   restorePlaygroundState,
+  type OnekoPlaygroundState,
 } from "@/lib/oneko/playground-defaults";
 
 const DEFAULT_LIVE_STATE: CatLiveState = {
@@ -34,8 +35,6 @@ const DEFAULT_LIVE_STATE: CatLiveState = {
   pathLength: 0,
   obstacleCount: 0,
 };
-
-export type OnekoPlaygroundState = typeof DEFAULT_ONEKO_PLAYGROUND_STATE;
 
 export type OnekoPlaygroundActions = {
   update: (changes: Partial<OnekoPlaygroundState>) => void;
@@ -71,7 +70,9 @@ export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
     let initial = { ...DEFAULT_ONEKO_PLAYGROUND_STATE };
     try {
       initial = restorePlaygroundState(localStorage.getItem(PLAYGROUND_STORAGE_KEY));
-    } catch {}
+    } catch {
+      /* Storage can be unavailable; start from the defaults. */
+    }
     dispatch({ type: "replace", state: initial });
     const applySharedConfiguration = () => {
       const shared = parseShareFragment(window.location.hash);
@@ -108,7 +109,9 @@ export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
     if (!restored) return;
     try {
       localStorage.setItem(PLAYGROUND_STORAGE_KEY, JSON.stringify(state));
-    } catch {}
+    } catch {
+      /* Storage can be unavailable or full; settings still apply to this visit. */
+    }
   }, [state, restored]);
 
   const actions = useMemo<OnekoPlaygroundActions>(

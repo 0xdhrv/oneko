@@ -291,7 +291,6 @@ export function createPlay(deps: CatAnimationDeps) {
   const tickErrand = () => {
     const state = s();
     const errand = state.errand;
-    // Cursor catches: only while actually chasing the cursor.
     const chasingCursor =
       !errand &&
       state.followCursorCfg &&
@@ -543,7 +542,6 @@ export function createPlay(deps: CatAnimationDeps) {
     // Double-clicking text selects a word; leave reading alone.
     if (window.getSelection()?.toString().trim() || isOverText(event.clientX, event.clientY))
       return;
-    // No treats where the cat is not allowed to go.
     const point = { x: event.clientX, y: event.clientY };
     if (state.zoneState.blocked.some((rect) => containsPoint(rect, point))) return;
     handledEvents.add(event);

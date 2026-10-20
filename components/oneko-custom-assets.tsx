@@ -68,10 +68,7 @@ export function OnekoCustomAssets({ section }: { section: "sprite" | "thoughts" 
                     hueRotate: 0,
                   });
               } catch (error) {
-                if (request === pending.current)
-                  setSpriteError(
-                    error instanceof Error ? error.message : "Couldn’t read this sprite sheet.",
-                  );
+                if (request === pending.current) setSpriteError((error as Error).message);
               } finally {
                 if (request === pending.current) setLoading(false);
               }
@@ -93,10 +90,7 @@ export function OnekoCustomAssets({ section }: { section: "sprite" | "thoughts" 
                     hueRotate: 0,
                   });
               } catch (error) {
-                if (request === pending.current)
-                  setSpriteError(
-                    error instanceof Error ? error.message : "Couldn’t open this sprite sheet.",
-                  );
+                if (request === pending.current) setSpriteError((error as Error).message);
               } finally {
                 if (request === pending.current) setLoading(false);
               }
@@ -209,10 +203,7 @@ export function OnekoCustomAssets({ section }: { section: "sprite" | "thoughts" 
                 setDraft(bubbleText);
                 setTextError("");
               } catch (error) {
-                if (request === textRequest.current)
-                  setTextError(
-                    error instanceof Error ? error.message : "Couldn’t read this text file.",
-                  );
+                if (request === textRequest.current) setTextError((error as Error).message);
               }
             }}
           />

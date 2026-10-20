@@ -14,7 +14,7 @@ export type OnekoZone = {
 
 export type ResolvedZone = { id: string; type: OnekoZone["type"]; rect: ObstacleRect };
 
-export function isValidRect(rect: ObstacleRect): boolean {
+function isValidRect(rect: ObstacleRect): boolean {
   return (
     Object.values(rect).every(Number.isFinite) && rect.right > rect.left && rect.bottom > rect.top
   );

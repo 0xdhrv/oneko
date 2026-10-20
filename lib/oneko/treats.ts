@@ -17,10 +17,6 @@ const PIXEL = 2;
 const MAX_TREATS = 5;
 const treats: Treat[] = [];
 
-export function availableTreats(): readonly Treat[] {
-  return treats;
-}
-
 /** The uneaten treat closest to a point, or undefined when the floor is clean. */
 export function nearestTreat(
   x: number,

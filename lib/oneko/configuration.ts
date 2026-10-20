@@ -22,7 +22,7 @@ export type ConfigurationV1 = {
 type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
 export const MAX_CONFIGURATION_BYTES = 512 * 1024;
-export const MAX_SHARE_URL_LENGTH = 8192;
+const MAX_SHARE_URL_LENGTH = 8192;
 const SHARE_PREFIX = "#oneko=";
 
 function isRecord(value: unknown): value is Record<string, unknown> {

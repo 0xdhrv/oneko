@@ -3,7 +3,7 @@ import { pixelArtSVG } from "./pixel-art";
 /** Seasonal dress-up: a pixel hat and a few themed thoughts around a holiday. */
 export type OnekoSeason = "halloween" | "winter" | "newYear";
 
-export const ONEKO_SEASONS = ["halloween", "winter", "newYear"] as const;
+const ONEKO_SEASONS = ["halloween", "winter", "newYear"] as const;
 
 export function isOnekoSeason(value: unknown): value is OnekoSeason {
   return (ONEKO_SEASONS as readonly unknown[]).includes(value);
@@ -103,7 +103,6 @@ const HATS: Record<OnekoSeason, { rows: readonly string[]; colors: Record<string
 /** Hat size in sprite pixels, including the one-pixel outline on every side. */
 export const HAT_WIDTH = 13;
 export const HAT_HEIGHT = 10;
-/** Inline SVG for a season's hat. */
 export function hatSVG(season: OnekoSeason): string {
   return pixelArtSVG(HATS[season].rows, HATS[season].colors);
 }

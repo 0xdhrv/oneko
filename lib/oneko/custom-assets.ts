@@ -1,7 +1,7 @@
 /** Playground upload limits keep local preferences and copied examples manageable. */
 export const MAX_SPRITE_BYTES = 256 * 1024;
-export const MAX_THOUGHTS = 50;
-export const MAX_THOUGHT_LENGTH = 120;
+const MAX_THOUGHTS = 50;
+const MAX_THOUGHT_LENGTH = 120;
 export const MAX_THOUGHT_TEXT_LENGTH = MAX_THOUGHTS * (MAX_THOUGHT_LENGTH + 1);
 
 export function thoughtLines(text: string): string[] {

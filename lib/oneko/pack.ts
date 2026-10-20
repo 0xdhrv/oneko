@@ -39,7 +39,6 @@ export function isNearestCat(state: CatRuntimeState, point: PathPoint): boolean 
   );
 }
 
-/** How many cats are running on the page. */
 export function packSize(): number {
   return pack.length;
 }

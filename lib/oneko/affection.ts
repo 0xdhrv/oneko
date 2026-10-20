@@ -1,7 +1,7 @@
 export type SavedAffection = { version: 1; affection: number; lastVisit: number };
 
 /** A visit this long after the last one earns a greeting. */
-export const GREETING_GAP_MS = 30 * 60 * 1000;
+const GREETING_GAP_MS = 30 * 60 * 1000;
 export const MAX_AFFECTION = 999;
 
 export function parseAffection(value: unknown): SavedAffection | null {

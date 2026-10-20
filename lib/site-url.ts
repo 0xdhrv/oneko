@@ -1,4 +1,3 @@
-/** Production hostname (no trailing slash on the constant; function returns origin only). */
 const CANONICAL_SITE_ORIGIN = "https://oneko.dhrv.pw";
 
 function trimTrailingSlash(url: string): string {

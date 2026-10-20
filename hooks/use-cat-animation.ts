@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { startCatAnimation } from "@/lib/oneko/start-cat-animation";
-import type { CatActivityState, CatLiveState, CatRuntimeState } from "@/lib/oneko/types";
+import { startCatAnimation, type StartCatAnimationOptions } from "@/lib/oneko/start-cat-animation";
 
 export function useCatAnimation({
   enabled,
@@ -15,22 +14,9 @@ export function useCatAnimation({
   storageKey,
   zIndex,
   pettable,
-}: {
-  enabled: boolean;
-  stateRef: { current: CatRuntimeState };
-  elRef: { current: HTMLDivElement | null };
-  lastStateRef: { current: CatActivityState };
-  onStateChangeRef: { current: ((state: CatActivityState) => void) | undefined };
-  liveStateRef?: { current: CatLiveState };
-  persistPosition: boolean;
-  storageKey: string;
-  zIndex: number;
-  pettable: boolean;
-}) {
+}: StartCatAnimationOptions & { enabled: boolean }) {
   useEffect(() => {
-    if (!enabled || typeof window === "undefined") {
-      return;
-    }
+    if (!enabled) return;
 
     return startCatAnimation({
       stateRef,
