@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  "entry": [
+    "components/oneko.tsx",
+    "lib/oneko/vanilla-entry.ts",
+    "extension/src/*.ts",
+    "packages/oneko/src/Oneko.svelte",
+    "scripts/*.mjs"
+  ],
+  "ignoreUnresolvedImports": ["./popup.js"],
+  "ignoreDependencies": ["@opennextjs/cloudflare"]
+}
