@@ -1,6 +1,13 @@
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
 
+# Keep fonts available for rendering without indexing them as standalone results.
+/_next/static/media/*.woff2
+  X-Robots-Tag: noindex
+
+/site.webmanifest
+  X-Robots-Tag: noindex
+
 /cat-sounds/*
   Cache-Control: public, max-age=604800
   Access-Control-Allow-Origin: *
@@ -22,3 +29,4 @@
   Cache-Control: public, max-age=3600
   Content-Type: text/plain; charset=utf-8
   Access-Control-Allow-Origin: *
+  X-Robots-Tag: noindex

@@ -36,6 +36,9 @@ Use Oneko when a developer wants a decorative cursor-following cat, a quiet stat
 GET /docs or / with Accept: text/markdown returns the full Markdown guide. Regular browser requests receive HTML. Responses vary on Accept.
 `;
   return new Response(text, {
-    headers: { "Content-Type": "text/plain; charset=utf-8" },
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "X-Robots-Tag": "noindex",
+    },
   });
 }

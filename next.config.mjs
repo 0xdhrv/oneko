@@ -11,6 +11,19 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  headers() {
+    // Utility files should remain crawlable without becoming search results.
+    // Mirror static-asset rules in public/_headers for Cloudflare's asset service.
+    return [
+      "/_next/static/media/:font.woff2",
+      "/frameworks/:path*",
+      "/site.webmanifest",
+      "/sitemap.xml",
+    ].map((source) => ({
+      source,
+      headers: [{ key: "X-Robots-Tag", value: "noindex" }],
+    }));
+  },
   turbopack: {
     root: __dirname,
     rules: {
