@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { DEFAULT_ONEKO_PLAYGROUND_STATE } from "../../lib/oneko/playground-defaults";
 import { getBundledSkinSource } from "../../lib/bundled-skins";
 
@@ -61,12 +61,12 @@ test("share links restore Unicode thoughts and built-in settings ahead of saved 
     settings,
   );
   await page.goto("/studio");
-  await page.getByRole("tab", { name: "Export" }).click();
+  await page.getByRole("tab", { name: "Share" }).click();
   await page.getByRole("button", { name: "Copy share link" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Share link copied" })).toBeVisible();
   const url = await page.evaluate(() => navigator.clipboard.readText());
   expect(new URL(url).pathname).toBe("/studio");
-  expect(new URL(url).hash).toMatch(/^#oneko=/);
+  expect(new URL(url).hash).toMatch(/^#oneko2=/);
   const recipient = await context.newPage();
   await recipient.addInitScript(
     (value) =>
@@ -114,11 +114,7 @@ test("custom artwork round-trips through files and malformed imports leave the c
     settings,
   );
   await page.goto("/studio");
-  await page.getByRole("tab", { name: "Export" }).click();
-  await page.getByRole("button", { name: "Copy share link" }).click();
-  await expect(
-    page.getByRole("status").filter({ hasText: "Custom artwork travels in a configuration file" }),
-  ).toBeVisible();
+  await page.getByRole("tab", { name: "Share" }).click();
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download configuration" }).click();
   const download = await downloadPromise;
@@ -202,4 +198,249 @@ test("a ?sprite= link dresses the cat in a hosted coat after checking its size",
   await expect
     .poll(() => page.locator("#oneko-react").evaluate((el) => el.style.backgroundImage))
     .toContain("https://cats.oneko.test/ginger.png");
+});
+
+/** A half-second, two-tone WAV, standing in for a file someone picked. */
+function toneFile() {
+  const rate = 44100;
+  const samples = Math.floor(rate / 2);
+  const wav = Buffer.alloc(44 + samples * 2);
+  wav.write("RIFF", 0);
+  wav.writeUInt32LE(36 + samples * 2, 4);
+  wav.write("WAVEfmt ", 8);
+  wav.writeUInt32LE(16, 16);
+  wav.writeUInt16LE(1, 20);
+  wav.writeUInt16LE(1, 22);
+  wav.writeUInt32LE(rate, 24);
+  wav.writeUInt32LE(rate * 2, 28);
+  wav.writeUInt16LE(2, 32);
+  wav.writeUInt16LE(16, 34);
+  wav.write("data", 36);
+  wav.writeUInt32LE(samples * 2, 40);
+  for (let index = 0; index < samples; index++) {
+    const hertz = index < samples / 2 ? 440 : 880;
+    wav.writeInt16LE(
+      Math.round(Math.sin((index / rate) * hertz * 2 * Math.PI) * 16000),
+      44 + index * 2,
+    );
+  }
+  return { name: "chirp.wav", mimeType: "audio/wav", buffer: wav };
+}
+
+const saved = (page: Page) =>
+  page.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1")!));
+
+async function drawDot(page: Page, x: number, y: number) {
+  await page.getByRole("application").scrollIntoViewIfNeeded();
+  const box = (await page.getByRole("application").boundingBox())!;
+  await page.mouse.click(box.x + (box.width * x) / 32, box.y + (box.height * y) / 32);
+}
+
+test("drawing dresses the cat live, undoes, and survives a trip through a coat", async ({
+  page,
+}) => {
+  await page.goto("/studio");
+  await page.getByRole("tab", { name: "Draw" }).click();
+  await expect(page.getByRole("application")).toHaveAttribute("aria-busy", "false");
+  const before = await page.locator("#oneko-react").evaluate((el) => el.style.backgroundImage);
+
+  const box = (await page.getByRole("application").boundingBox())!;
+  await page.mouse.move(box.x + 8, box.y + 8);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width - 8, box.y + 8, { steps: 4 });
+  await page.mouse.up();
+
+  await expect.poll(async () => (await saved(page)).spriteName).toBe("Hand-drawn coat");
+  const drawn = (await saved(page)).spriteSrc;
+  expect(drawn).toMatch(/^data:image\/png;base64,/);
+  await expect
+    .poll(() => page.locator("#oneko-react").evaluate((el) => el.style.backgroundImage))
+    .toContain(drawn.slice(0, 80));
+
+  // A fast drag still paints every cell between pointer events.
+  const topRow = await page.getByRole("application").evaluate((el) => {
+    const context = el
+      .querySelector<HTMLCanvasElement>("canvas:not(.sprite-onion)")!
+      .getContext("2d")!;
+    return Array.from({ length: 32 }, (_, x) => context.getImageData(x, 0, 1, 1).data[3]);
+  });
+  expect(topRow.every((alpha) => alpha === 255)).toBe(true);
+
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect.poll(async () => (await saved(page)).spriteSrc).not.toBe(drawn);
+  await expect(page.getByRole("button", { name: "Redo" })).toBeEnabled();
+  await page.getByRole("button", { name: "Redo" }).click();
+  await expect.poll(async () => (await saved(page)).spriteSrc).toBe(drawn);
+
+  await page.getByRole("tab", { name: "Appearance" }).click();
+  await page.getByRole("button", { name: "Calico" }).click();
+  await expect.poll(async () => (await saved(page)).spriteSrc).toBe("");
+  await page.getByRole("tab", { name: "Draw" }).click();
+  await page.getByRole("button", { name: "Bring back your drawing" }).click();
+  await expect.poll(async () => (await saved(page)).spriteSrc).toBe(drawn);
+  expect(before).not.toContain(drawn.slice(0, 80));
+});
+
+test("mirroring and frame tools write to the right frames", async ({ page }) => {
+  await page.goto("/studio");
+  await page.getByRole("tab", { name: "Draw" }).click();
+  await expect(page.getByRole("application")).toHaveAttribute("aria-busy", "false");
+  await page.getByRole("button", { name: "Run right", exact: true }).click();
+  await page.getByRole("button", { name: "Clear" }).click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "1 of 32 frames is empty" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Mirror to “Run left”" }).click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "2 of 32 frames are empty" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "of 32 frames" })).toHaveCount(0);
+});
+
+test("a recolor swaps one color across the whole coat", async ({ page }) => {
+  await page.goto("/studio");
+  await page.getByRole("tab", { name: "Draw" }).click();
+  await expect(page.getByRole("application")).toHaveAttribute("aria-busy", "false");
+  const swap = page.getByLabel("Swap this color everywhere");
+  await expect(swap).toBeEnabled();
+  await swap.fill("#ff0000");
+  await expect.poll(async () => (await saved(page)).spriteName).toBe("Hand-drawn coat");
+  await expect(page.getByRole("button", { name: "#ff0000" })).toBeVisible();
+});
+
+test("a sound is trimmed, plays in the browser, and appears in exported code", async ({ page }) => {
+  await page.goto("/studio");
+  await page.getByRole("tab", { name: "Sounds" }).click();
+  await page.getByLabel("Upload a sound for Pets").setInputFiles(toneFile());
+  await expect(page.getByRole("button", { name: "Use this clip" })).toBeVisible();
+  await page.getByRole("slider", { name: /^End/ }).fill("0.25");
+  await page.getByRole("button", { name: "Use this clip" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Clip saved" })).toBeVisible();
+  await expect(page.getByText("chirp.wav")).toBeVisible();
+
+  const settings = await saved(page);
+  expect(settings.meow).toBe(true);
+  const { src } = settings.soundClips.pet;
+  const seconds = await page.evaluate(
+    (url) =>
+      new Promise<number>((resolve, reject) => {
+        const audio = new Audio(url);
+        audio.onloadedmetadata = () => resolve(audio.duration);
+        audio.onerror = () => reject(new Error("clip did not load"));
+      }),
+    src,
+  );
+  expect(seconds).toBeGreaterThan(0.2);
+  expect(seconds).toBeLessThan(0.3);
+
+  await page.getByRole("button", { name: "Silence Chasing" }).click();
+  await expect
+    .poll(async () => (await saved(page)).soundClips.moving)
+    .toEqual({ src: "", name: "" });
+  await page.getByRole("tab", { name: "Share" }).click();
+  await expect(page.locator(".oneko-install-section")).toContainText("sounds=");
+  await page.getByRole("tab", { name: "Sounds" }).click();
+  await page.getByRole("button", { name: "Use the built-in Pets sound" }).click();
+  await expect.poll(async () => (await saved(page)).soundClips.pet).toBeUndefined();
+});
+
+test("the cat plays your clip instead of the built-in sound", async ({ page }) => {
+  await page.addInitScript(() => {
+    const played: string[] = [];
+    Object.assign(window, { played });
+    const play = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function () {
+      played.push(this.src);
+      return play.call(this);
+    };
+  });
+  await page.goto("/studio");
+  await page.getByRole("tab", { name: "Sounds" }).click();
+  await page.getByLabel("Upload a sound for Pets").setInputFiles(toneFile());
+  await page.getByRole("button", { name: "Use this clip" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Clip saved" })).toBeVisible();
+  await page.getByRole("tab", { name: "Behavior" }).click();
+  await page.getByRole("checkbox", { name: "Let keyboard users pet your cat" }).check();
+  const cat = page.locator("#oneko-react");
+  // Keep petting: an ambient sound can leave the cat briefly on cooldown.
+  await expect(async () => {
+    await cat.focus();
+    await page.keyboard.press("Enter");
+    const played = await page.evaluate(() => (window as unknown as { played: string[] }).played);
+    expect(played.some((url) => url.startsWith("data:audio/wav"))).toBe(true);
+  }).toPass({ timeout: 15_000 });
+});
+
+test("a link carries a drawn coat and sounds, and the recipient can go back to their cat", async ({
+  browser,
+  page,
+  context,
+  baseURL,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: baseURL! });
+  await page.goto("/studio");
+  await page.getByRole("tab", { name: "Draw" }).click();
+  await expect(page.getByRole("application")).toHaveAttribute("aria-busy", "false");
+  await drawDot(page, 4, 4);
+  await expect.poll(async () => (await saved(page)).spriteName).toBe("Hand-drawn coat");
+  await page.getByRole("tab", { name: "Sounds" }).click();
+  await page.getByLabel("Upload a sound for Pets").setInputFiles(toneFile());
+  await page.getByRole("button", { name: "Use this clip" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Clip saved" })).toBeVisible();
+  await page.getByRole("tab", { name: "Share" }).click();
+  await page.getByRole("button", { name: "Copy share link" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Share link copied" })).toContainText(
+    "chat apps",
+  );
+  const url = await page.evaluate(() => navigator.clipboard.readText());
+  const sent = await saved(page);
+
+  const friend = await browser.newContext({ baseURL });
+  const recipient = await friend.newPage();
+  const own = { ...DEFAULT_ONEKO_PLAYGROUND_STATE, skin: "ginger", speed: 3 };
+  await recipient.addInitScript((value) => {
+    if (!localStorage.getItem("oneko:playground:v1"))
+      localStorage.setItem("oneko:playground:v1", JSON.stringify(value));
+  }, own);
+  await recipient.goto(url);
+  await expect(
+    recipient.getByRole("status").filter({ hasText: "Shared cat loaded" }),
+  ).toBeVisible();
+  await expect.poll(() => saved(recipient)).toEqual(sent);
+  await expect
+    .poll(() => recipient.locator("#oneko-react").evaluate((el) => el.style.backgroundImage))
+    .toContain(sent.spriteSrc.slice(0, 80));
+  expect(new URL(recipient.url()).hash).toBe("");
+
+  // Edits made to a shared cat survive a reload rather than being replaced by the link.
+  await recipient.getByRole("tab", { name: "Thoughts" }).click();
+  await recipient.getByLabel("Your cat’s thoughts").fill("mine now");
+  await expect.poll(async () => (await saved(recipient)).bubbleText).toBe("mine now");
+  await recipient.reload();
+  await recipient.getByRole("tab", { name: "Thoughts" }).click();
+  await expect(recipient.getByLabel("Your cat’s thoughts")).toHaveValue("mine now");
+
+  await recipient.goto(url);
+  await expect(
+    recipient.getByRole("status").filter({ hasText: "Shared cat loaded" }),
+  ).toBeVisible();
+  await recipient.getByRole("button", { name: "Back to my cat" }).click();
+  await expect.poll(async () => (await saved(recipient)).bubbleText).toBe("mine now");
+  await expect(recipient.getByRole("button", { name: "Back to my cat" })).toHaveCount(0);
+  await friend.close();
+});
+
+test("the editors fit a phone and draw by touch-sized canvas", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/studio");
+  await page.getByRole("tab", { name: "Draw" }).click();
+  await expect(page.getByRole("application")).toHaveAttribute("aria-busy", "false");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  await drawDot(page, 16, 16);
+  await expect.poll(async () => (await saved(page)).spriteName).toBe("Hand-drawn coat");
+  await page.getByRole("tab", { name: "Sounds" }).click();
+  await expect(page.getByLabel("Upload a sound for Pets")).toBeAttached();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 });

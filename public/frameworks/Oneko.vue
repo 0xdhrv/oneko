@@ -48,6 +48,7 @@ const props = defineProps({
   meow: { type: Boolean, default: undefined },
   volume: Number,
   soundBasePath: String,
+  sounds: Object as PropType<OnekoOptions["sounds"]>,
   zones: Array as PropType<object[]>,
   zoneAttractionChance: Number,
   zoneAttractionDuration: Number,

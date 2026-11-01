@@ -1480,7 +1480,7 @@
 }
 .studio-tabs {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
   padding: 8px;
   background: color-mix(in srgb, var(--secondary) 45%, var(--background));
@@ -1795,6 +1795,7 @@
     padding: 20px 16px;
   }
   .studio-tabs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0;
     padding: 6px;
   }
@@ -1827,5 +1828,335 @@
   .studio-companion {
     grid-column: 2;
     grid-row: 1;
+  }
+}
+
+/* Drawing board. */
+.sprite-editor,
+.sound-editor {
+  display: grid;
+  gap: 16px;
+  font-size: 12px;
+}
+.sprite-frame {
+  display: block;
+  flex-shrink: 0;
+  width: var(--sprite-size);
+  height: var(--sprite-size);
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-size: calc(var(--sprite-size) * 8) calc(var(--sprite-size) * 4);
+  background-position: calc(var(--sprite-column) * var(--sprite-size) * -1)
+    calc(var(--sprite-row) * var(--sprite-size) * -1);
+}
+.sprite-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.sprite-toolbar > div {
+  display: flex;
+  gap: 2px;
+}
+.sprite-toolbar button,
+.sound-moment-actions > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+.sprite-toolbar button:hover:not(:disabled),
+.sound-moment-actions > :hover:not(:disabled) {
+  color: var(--foreground);
+  background: var(--secondary);
+}
+.sprite-toolbar button[aria-pressed="true"],
+.sound-moment-actions button[aria-pressed="true"] {
+  color: var(--foreground);
+  background: var(--secondary);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.sprite-toolbar button:disabled,
+.sound-moment-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.sprite-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 384px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.sprite-canvas {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: repeating-conic-gradient(var(--secondary) 0% 25%, var(--background) 0% 50%) 0 0 /
+    calc(100% / 16) calc(100% / 16);
+  touch-action: none;
+  cursor: crosshair;
+}
+.sprite-canvas[data-tool="picker"] {
+  cursor: copy;
+}
+.sprite-canvas canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.sprite-canvas .sprite-onion {
+  opacity: 0.25;
+}
+.sprite-canvas[data-grid]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--foreground) 10%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--foreground) 10%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: calc(100% / 32) calc(100% / 32);
+}
+.sprite-cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: calc(100% / 32);
+  height: calc(100% / 32);
+  outline: 1px solid var(--foreground);
+  outline-offset: -1px;
+  pointer-events: none;
+  opacity: 0;
+}
+.sprite-canvas:is(:hover, :focus-visible) .sprite-cursor {
+  opacity: 1;
+}
+.sprite-side {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.sprite-preview {
+  display: grid;
+  place-items: center;
+  height: 128px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--secondary) 45%, var(--background));
+}
+.sprite-frames,
+.sprite-animations {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 4px;
+}
+.sprite-animations {
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+}
+.sprite-frames button,
+.sprite-animations button {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  border-radius: 8px;
+}
+.sprite-frames button:hover,
+.sprite-animations button:hover {
+  background: var(--secondary);
+}
+.sprite-frames [aria-pressed="true"],
+.sprite-animations [aria-pressed="true"] {
+  border-color: var(--foreground);
+}
+.sprite-color {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.sprite-color input,
+.sprite-swap input {
+  width: 44px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+.sprite-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(24px, 1fr));
+  gap: 4px;
+}
+.sprite-swatches button {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--foreground) 15%, transparent);
+}
+.sprite-swatches [aria-pressed="true"] {
+  outline: 2px solid var(--foreground);
+  outline-offset: 1px;
+}
+.sprite-swap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  line-height: 1.4;
+}
+.sprite-swap[data-disabled] {
+  opacity: 0.5;
+}
+.sprite-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sprite-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.sprite-actions button:hover:not(:disabled) {
+  background: var(--secondary);
+}
+.sprite-actions button:disabled {
+  opacity: 0.5;
+}
+.sprite-sheet-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 220px) auto;
+  align-items: end;
+  gap: 16px 24px;
+}
+.sprite-sheet-actions .oneko-asset-actions button {
+  gap: 6px;
+}
+
+/* Sound moments. */
+.sound-moments {
+  display: grid;
+}
+.sound-moments > li {
+  border-top: 1px solid var(--border);
+}
+.sound-moments > li:last-child {
+  border-bottom: 1px solid var(--border);
+}
+.sound-moment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-block: 6px;
+}
+.sound-moment > div:first-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.sound-moment > div:first-child > span:first-child {
+  font-size: 14px;
+}
+.sound-moment > div:first-child > span:last-child {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sound-moment-actions {
+  display: flex;
+  flex-shrink: 0;
+}
+.sound-moment-actions input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.sound-moment-actions label {
+  position: relative;
+}
+.sound-moment-actions label:has(:focus-visible) {
+  outline: 2px solid var(--foreground);
+  outline-offset: -2px;
+}
+.sound-clip-editor {
+  display: grid;
+  gap: 8px;
+  padding-block: 8px 16px;
+}
+.sound-waveform {
+  position: relative;
+  height: 72px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--secondary) 45%, var(--background));
+}
+.sound-waveform svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.sound-waveform path {
+  fill: none;
+  stroke: var(--foreground);
+  stroke-width: 0.6;
+}
+.sound-waveform span {
+  position: absolute;
+  inset-block: 0;
+  border-inline: 1px solid var(--foreground);
+  background: color-mix(in srgb, var(--primary) 30%, transparent);
+}
+.oneko-install-section {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.oneko-install-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+}
+@media (max-width: 640px) {
+  .sprite-workbench,
+  .sprite-sheet-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sprite-animations {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .sprite-canvas {
+    max-width: 384px;
+    width: 100%;
+    margin-inline: auto;
+  }
+  .sound-moment {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
   }
 }

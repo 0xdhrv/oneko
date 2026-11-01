@@ -4,10 +4,12 @@ import {
   CaretDown,
   Check,
   PaintBrush,
+  Pencil,
+  SpeakerHigh,
   ChatCircleText,
   PawPrint,
   MapPin,
-  Code,
+  ShareNetwork,
 } from "@phosphor-icons/react";
 import { useState, type ReactNode } from "react";
 import { useOnekoPlayground } from "@/components/oneko-playground-context";
@@ -15,6 +17,8 @@ import { OnekoCustomAssets } from "@/components/oneko-custom-assets";
 import { OnekoZones } from "@/components/oneko-zones";
 import { OnekoSettings } from "@/components/oneko-settings";
 import { OnekoInstall } from "@/components/oneko-install";
+import { SoundEditor } from "@/components/studio/sound-editor";
+import { SpriteEditor } from "@/components/studio/sprite-editor";
 import { getBundledSkinSource } from "@/lib/bundled-skins";
 import { ONEKO_SKINS } from "@/lib/oneko/skins";
 import { ONEKO_PERSONALITIES, selectedPersonality } from "@/lib/oneko/personalities";
@@ -26,6 +30,20 @@ const SECTIONS = [
     icon: PaintBrush,
     title: "A look of their own",
     description: "Pick a coat, or bring your own little character.",
+  },
+  {
+    id: "draw",
+    label: "Draw",
+    icon: Pencil,
+    title: "Draw every frame",
+    description: "Start from any coat and change it pixel by pixel. Your cat wears it as you go.",
+  },
+  {
+    id: "sounds",
+    label: "Sounds",
+    icon: SpeakerHigh,
+    title: "A voice of their own",
+    description: "Give each moment your own clip, or let it stay quiet.",
   },
   {
     id: "thoughts",
@@ -49,11 +67,11 @@ const SECTIONS = [
     description: "Choose where your cat can wander and where it should stay clear.",
   },
   {
-    id: "export",
-    label: "Export",
-    icon: Code,
+    id: "share",
+    label: "Share",
+    icon: ShareNetwork,
     title: "Take your cat with you",
-    description: "Your current choices, ready for your React project.",
+    description: "Send your cat to a friend, or bring it home to your React project.",
   },
 ] as const;
 type Section = (typeof SECTIONS)[number]["id"];
@@ -95,12 +113,14 @@ function Comfort({
 }
 
 export function OnekoTweaks() {
-  const { state, actions, configurationStatus } = useOnekoPlayground();
+  const { state, actions, configurationStatus, previousCat } = useOnekoPlayground();
   const [active, setActive] = useState<Section>("appearance");
+  // The drawing board stays mounted once opened, so undo survives a trip to another tab.
+  const [boardOpened, setBoardOpened] = useState(false);
+  if (active === "draw" && !boardOpened) setBoardOpened(true);
   const [assetsVersion, setAssetsVersion] = useState(0);
   const [notice, setNotice] = useState("");
   const selected = ONEKO_SKINS.find((skin) => skin.id === state.skin) ?? ONEKO_SKINS[0];
-  const section = SECTIONS.find((item) => item.id === active)!;
   const personality = selectedPersonality(state);
 
   return (
@@ -138,7 +158,7 @@ export function OnekoTweaks() {
           </button>
         ))}
       </div>
-      {SECTIONS.map(({ id }) => (
+      {SECTIONS.map(({ id, title, description }) => (
         <div
           key={id}
           hidden={active !== id}
@@ -148,13 +168,14 @@ export function OnekoTweaks() {
           tabIndex={0}
           className="studio-panel"
         >
-          {active === id && (
+          {(active === id || (id === "draw" && boardOpened)) && (
             <>
               <header className="studio-panel-heading">
-                <h2>{section.title}</h2>
-                <p>{section.description}</p>
+                <h2>{title}</h2>
+                <p>{description}</p>
               </header>
-              {active === "appearance" && (
+              {id === "draw" && <SpriteEditor />}
+              {id === "appearance" && (
                 <>
                   <div className="oneko-section-heading">
                     <h3>Choose a coat</h3>
@@ -204,19 +225,27 @@ export function OnekoTweaks() {
                   </More>
                 </>
               )}
-              {active === "thoughts" && (
+              {id === "sounds" && (
+                <>
+                  <div className="oneko-toolbar studio-comforts">
+                    <Comfort setting="meow" label="Sound" />
+                  </div>
+                  <SoundEditor />
+                  <OnekoSettings group="Sound" />
+                </>
+              )}
+              {id === "thoughts" && (
                 <>
                   <div className="oneko-toolbar studio-comforts">
                     <Comfort setting="bubbleEnabled" label="Bubbles" />
-                    <Comfort setting="meow" label="Sound" />
                   </div>
                   <OnekoCustomAssets section="thoughts" key={assetsVersion} />
-                  <More title="Bubble & sound settings" hint="Timing, placement & volume">
-                    <OnekoSettings group="Bubbles & purrs" />
+                  <More title="Bubble settings" hint="Timing, placement & size">
+                    <OnekoSettings group="Bubbles" />
                   </More>
                 </>
               )}
-              {active === "behavior" && (
+              {id === "behavior" && (
                 <>
                   <div className="oneko-section-heading">
                     <h3>Personality</h3>
@@ -244,8 +273,8 @@ export function OnekoTweaks() {
                   <OnekoSettings group="Paws & play" showDiary />
                 </>
               )}
-              {active === "zones" && <OnekoZones />}
-              {active === "export" && (
+              {id === "zones" && <OnekoZones />}
+              {id === "share" && (
                 <div className="oneko-install">
                   <OnekoInstall key={assetsVersion} />
                 </div>
@@ -256,6 +285,18 @@ export function OnekoTweaks() {
       ))}
       <div className="oneko-settings-footer studio-editor-footer">
         <p role="status">{notice || configurationStatus || "Changes saved in this browser"}</p>
+        {previousCat && (
+          <button
+            type="button"
+            onClick={() => {
+              actions.replace(previousCat);
+              setAssetsVersion((version) => version + 1);
+              setNotice("Your cat is back.");
+            }}
+          >
+            Back to my cat
+          </button>
+        )}
         <button
           type="button"
           onClick={() => {

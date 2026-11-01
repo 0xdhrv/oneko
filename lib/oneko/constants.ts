@@ -1,4 +1,4 @@
-import type { CatActivityState } from "./types";
+import type { OnekoSoundEvent } from "./types";
 
 export const TILE = 32;
 export const DEFAULT_Z_INDEX = 2_147_483_646;
@@ -244,13 +244,13 @@ export const PET_SOUND_POOL = [
 ];
 export const LASER_CATCH_POOL = ["/cat-sounds/Cat_eat1.ogg", "/cat-sounds/Cat_eat2.ogg"];
 
-// Sound pools keyed by activity label
+// Sound pools keyed by sound moment
 export const HISS_POOL = [
   "/cat-sounds/Cat_hiss1.ogg",
   "/cat-sounds/Cat_hiss2.ogg",
   "/cat-sounds/Cat_hiss3.ogg",
 ];
-export const SOUND_POOLS: Record<CatActivityState, string[]> = {
+export const SOUND_POOLS: Record<OnekoSoundEvent, string[]> = {
   idle: [
     "/cat-sounds/Cat_idle1.ogg",
     "/cat-sounds/Cat_idle2.ogg",
@@ -268,10 +268,7 @@ export const SOUND_POOLS: Record<CatActivityState, string[]> = {
   ],
   sleeping: ["/cat-sounds/Cat_purr1.ogg", "/cat-sounds/Cat_purr2.ogg", "/cat-sounds/Cat_purr3.ogg"],
   scratchSelf: ["/cat-sounds/Cat_beg1.ogg", "/cat-sounds/Cat_beg2.ogg", "/cat-sounds/Cat_beg3.ogg"],
-  scratchWallN: HISS_POOL,
-  scratchWallS: HISS_POOL,
-  scratchWallE: HISS_POOL,
-  scratchWallW: HISS_POOL,
+  scratchWall: HISS_POOL,
   tired: ["/cat-sounds/Cat_purreow1.ogg", "/cat-sounds/Cat_purreow2.ogg"],
   freerun: [
     "/cat-sounds/Cat_royal_ambient1.ogg",
@@ -285,6 +282,9 @@ export const SOUND_POOLS: Record<CatActivityState, string[]> = {
     "/cat-sounds/Cat_idle3.ogg",
     "/cat-sounds/Cat_idle4.ogg",
   ],
+  pet: PET_SOUND_POOL,
+  eat: LASER_CATCH_POOL,
+  hiss: HISS_POOL,
 };
 
 // Konami code

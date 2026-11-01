@@ -36,6 +36,8 @@ with 24 pixel-art coats, optional sounds, keep-out zones, and a studio for desig
   visitors with `affection`.
 - **Hosted coats:** wear any 256 × 128 sprite sheet by URL, and share it with
   `/studio?sprite=https://…`.
+- **Studio:** draw every frame, record your own sounds, and share the whole cat in a link at
+  [`/studio`](https://oneko.dhrv.pw/studio).
 
 ## React
 

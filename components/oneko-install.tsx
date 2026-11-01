@@ -8,6 +8,7 @@ import { ShikiCode } from "@/components/shiki-code";
 import { createOnekoUsage } from "@/lib/oneko/usage";
 import {
   createShareURL,
+  LONG_SHARE_LINK,
   readConfiguration,
   serializeConfiguration,
 } from "@/lib/oneko/configuration";
@@ -50,17 +51,21 @@ export function OnekoInstall() {
   }
   async function copyShareLink() {
     setShareFallback(null);
-    const result = createShareURL(window.location.origin, state);
+    const result = await createShareURL(window.location.origin, state);
     if (!result.ok) {
       setConfigurationMessage(result.error);
       return;
     }
+    const long =
+      result.value.length > LONG_SHARE_LINK
+        ? ` At ${Math.ceil(result.value.length / 1024)} KB it may be cut short in some chat apps, so send the configuration file there.`
+        : "";
     try {
       await navigator.clipboard.writeText(result.value);
-      setConfigurationMessage("Share link copied. It opens this cat in the studio.");
+      setConfigurationMessage(`Share link copied. It opens this cat in the studio.${long}`);
     } catch {
       setShareFallback({ settings: state, url: result.value });
-      setConfigurationMessage("Select the share link below to copy it.");
+      setConfigurationMessage(`Select the share link below to copy it.${long}`);
     }
   }
 
@@ -72,46 +77,18 @@ export function OnekoInstall() {
     link.download = "oneko-configuration.json";
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 0);
-    setConfigurationMessage("Configuration downloaded with all settings and custom artwork.");
+    setConfigurationMessage(
+      "Configuration downloaded with all settings, custom artwork, and sounds.",
+    );
   }
 
   return (
     <div className="oneko-install-body">
-      <p>Give your cat a home in your React project.</p>
-      <div className="oneko-command">
-        <input
-          aria-label="Cat install command"
-          readOnly
-          value={INSTALL_COMMAND}
-          onFocus={(event) => event.target.select()}
-        />
-        <button type="button" onClick={copyInstall}>
-          <CopySimple size={14} aria-hidden="true" />
-          Copy
-        </button>
-      </div>
-      <p>Welcome your cat with its current comforts:</p>
-      <ShikiCode code={usage} language="tsx" label="Your cat’s current code" />
-      <button type="button" className="oneko-copy-cat" onClick={copyCat}>
-        <CopySimple size={14} aria-hidden="true" />
-        Copy your cat
-      </button>
-      <p className="oneko-note">
-        Its coats come along. For purrs, add the optional cat sound files.
-      </p>
-      <Link href="/docs">
-        Help your cat settle in <ArrowUpRight size={14} aria-hidden="true" />
-      </Link>
-      {copyStatus && (
-        <p className="oneko-note" role="status">
-          {copyStatus}
-        </p>
-      )}
       <section className="oneko-configuration" aria-labelledby="cat-configuration-title">
         <h3 id="cat-configuration-title">Share or save your cat</h3>
         <p className="oneko-note">
-          Share a built-in coat with a link. Configuration files keep every setting, thought, and
-          custom sprite.
+          A share link carries your whole cat, drawn coats and recorded sounds included. Nothing is
+          uploaded: the cat lives in the link itself.
         </p>
         <div className="oneko-configuration-actions">
           <button type="button" onClick={copyShareLink}>
@@ -163,12 +140,46 @@ export function OnekoInstall() {
           />
         </label>
         <p className="oneko-note" id="cat-configuration-help">
-          Choose an exported JSON file up to 512 KB. Import replaces all settings, including sound
-          and visibility.
+          Choose an exported JSON file up to 1 MB. Import replaces all settings, including sound and
+          visibility.
         </p>
         {configurationMessage && (
           <p className="oneko-note" role="status">
             {configurationMessage}
+          </p>
+        )}
+      </section>
+      <section className="oneko-install-section" aria-labelledby="cat-install-title">
+        <h3 id="cat-install-title">Bring your cat home</h3>
+        <p>Give your cat a home in your React project.</p>
+        <div className="oneko-command">
+          <input
+            aria-label="Cat install command"
+            readOnly
+            value={INSTALL_COMMAND}
+            onFocus={(event) => event.target.select()}
+          />
+          <button type="button" onClick={copyInstall}>
+            <CopySimple size={14} aria-hidden="true" />
+            Copy
+          </button>
+        </div>
+        <p>Welcome your cat with its current comforts:</p>
+        <ShikiCode code={usage} language="tsx" label="Your cat’s current code" />
+        <button type="button" className="oneko-copy-cat" onClick={copyCat}>
+          <CopySimple size={14} aria-hidden="true" />
+          Copy your cat
+        </button>
+        <p className="oneko-note">
+          Its coats and your own sounds come along. For built-in purrs, add the optional cat sound
+          files.
+        </p>
+        <Link href="/docs">
+          Help your cat settle in <ArrowUpRight size={14} aria-hidden="true" />
+        </Link>
+        {copyStatus && (
+          <p className="oneko-note" role="status">
+            {copyStatus}
           </p>
         )}
       </section>

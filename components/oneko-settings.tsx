@@ -39,10 +39,13 @@ const GROUPS: {
     ],
   },
   {
-    title: "Bubbles & purrs",
+    title: "Sound",
+    fields: [{ key: "volume", label: "Purr volume", format: percent }],
+  },
+  {
+    title: "Bubbles",
     fields: [
       { key: "bubbleScale", label: "Bubble size", format: (v) => `${v}×` },
-      { key: "volume", label: "Purr volume", format: percent },
       { key: "bubbleChance", label: "Chattiness", format: percent },
       { key: "bubbleDisplayFrames", label: "Bubble duration", format: (v) => seconds(v / 10) },
       { key: "bubbleCooldown", label: "Quiet between bubbles", format: (v) => seconds(v / 10) },
@@ -114,7 +117,7 @@ export function OnekoSettings({
   group: selectedGroup,
   showDiary = false,
 }: {
-  group?: "Coat" | "Paws & play" | "Bubbles & purrs";
+  group?: "Coat" | "Paws & play" | "Sound" | "Bubbles";
   showDiary?: boolean;
 }) {
   const { state, actions } = useOnekoPlayground();
@@ -222,7 +225,10 @@ export function OnekoSettings({
               </label>
             </>
           )}
-          {group.title === "Bubbles & purrs" && (
+          {group.title === "Sound" && !state.meow && (
+            <p className="oneko-note">Turn on Sound above to hear your cat.</p>
+          )}
+          {group.title === "Bubbles" && (
             <>
               <label className="oneko-text-field" htmlFor="cat-bubblePlacement">
                 Where cat thoughts float
@@ -241,7 +247,6 @@ export function OnekoSettings({
                   <option value="below">Below the paws</option>
                 </select>
               </label>
-              {!state.meow && <p className="oneko-note">Turn on Sound above to hear your cat.</p>}
               {!state.bubbleEnabled && (
                 <p className="oneko-note">Turn on Bubbles above to let your cat chat.</p>
               )}

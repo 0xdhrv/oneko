@@ -19,6 +19,17 @@ export type CatActivityState =
 
 export type IdleActivityState = Exclude<CatActivityState, "idle" | "moving" | "freerun">;
 
+/** A moment the cat can make a sound. Wall scratching in any direction shares one. */
+export type OnekoSoundEvent =
+  | Exclude<CatActivityState, `scratchWall${string}`>
+  | "scratchWall"
+  | "pet"
+  | "eat"
+  | "hiss";
+
+/** Clip URLs by moment. An array is a pool to pick from; an empty array silences that moment. */
+export type OnekoSounds = Partial<Record<OnekoSoundEvent, string | readonly string[]>>;
+
 export interface CatLiveState {
   state: CatActivityState;
   posX: number;
@@ -47,6 +58,8 @@ export interface OnekoProps {
   bubbleScale?: number;
   /** Directory URL for the optional .ogg sounds. Default /cat-sounds. */
   soundBasePath?: string;
+  /** Your own clips for chosen moments, as full URLs. Other moments keep the built-in sounds. */
+  sounds?: OnekoSounds;
   /** localStorage key for position persistence. Default oneko. */
   storageKey?: string;
   /** Strict keep-out areas and occasional favorite spots. DOM data-oneko-zone attributes also work. */
@@ -178,6 +191,7 @@ export interface CatRuntimeState {
   bubblePlacementCfg: NonNullable<OnekoProps["bubblePlacement"]>;
   bubbleScaleCfg: number;
   soundBasePathCfg: string;
+  soundsCfg: OnekoSounds;
   stateLocked: boolean;
   noFollow: boolean;
   currentSpeed: number;

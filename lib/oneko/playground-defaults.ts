@@ -1,4 +1,5 @@
 import { isSpriteSource, normalizeThoughts, MAX_THOUGHT_TEXT_LENGTH } from "./custom-assets";
+import { parseCustomSounds, type CustomSounds } from "./custom-sounds";
 import { isOnekoSkin } from "./skins";
 import { isOnekoSeason } from "./seasons";
 import { ONEKO_DEFAULTS } from "./defaults";
@@ -12,6 +13,7 @@ export const DEFAULT_ONEKO_PLAYGROUND_STATE = {
   skin: ONEKO_DEFAULTS.skin,
   spriteSrc: "",
   spriteName: "",
+  soundClips: {} as CustomSounds,
   speed: ONEKO_DEFAULTS.speed,
   persistPosition: ONEKO_DEFAULTS.persistPosition,
   showCat: true,
@@ -59,6 +61,7 @@ export const LATER_SETTINGS = new Set<string>([
   "treats",
   "timeOfDay",
   "affection",
+  "soundClips",
 ]);
 
 export type OnekoPlaygroundState = typeof DEFAULT_ONEKO_PLAYGROUND_STATE;
@@ -119,6 +122,8 @@ export function restorePlaygroundState(raw: string | null): OnekoPlaygroundState
         if (isSpriteSource(value)) state.spriteSrc = value;
       } else if (key === "spriteName") {
         if (typeof value === "string") state.spriteName = value.slice(0, 255);
+      } else if (key === "soundClips") {
+        state.soundClips = parseCustomSounds(value) ?? {};
       } else if (key in SETTING_RANGES) {
         if (typeof value !== "number" || !Number.isFinite(value)) continue;
         const [min, max] = SETTING_RANGES[key as keyof typeof SETTING_RANGES];

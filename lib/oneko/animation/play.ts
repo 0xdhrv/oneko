@@ -5,7 +5,7 @@ import {
   readAffection,
   writeAffection,
 } from "../affection";
-import { HISS_POOL, LASER_CATCH_POOL, PET_MESSAGES, PET_SOUND_POOL, TILE } from "../constants";
+import { PET_MESSAGES, TILE } from "../constants";
 import { moodForHour, NEUTRAL_MOOD } from "../mood";
 import { isNearestCat } from "../pack";
 import {
@@ -75,7 +75,7 @@ export function petCat(deps: CatAnimationDeps): void {
   rouse(s);
   const affection = bumpAffection(s);
   speak(deps, s.affectionCfg && affectionTier(affection) >= 2 ? FOND_PET_MESSAGES : PET_MESSAGES);
-  playSound(deps, PET_SOUND_POOL);
+  playSound(deps, "pet");
   s.handlers.onPet?.({ affection });
 }
 
@@ -330,7 +330,7 @@ export function createPlay(deps: CatAnimationDeps) {
           if (eatTreat(errand.treat)) {
             const affection = bumpAffection(state);
             speak(deps, TREAT_MESSAGES);
-            playSound(deps, LASER_CATCH_POOL);
+            playSound(deps, "eat");
             state.handlers.onTreat?.({ affection });
           }
           endErrand();
@@ -372,7 +372,7 @@ export function createPlay(deps: CatAnimationDeps) {
         if (errand.frames >= KNOCK_STARE_FRAMES) {
           knockOver(errand.el, errand.direction);
           speak(deps, KNOCK_MESSAGES);
-          playSound(deps, HISS_POOL);
+          playSound(deps, "hiss");
           endErrand(ERRAND_REST_FRAMES);
         }
         return;
@@ -396,7 +396,7 @@ export function createPlay(deps: CatAnimationDeps) {
     state.currentPath = [];
     clearRotation(deps);
     speak(deps, hard ? TOSS_HARD_MESSAGES : TOSS_SOFT_MESSAGES);
-    playSound(deps, hard ? HISS_POOL : PET_SOUND_POOL);
+    playSound(deps, hard ? "hiss" : "pet");
   };
 
   /** Flight runs on animation frames so a toss looks smooth; the cat walks at 10fps. */

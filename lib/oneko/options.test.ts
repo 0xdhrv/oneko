@@ -182,12 +182,38 @@ describe("installation options", () => {
       meow: true,
       soundBasePath: "https://assets.example/cats///",
     });
-    playSound(d, ["/cat-sounds/Cat_purr1.ogg"]);
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    playSound(d, "sleeping");
     expect(audio).toHaveBeenCalledWith("https://assets.example/cats/Cat_purr1.ogg");
     applyRuntimeConfig(d.stateRef.current, { ...defaults, meow: false });
     d.stateRef.current.soundCooldown = 0;
-    playSound(d, ["/cat-sounds/Cat_purr1.ogg"]);
+    playSound(d, "sleeping");
     expect(audio).toHaveBeenCalledTimes(1);
+  });
+
+  it("plays custom clips as given, silences empty pools, and leaves other moments built in", () => {
+    const audio = vi.fn(function () {
+      return { volume: 0, play: () => Promise.resolve() };
+    });
+    vi.stubGlobal("Audio", audio);
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const d = deps();
+    const clip = "data:audio/wav;base64,UklGRg==";
+    applyRuntimeConfig(d.stateRef.current, {
+      ...defaults,
+      meow: true,
+      sounds: { pet: clip, moving: [], hiss: ["/a.mp3", "/b.mp3"] },
+    });
+    playSound(d, "pet");
+    expect(audio).toHaveBeenLastCalledWith(clip);
+    d.stateRef.current.soundCooldown = 0;
+    playSound(d, "hiss");
+    expect(audio).toHaveBeenLastCalledWith("/a.mp3");
+    d.stateRef.current.soundCooldown = 0;
+    playSound(d, "moving");
+    expect(audio).toHaveBeenCalledTimes(2);
+    playSound(d, "sleeping");
+    expect(audio).toHaveBeenLastCalledWith("/cat-sounds/Cat_purr1.ogg");
   });
 
   it("isolates persisted cat positions using the chosen key, retaining the legacy default", () => {

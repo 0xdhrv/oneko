@@ -47,6 +47,8 @@ export type OnekoPlaygroundContextValue = {
   actions: OnekoPlaygroundActions;
   liveStateRef: MutableRefObject<CatLiveState>;
   configurationStatus: string;
+  /** The visitor's own cat, kept for this visit after a share link replaces it. */
+  previousCat: OnekoPlaygroundState | null;
 };
 
 type PlaygroundAction =
@@ -66,6 +68,8 @@ export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
 
   const [restored, setRestored] = useState(false);
   const [configurationStatus, setConfigurationStatus] = useState("");
+  const [previousCat, setPreviousCat] = useState<OnekoPlaygroundState | null>(null);
+  const latestState = useRef(state);
   useEffect(() => {
     let initial = { ...DEFAULT_ONEKO_PLAYGROUND_STATE };
     try {
@@ -74,18 +78,25 @@ export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
       /* Storage can be unavailable; start from the defaults. */
     }
     dispatch({ type: "replace", state: initial });
-    const applySharedConfiguration = () => {
-      const shared = parseShareFragment(window.location.hash);
+    latestState.current = initial;
+    let request = 0;
+    const applySharedConfiguration = async () => {
+      const current = ++request;
+      const shared = await parseShareFragment(window.location.hash);
+      if (current !== request) return;
       if (!shared.ok) {
         setConfigurationStatus(`${shared.error} Your settings are unchanged.`);
       } else if (shared.value) {
+        setPreviousCat(latestState.current);
         dispatch({ type: "replace", state: shared.value.settings });
         setConfigurationStatus("Shared cat loaded. Changes are saved in this browser.");
+        // Reloading should keep the visitor's edits, not apply the link again.
+        history.replaceState(null, "", window.location.pathname + window.location.search);
       } else {
         setConfigurationStatus("");
       }
     };
-    applySharedConfiguration();
+    void applySharedConfiguration();
     window.addEventListener("hashchange", applySharedConfiguration);
     // /studio?sprite=https://… wears a hosted coat, after checking it is a valid sheet.
     const sprite = new URLSearchParams(window.location.search).get("sprite");
@@ -102,11 +113,15 @@ export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
       );
     }
     setRestored(true);
-    return () => window.removeEventListener("hashchange", applySharedConfiguration);
+    return () => {
+      request++;
+      window.removeEventListener("hashchange", applySharedConfiguration);
+    };
   }, []);
 
   useEffect(() => {
     if (!restored) return;
+    latestState.current = state;
     try {
       localStorage.setItem(PLAYGROUND_STORAGE_KEY, JSON.stringify(state));
     } catch {
@@ -120,18 +135,20 @@ export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
       replace: (state) => {
         dispatch({ type: "replace", state });
         setConfigurationStatus("");
+        setPreviousCat(null);
       },
       reset: () => {
         dispatch({ type: "replace", state: { ...DEFAULT_ONEKO_PLAYGROUND_STATE } });
         setConfigurationStatus("");
+        setPreviousCat(null);
       },
     }),
     [],
   );
 
   const value = useMemo(
-    () => ({ state, actions, liveStateRef, configurationStatus }),
-    [state, actions, liveStateRef, configurationStatus],
+    () => ({ state, actions, liveStateRef, configurationStatus, previousCat }),
+    [state, actions, liveStateRef, configurationStatus, previousCat],
   );
 
   return (

@@ -161,10 +161,14 @@ page space is quiet. The installable cat keeps its separate optional `.ogg` soun
 ## Presets, sharing, and installation sizes
 
 The studio's Behavior tab offers Sleepy, Curious, and Playful movement presets. These preserve
-artwork, thoughts, sound, pause, cursor-follow, nap, and visibility settings. The Export tab can
-copy a share link for built-in coats or download the complete configuration, including custom
-artwork. Import accepts exported JSON up to 512 KB and leaves the current settings unchanged if
-validation fails. Links over 8192 characters use the file workflow instead.
+artwork, thoughts, sound, pause, cursor-follow, nap, and visibility settings. The Share tab can
+copy a link that carries the whole cat, including drawn coats and recorded sounds, in the URL
+fragment, or download a configuration file. Import accepts exported JSON up to 1 MB and leaves the
+current settings unchanged if validation fails. Links with custom art or sound run long, and some
+chat apps cut them short; send the file there.
+
+The Draw tab edits all 32 frames of a sheet pixel by pixel, and the Sounds tab replaces any moment
+with a clip you upload or record, trimmed to 2 seconds and stored as 8-bit audio.
 
 The original `/r/oneko.json` installs all 24 coats. `/r/oneko-classic.json` installs the same
 component and engine with only classic embedded. Custom `spriteSrc` works with both; other named

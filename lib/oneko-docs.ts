@@ -270,6 +270,13 @@ export const PROP_DOCS = {
     description:
       "Local or absolute directory URL for the optional .ogg files. Trailing slashes are removed. Keep the original filenames.",
   },
+  sounds: {
+    group: "Sounds",
+    type: "Partial<Record<OnekoSoundEvent, string | string[]>>",
+    default: "undefined",
+    description:
+      "Your own clips by moment: idle, moving, sleeping, scratchSelf, scratchWall, tired, alert, freerun, pet, eat, or hiss. Values are full URLs; an array is a pool to pick from, and an empty array silences that moment. Other moments keep the built-in sounds. Takes effect while meow is on.",
+  },
   persistPosition: {
     group: "Home & integration",
     type: "boolean",
@@ -582,7 +589,7 @@ export const DOC_SECTIONS: DocSection[] = [
       },
       {
         kind: "text",
-        text: "In the studio (/studio), open Appearance → Use your own sprite to upload a custom PNG (256 × 128 pixels, up to 256 KB) or download the classic sheet as a template. Keep its frame positions: 8 columns and 4 rows of 32 × 32 frames. Uploads stay in your browser and are saved with preferences. Selecting a built-in coat or Reset cat removes the custom sprite. The React example embeds your uploaded image as a data URL; you can also host the PNG and pass its URL through spriteSrc.",
+        text: "In the studio (/studio), open Draw to edit any coat pixel by pixel, or Appearance → Use your own sprite to upload a custom PNG (256 × 128 pixels, up to 256 KB) or download the classic sheet as a template. Keep its frame positions: 8 columns and 4 rows of 32 × 32 frames. Uploads stay in your browser and are saved with preferences. Selecting a built-in coat or Reset cat removes the custom sprite. The React example embeds your uploaded image as a data URL; you can also host the PNG and pass its URL through spriteSrc.",
       },
       {
         kind: "code",
@@ -839,6 +846,16 @@ export const DOC_SECTIONS: DocSection[] = [
         kind: "text",
         text: "soundBasePath also accepts an absolute directory URL. Mute and volume apply to future playback; sounds already playing can finish. Sleeping audio uses the purr pool.",
       },
+      {
+        kind: "code",
+        label: "Your own clips",
+        language: "tsx",
+        code: '<Oneko meow sounds={{ pet: "/sounds/chirp.mp3", moving: [] }} />',
+      },
+      {
+        kind: "text",
+        text: "sounds replaces chosen moments and leaves the rest to soundBasePath. Clips recorded in the studio are embedded as data URLs, so sites with a Content Security Policy should allow data: in media-src.",
+      },
     ],
   },
   {
@@ -852,11 +869,15 @@ export const DOC_SECTIONS: DocSection[] = [
       },
       {
         kind: "text",
-        text: "In Export, Copy share link opens a built-in coat and settings in the studio. The configuration stays in the URL fragment and is limited to 8192 characters. Shared settings take precedence over saved browser preferences on load. Invalid links leave saved preferences intact.",
+        text: "In Share, Copy share link packs your whole cat, including drawn coats and recorded sounds, into the URL fragment, so nothing is uploaded. Shared settings take precedence over saved browser preferences on load, and Back to my cat undoes that during the visit. Invalid links leave saved preferences intact. Links with custom artwork or sound run long, and some chat apps cut them short; send the configuration file instead.",
       },
       {
         kind: "text",
-        text: "Download configuration includes every setting, thought, and custom sprite. Import configuration accepts a versioned JSON file up to 512 KB and replaces the current settings, including sound and visibility. Invalid versions, settings, or artwork leave your cat unchanged. Custom sprites and oversized configurations use files instead of share links.",
+        text: "Download configuration includes every setting, thought, custom sprite, and custom sound. Import configuration accepts a versioned JSON file up to 1 MB and replaces the current settings, including sound and visibility. Invalid versions, settings, artwork, or sounds leave your cat unchanged.",
+      },
+      {
+        kind: "text",
+        text: "Draw edits the 32 frames of a sprite sheet pixel by pixel, starting from any coat, with a live preview of each animation. Sounds replaces any moment with a clip you upload or record, trimmed to 2 seconds and stored as small 8-bit audio. Both come along in share links, configuration files, and exported code.",
       },
     ],
   },

@@ -38,6 +38,7 @@ export default defineComponent({
     meow: { type: Boolean, default: undefined },
     volume: Number,
     soundBasePath: String,
+    sounds: Object as PropType<OnekoOptions["sounds"]>,
     zones: Array as PropType<OnekoOptions["zones"]>,
     zoneAttractionChance: Number,
     zoneAttractionDuration: Number,

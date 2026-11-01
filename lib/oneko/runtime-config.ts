@@ -12,6 +12,7 @@ type RuntimeConfigStateFields = Pick<
   | "bubblePlacementCfg"
   | "bubbleScaleCfg"
   | "soundBasePathCfg"
+  | "soundsCfg"
   | "currentSpeed"
   | "scale"
   | "opacity"
@@ -56,6 +57,7 @@ export function defaultRuntimeConfigState(): RuntimeConfigStateFields {
     bubblePlacementCfg: ONEKO_DEFAULTS.bubblePlacement,
     bubbleScaleCfg: ONEKO_DEFAULTS.bubbleScale,
     soundBasePathCfg: ONEKO_DEFAULTS.soundBasePath,
+    soundsCfg: {},
     currentSpeed: ONEKO_DEFAULTS.speed,
     scale: ONEKO_DEFAULTS.scale,
     opacity: ONEKO_DEFAULTS.opacity,
@@ -101,6 +103,7 @@ export type CatRuntimeConfig = Pick<
   | "bubblePlacement"
   | "bubbleScale"
   | "soundBasePath"
+  | "sounds"
   | "chase"
   | "napWhileTyping"
   | "followFocus"
@@ -153,6 +156,7 @@ export function applyRuntimeConfig(state: CatRuntimeState, config: CatRuntimeCon
     /\/+$/,
     "",
   );
+  state.soundsCfg = config.sounds ?? {};
   if (!state.followCursorCfg) {
     state.freerunMode = false;
     state.freerunTimer = 0;

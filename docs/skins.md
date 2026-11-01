@@ -37,13 +37,13 @@ animation frame contains visible pixels.
 
 ## Your own sprite sheet
 
-Open **Appearance → Use your own sprite** in the studio (`/studio`) to download the classic sheet as a template and
-upload a PNG up to 256 KB. Use 256 × 128 pixels: 8 columns and 4 rows of 32 × 32 frames.
+Open **Draw** in the studio (`/studio`) to edit any coat pixel by pixel, or **Appearance → Use your
+own sprite** to download the classic sheet as a template and upload a PNG up to 256 KB. Use 256 × 128 pixels: 8 columns and 4 rows of 32 × 32 frames.
 Keep the template’s frame positions so walking, grooming, wall scratching, and naps match the
 animation. Transparent backgrounds work best. Preserve the original artwork credits when adapting it.
 
-Uploads stay in your browser and persist with your preferences. Selecting a built-in coat or
-resetting the cat removes the upload. The generated React example embeds the uploaded sheet;
+Uploads and drawings stay in your browser and persist with your preferences. Selecting a built-in
+coat or resetting the cat takes them off your cat; **Draw** keeps your last drawing to bring back. The generated React example embeds the uploaded sheet;
 for a hosted asset, use `<Oneko spriteSrc="/my-sprite.png" />`. `spriteSrc` overrides `skin`
 and updates without resetting position. Omit it to return to the selected built-in coat.
 

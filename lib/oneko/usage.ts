@@ -1,4 +1,5 @@
 import { thoughtsForProp } from "./custom-assets";
+import { soundsForProp } from "./custom-sounds";
 import { friendProps, type OnekoPlaygroundState } from "./playground-defaults";
 import { ONEKO_DEFAULTS } from "./defaults";
 
@@ -7,13 +8,16 @@ export function createOnekoUsage(state: OnekoPlaygroundState): string {
     .filter((key) => {
       if (key === "showCat" || key === "spriteName" || key === "friend") return false;
       if (key === "spriteSrc") return Boolean(state.spriteSrc);
+      if (key === "soundClips") return Object.keys(state.soundClips).length > 0;
       return state[key] !== ONEKO_DEFAULTS[key];
     })
-    .map((key) =>
-      state[key] === true
-        ? `  ${key}`
-        : `  ${key}={${JSON.stringify(key === "bubbleText" ? thoughtsForProp(state.bubbleText) : state[key])}}`,
-    );
+    .map((key) => {
+      if (key === "soundClips")
+        return `  sounds={${JSON.stringify(soundsForProp(state.soundClips))}}`;
+      if (state[key] === true) return `  ${key}`;
+      const value = key === "bubbleText" ? thoughtsForProp(state.bubbleText) : state[key];
+      return `  ${key}={${JSON.stringify(value)}}`;
+    });
   const cat = props.length ? `<Oneko\n${props.join("\n")}\n/>` : "<Oneko />";
   const friend = Object.entries(friendProps(state))
     .map(([key, value]) => (typeof value === "string" ? `${key}="${value}"` : `${key}={${value}}`))

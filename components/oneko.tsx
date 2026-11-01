@@ -27,6 +27,7 @@ import { readPersistedPosition } from "@/lib/oneko/persistence";
 import type { CatActivityState, CatLiveState, OnekoProps } from "@/lib/oneko/types";
 
 export type { CatActivityState, CatLiveState, OnekoControls, OnekoProps };
+export type { OnekoSoundEvent, OnekoSounds } from "@/lib/oneko/types";
 export type { OnekoSeason } from "@/lib/oneko/seasons";
 export type { OnekoSkin } from "@/lib/oneko/skins";
 export type { OnekoZone } from "@/lib/oneko/zones";
@@ -44,6 +45,7 @@ export default function Oneko({
   bubblePlacement = ONEKO_DEFAULTS.bubblePlacement,
   bubbleScale = ONEKO_DEFAULTS.bubbleScale,
   soundBasePath = ONEKO_DEFAULTS.soundBasePath,
+  sounds,
   storageKey = ONEKO_DEFAULTS.storageKey,
   zones,
   zoneAttractionChance = ONEKO_DEFAULTS.zoneAttractionChance,
@@ -114,6 +116,7 @@ export default function Oneko({
     bubblePlacement,
     bubbleScale,
     soundBasePath,
+    sounds,
     zones,
     zoneAttractionChance,
     zoneAttractionDuration,

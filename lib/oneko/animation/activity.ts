@@ -1,4 +1,5 @@
-import type { CatActivityState, CatRuntimeState } from "../types";
+import { SOUND_POOLS } from "../constants";
+import type { CatActivityState, CatRuntimeState, OnekoSoundEvent } from "../types";
 import type { CatAnimationDeps } from "./deps";
 
 export function getActivityLabel(deps: CatAnimationDeps): CatActivityState {
@@ -31,12 +32,21 @@ export function getBubbleStatus(s: CatRuntimeState) {
   return "ready";
 }
 
-export function playSound(deps: CatAnimationDeps, pool: string[]) {
+/** A full URL for this moment: the host's own clip, or a built-in file under soundBasePath. */
+function pickSound(s: CatRuntimeState, event: OnekoSoundEvent): string | undefined {
+  const custom = s.soundsCfg[event];
+  const pool = custom ?? SOUND_POOLS[event];
+  const url = typeof pool === "string" ? pool : pool[Math.floor(Math.random() * pool.length)];
+  if (!url || custom !== undefined) return url;
+  return `${s.soundBasePathCfg}/${url.slice(url.lastIndexOf("/") + 1)}`;
+}
+
+export function playSound(deps: CatAnimationDeps, event: OnekoSoundEvent) {
   const s = deps.stateRef.current;
-  if (!s.enableMeow || s.soundCooldown > 0 || pool.length === 0) return;
-  const url = pool[Math.floor(Math.random() * pool.length)];
-  const filename = url.slice(url.lastIndexOf("/") + 1);
-  const audio = new Audio(`${s.soundBasePathCfg}/${filename}`);
+  if (!s.enableMeow || s.soundCooldown > 0) return;
+  const url = pickSound(s, event);
+  if (!url) return;
+  const audio = new Audio(url);
   audio.volume = s.soundVolumeCfg;
   s.soundCooldown = 20;
   audio.play().catch(() => {

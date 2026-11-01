@@ -1,4 +1,3 @@
-import { LASER_CATCH_POOL } from "../../constants";
 import { playSound } from "../activity";
 import type { CatAnimationDeps } from "../deps";
 
@@ -11,7 +10,7 @@ export function tickLaser(deps: CatAnimationDeps, dist: number) {
   const close = dist < s.followDistanceCfg + 4;
   if (close && !s.laserCaught) {
     s.laserCaught = true;
-    playSound(deps, LASER_CATCH_POOL);
+    playSound(deps, "eat");
   } else if (!close && dist > s.followDistanceCfg + 24) {
     s.laserCaught = false;
   }
