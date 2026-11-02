@@ -33,6 +33,8 @@ type Draft = {
   start: number;
   end: number;
   pitch: number;
+  /** The control that opened this draft, which takes focus back when it closes. */
+  trigger: HTMLElement;
 };
 
 function Waveform({ draft }: { draft: Draft }) {
@@ -70,6 +72,8 @@ function ClipEditor({
 }) {
   const { start, end, pitch, buffer } = draft;
   const seconds = clipSeconds(start, end, pitch);
+  const startSlider = useRef<HTMLInputElement>(null);
+  useEffect(() => startSlider.current?.focus(), [buffer]);
   return (
     <div className="sound-clip-editor">
       <Waveform draft={draft} />
@@ -79,6 +83,7 @@ function ClipEditor({
           <output htmlFor="clip-start">{start.toFixed(2)}s</output>
         </span>
         <input
+          ref={startSlider}
           id="clip-start"
           type="range"
           min={0}
@@ -174,7 +179,12 @@ export function SoundEditor() {
     audio.play().catch(() => setError("That sound couldn’t be played."));
   };
 
-  const open = async (moment: OnekoSoundEvent, name: string, load: () => Promise<ArrayBuffer>) => {
+  const open = async (
+    moment: OnekoSoundEvent,
+    name: string,
+    trigger: HTMLElement,
+    load: () => Promise<ArrayBuffer>,
+  ) => {
     const request = ++opening.current;
     setError("");
     setNotice("");
@@ -189,13 +199,14 @@ export function SoundEditor() {
         start: 0,
         end: Math.min(buffer.duration, MAX_CLIP_SECONDS),
         pitch: 1,
+        trigger,
       });
     } catch (failure) {
       if (request === opening.current) setError((failure as Error).message);
     }
   };
 
-  const record = async (moment: OnekoSoundEvent) => {
+  const record = async (moment: OnekoSoundEvent, trigger: HTMLElement) => {
     if (recording) {
       recorder.current?.abort();
       return;
@@ -203,14 +214,21 @@ export function SoundEditor() {
     const controller = new AbortController();
     recorder.current = controller;
     setRecording(moment);
-    await open(moment, "Recording", () => recordAudio(controller.signal));
+    await open(moment, "Recording", trigger, () => recordAudio(controller.signal));
     if (recorder.current === controller) recorder.current = null;
     setRecording(null);
   };
 
   const setSound = (moment: OnekoSoundEvent, sound: CustomSound | null) => {
     const { [moment]: _, ...others } = state.soundClips;
-    actions.update({ soundClips: sound ? { ...others, [moment]: sound } : others });
+    actions.update({
+      soundClips: sound ? { ...others, [moment]: sound } : others,
+    });
+  };
+
+  const closeDraft = () => {
+    draft?.trigger.focus();
+    setDraft(null);
   };
 
   const saveDraft = async () => {
@@ -221,7 +239,7 @@ export function SoundEditor() {
     });
     actions.update({ meow: true });
     setNotice("Clip saved. Sound is on.");
-    setDraft(null);
+    closeDraft();
   };
 
   return (
@@ -271,7 +289,7 @@ export function SoundEditor() {
                           setError("Choose a sound smaller than 8 MB.");
                           return;
                         }
-                        void open(id, file.name, () => file.arrayBuffer());
+                        void open(id, file.name, event.target, () => file.arrayBuffer());
                       }}
                     />
                     <UploadSimple size={16} aria-hidden="true" />
@@ -282,7 +300,7 @@ export function SoundEditor() {
                     title={recording === id ? "Stop recording" : "Record"}
                     aria-pressed={recording === id}
                     disabled={recording !== null && recording !== id}
-                    onClick={() => record(id)}
+                    onClick={(event) => record(id, event.currentTarget)}
                   >
                     {recording === id ? (
                       <Stop size={16} aria-hidden="true" />
@@ -316,7 +334,7 @@ export function SoundEditor() {
                   onChange={(changes) => setDraft({ ...draft, ...changes })}
                   onPreview={async () => play(await renderClip(draft.buffer, draft))}
                   onSave={saveDraft}
-                  onCancel={() => setDraft(null)}
+                  onCancel={closeDraft}
                 />
               )}
             </li>

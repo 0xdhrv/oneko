@@ -379,7 +379,9 @@ test("a link carries a drawn coat and sounds, and the recipient can go back to t
   context,
   baseURL,
 }) => {
-  await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: baseURL! });
+  await context.grantPermissions(["clipboard-read", "clipboard-write"], {
+    origin: baseURL!,
+  });
   await page.goto("/studio");
   await page.getByRole("tab", { name: "Draw" }).click();
   await expect(page.getByRole("application")).toHaveAttribute("aria-busy", "false");
@@ -430,6 +432,87 @@ test("a link carries a drawn coat and sounds, and the recipient can go back to t
   await expect.poll(async () => (await saved(recipient)).bubbleText).toBe("mine now");
   await expect(recipient.getByRole("button", { name: "Back to my cat" })).toHaveCount(0);
   await friend.close();
+});
+
+test("the share tab stays inside the editor with a drawn coat", async ({ page }) => {
+  await page.goto("/studio");
+  await page.getByRole("tab", { name: "Draw" }).click();
+  await expect(page.getByRole("application")).toHaveAttribute("aria-busy", "false");
+  await drawDot(page, 4, 4);
+  await expect.poll(async () => (await saved(page)).spriteName).toBe("Hand-drawn coat");
+  await page.getByRole("tab", { name: "Share" }).click();
+  const editor = (await page.locator(".studio-editor").boundingBox())!;
+  const copy = (await page.getByRole("button", { name: "Copy", exact: true }).boundingBox())!;
+  expect(copy.x + copy.width).toBeLessThanOrEqual(editor.x + editor.width);
+});
+
+test("the keyboard draws on the cell the cursor shows", async ({ page }) => {
+  await page.goto("/studio");
+  await page.getByRole("tab", { name: "Draw" }).click();
+  const canvas = page.getByRole("application");
+  await expect(canvas).toHaveAttribute("aria-busy", "false");
+  await canvas.focus();
+
+  const box = (await canvas.boundingBox())!;
+  const cursor = (await canvas.locator(".sprite-cursor").boundingBox())!;
+  const cell = {
+    x: Math.round((cursor.x - box.x) / (box.width / 32)),
+    y: Math.round((cursor.y - box.y) / (box.height / 32)),
+  };
+  const alpha = () =>
+    canvas.evaluate(
+      (el, { x, y }) =>
+        el
+          .querySelector<HTMLCanvasElement>("canvas:not(.sprite-onion)")!
+          .getContext("2d")!
+          .getImageData(x, y, 1, 1).data[3],
+      cell,
+    );
+  expect(await alpha()).toBe(255);
+  await page.keyboard.press("e");
+  await page.keyboard.press("Space");
+  expect(await alpha()).toBe(0);
+});
+
+test("the clip editor takes focus and hands it back to what opened it", async ({ page }) => {
+  await page.goto("/studio");
+  await page.getByRole("tab", { name: "Sounds" }).click();
+  const upload = page.getByLabel("Upload a sound for Pets");
+  await upload.setInputFiles(toneFile());
+  await expect(page.getByRole("slider", { name: /^Start/ })).toBeFocused();
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(upload).toBeFocused();
+
+  await upload.setInputFiles(toneFile());
+  await page.getByRole("button", { name: "Use this clip" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Clip saved" })).toBeVisible();
+  await expect(upload).toBeFocused();
+});
+
+test.describe("on a touch screen", () => {
+  test.use({
+    hasTouch: true,
+    isMobile: true,
+    viewport: { width: 390, height: 844 },
+  });
+
+  test("colors are tappable and text fields don't zoom the page", async ({ page }) => {
+    await page.goto("/studio");
+    await page.getByRole("tab", { name: "Draw" }).click();
+    await expect(page.getByRole("application")).toHaveAttribute("aria-busy", "false");
+    const targets = page.locator(".sprite-swatches button, .sprite-side input[type='color']");
+    const sizes = await targets.evaluateAll((elements) =>
+      elements.map((element) => element.getBoundingClientRect()),
+    );
+    expect(sizes.length).toBeGreaterThan(2);
+    for (const { width, height } of sizes) {
+      expect(width).toBeGreaterThanOrEqual(44);
+      expect(height).toBeGreaterThanOrEqual(44);
+    }
+    await expect(page.locator("#sprite-start")).toHaveCSS("font-size", "16px");
+    await page.getByRole("tab", { name: "Thoughts" }).click();
+    await expect(page.getByLabel("Your cat’s thoughts")).toHaveCSS("font-size", "16px");
+  });
 });
 
 test("the editors fit a phone and draw by touch-sized canvas", async ({ page }) => {

@@ -509,6 +509,7 @@
 }
 .oneko-install-body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   padding-block: 4px 24px;
   font-size: 12px;
@@ -653,6 +654,13 @@
   }
   .oneko-pointer-hint {
     display: none;
+  }
+  /* iOS zooms the page when a field under 16px takes focus. */
+  .oneko-text-field input,
+  .oneko-text-field select,
+  .oneko-text-field textarea,
+  .oneko-command input {
+    font-size: 16px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1596,6 +1604,7 @@
 }
 .oneko-configuration {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   border-top: 1px solid var(--border);
   padding-top: 20px;
@@ -1940,6 +1949,8 @@
   z-index: 1;
   width: calc(100% / 32);
   height: calc(100% / 32);
+  /* The editor's starting cell, until the first move sets this inline. */
+  translate: 1600% 1600%;
   outline: 1px solid var(--foreground);
   outline-offset: -1px;
   pointer-events: none;
@@ -1993,8 +2004,9 @@
 }
 .sprite-color input,
 .sprite-swap input {
+  flex-shrink: 0;
   width: 44px;
-  height: 32px;
+  height: 44px;
   padding: 0;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -2014,6 +2026,11 @@
 .sprite-swatches [aria-pressed="true"] {
   outline: 2px solid var(--foreground);
   outline-offset: 1px;
+}
+@media (pointer: coarse) {
+  .sprite-swatches {
+    grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  }
 }
 .sprite-swap {
   display: flex;
@@ -2133,6 +2150,7 @@
 }
 .oneko-install-section {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   border-top: 1px solid var(--border);
   padding-top: 20px;
