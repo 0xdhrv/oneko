@@ -70,6 +70,9 @@ export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
   const [configurationStatus, setConfigurationStatus] = useState("");
   const [previousCat, setPreviousCat] = useState<OnekoPlaygroundState | null>(null);
   const latestState = useRef(state);
+  /** Bumped by every edit or loaded shared cat, so late async results can tell they are stale. */
+  const changes = useRef(0);
+  const pendingSave = useRef<(() => void) | null>(null);
   useEffect(() => {
     let initial = { ...DEFAULT_ONEKO_PLAYGROUND_STATE };
     try {
@@ -87,6 +90,7 @@ export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
       if (!shared.ok) {
         setConfigurationStatus(`${shared.error} Your settings are unchanged.`);
       } else if (shared.value) {
+        changes.current++;
         setPreviousCat(latestState.current);
         dispatch({ type: "replace", state: shared.value.settings });
         setConfigurationStatus("Shared cat loaded. Changes are saved in this browser.");
@@ -99,22 +103,41 @@ export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
     void applySharedConfiguration();
     window.addEventListener("hashchange", applySharedConfiguration);
     // /studio?sprite=https://… wears a hosted coat, after checking it is a valid sheet.
+    // It applies once: the parameter is dropped so a reload keeps the visitor's later edits.
     const sprite = new URLSearchParams(window.location.search).get("sprite");
+    let active = true;
     if (sprite) {
+      const changesAtStart = changes.current;
+      const settle = (apply: () => void) => {
+        if (!active) return;
+        const params = new URLSearchParams(window.location.search);
+        params.delete("sprite");
+        const query = params.toString();
+        history.replaceState(
+          null,
+          "",
+          window.location.pathname + (query ? `?${query}` : "") + window.location.hash,
+        );
+        // A choice made while the coat loads, or a shared cat, wins over the late result.
+        if (changes.current === changesAtStart) apply();
+      };
       loadRemoteSprite(sprite).then(
-        (spriteSrc) => {
-          dispatch({
-            type: "update",
-            changes: { spriteSrc, spriteName: spriteNameFromURL(spriteSrc), hueRotate: 0 },
-          });
-          setConfigurationStatus(`Wearing a coat from ${new URL(spriteSrc).hostname}.`);
-        },
-        (error: Error) => setConfigurationStatus(`${error.message} Your settings are unchanged.`),
+        (spriteSrc) =>
+          settle(() => {
+            dispatch({
+              type: "update",
+              changes: { spriteSrc, spriteName: spriteNameFromURL(spriteSrc), hueRotate: 0 },
+            });
+            setConfigurationStatus(`Wearing a coat from ${new URL(spriteSrc).hostname}.`);
+          }),
+        (error: Error) =>
+          settle(() => setConfigurationStatus(`${error.message} Your settings are unchanged.`)),
       );
     }
     setRestored(true);
     return () => {
       request++;
+      active = false;
       window.removeEventListener("hashchange", applySharedConfiguration);
     };
   }, []);
@@ -122,22 +145,43 @@ export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!restored) return;
     latestState.current = state;
-    try {
-      localStorage.setItem(PLAYGROUND_STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      /* Storage can be unavailable or full; settings still apply to this visit. */
-    }
+    // A slider drag dispatches on every input; write the settings once it settles.
+    const save = () => {
+      pendingSave.current = null;
+      try {
+        localStorage.setItem(PLAYGROUND_STORAGE_KEY, JSON.stringify(state));
+      } catch {
+        /* Storage can be unavailable or full; settings still apply to this visit. */
+      }
+    };
+    pendingSave.current = save;
+    const timer = setTimeout(save, 300);
+    return () => clearTimeout(timer);
   }, [state, restored]);
+
+  useEffect(() => {
+    const flush = () => pendingSave.current?.();
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      flush();
+    };
+  }, []);
 
   const actions = useMemo<OnekoPlaygroundActions>(
     () => ({
-      update: (changes) => dispatch({ type: "update", changes }),
+      update: (edits) => {
+        changes.current++;
+        dispatch({ type: "update", changes: edits });
+      },
       replace: (state) => {
+        changes.current++;
         dispatch({ type: "replace", state });
         setConfigurationStatus("");
         setPreviousCat(null);
       },
       reset: () => {
+        changes.current++;
         dispatch({ type: "replace", state: { ...DEFAULT_ONEKO_PLAYGROUND_STATE } });
         setConfigurationStatus("");
         setPreviousCat(null);

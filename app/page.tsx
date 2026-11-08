@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { InspirationAttribution } from "@/components/inspiration-attribution";
 import { GitHubLink } from "@/components/github-link";
+import { OnekoLanding } from "@/components/oneko-landing";
 import { getSiteUrl } from "@/lib/site-url";
 
 export const metadata: Metadata = {
@@ -44,7 +45,9 @@ export default function HomePage() {
         }}
       />
       <div className="flex-1">
-        <OnekoPlayground />
+        <OnekoPlayground>
+          <OnekoLanding />
+        </OnekoPlayground>
         <section className="oneko-guide-summary" aria-labelledby="cat-guide-title">
           <h2 id="cat-guide-title">A pixel cat for your website.</h2>
           <p>

@@ -1,5 +1,5 @@
 import type { OnekoOptions } from "@/lib/oneko/vanilla";
-import type { OnekoSkin } from "@/lib/oneko/skins";
+import { isOnekoSkin, type OnekoSkin } from "@/lib/oneko/skins";
 
 export interface Settings {
   enabled: boolean;
@@ -23,9 +23,34 @@ export const DEFAULT_SETTINGS: Settings = {
 
 const KEY = "settings";
 
+/** Keep each stored value only when it has the right type; anything else uses the default. */
+export function parseSettings(value: unknown): Settings {
+  const stored: Record<string, unknown> =
+    value !== null && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  const flag = (key: "enabled" | "meow" | "laserPointer" | "pettable") =>
+    typeof stored[key] === "boolean" ? stored[key] : DEFAULT_SETTINGS[key];
+  const { scale, skin, disabledHosts } = stored;
+  return {
+    enabled: flag("enabled"),
+    skin: isOnekoSkin(skin) ? skin : DEFAULT_SETTINGS.skin,
+    scale:
+      typeof scale === "number" && Number.isFinite(scale) && scale > 0
+        ? scale
+        : DEFAULT_SETTINGS.scale,
+    meow: flag("meow"),
+    laserPointer: flag("laserPointer"),
+    pettable: flag("pettable"),
+    disabledHosts: Array.isArray(disabledHosts)
+      ? disabledHosts.filter((host): host is string => typeof host === "string")
+      : DEFAULT_SETTINGS.disabledHosts,
+  };
+}
+
 export async function readSettings(): Promise<Settings> {
   const stored = await chrome.storage.sync.get(KEY);
-  return { ...DEFAULT_SETTINGS, ...(stored[KEY] as Partial<Settings> | undefined) };
+  return parseSettings(stored[KEY]);
 }
 
 export function writeSettings(settings: Settings): Promise<void> {
@@ -34,7 +59,7 @@ export function writeSettings(settings: Settings): Promise<void> {
 
 export function onSettingsChange(callback: (settings: Settings) => void): void {
   chrome.storage.sync.onChanged.addListener((changes) => {
-    if (changes[KEY]) callback({ ...DEFAULT_SETTINGS, ...changes[KEY].newValue });
+    if (changes[KEY]) callback(parseSettings(changes[KEY].newValue));
   });
 }
 

@@ -7,7 +7,6 @@ import { soundsForProp } from "@/lib/oneko/custom-sounds";
 import { friendProps } from "@/lib/oneko/playground-defaults";
 import { OnekoPlaygroundProvider, useOnekoPlayground } from "@/components/oneko-playground-context";
 import { GlobalClickSound } from "@/components/global-click-sound";
-import { OnekoLanding } from "@/components/oneko-landing";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const Oneko = dynamic(() => import("@/components/oneko"), { ssr: false });
@@ -57,10 +56,11 @@ function PlaygroundChrome({ children }: { children: ReactNode }) {
   );
 }
 
-export default function OnekoPlayground({ children }: { children?: ReactNode }) {
+/** The page passes its own content, so /studio doesn't bundle the landing page and its motion. */
+export default function OnekoPlayground({ children }: { children: ReactNode }) {
   return (
     <OnekoPlaygroundProvider>
-      <PlaygroundChrome>{children ?? <OnekoLanding />}</PlaygroundChrome>
+      <PlaygroundChrome>{children}</PlaygroundChrome>
     </OnekoPlaygroundProvider>
   );
 }

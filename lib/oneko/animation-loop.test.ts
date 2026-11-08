@@ -11,7 +11,7 @@ it("ticks at 10fps, stops while hidden, resumes without catch-up, and cleans up"
   vi.useFakeTimers();
   const doc = Object.assign(new EventTarget(), { hidden: false });
   vi.stubGlobal("document", doc);
-  const state = { current: { paused: false } as CatRuntimeState };
+  const state = { current: { paused: false, cfg: { paused: false } } as CatRuntimeState };
   const frame = vi.fn();
   const stop = startAnimationLoop(state, frame);
   vi.advanceTimersByTime(1000);
@@ -36,15 +36,15 @@ it("ticks at 10fps, stops while hidden, resumes without catch-up, and cleans up"
 it("honors the public pause option independently of debug playback and resumes in place", () => {
   vi.useFakeTimers();
   vi.stubGlobal("document", Object.assign(new EventTarget(), { hidden: false }));
-  const state = { current: { paused: false, pausedCfg: true } as CatRuntimeState };
+  const state = { current: { paused: false, cfg: { paused: true } } as CatRuntimeState };
   const frame = vi.fn();
   const stop = startAnimationLoop(state, frame);
   vi.advanceTimersByTime(1000);
   expect(frame).not.toHaveBeenCalled();
-  state.current.pausedCfg = false;
+  state.current.cfg.paused = false;
   vi.advanceTimersByTime(100);
   expect(frame).toHaveBeenCalledTimes(1);
-  state.current.pausedCfg = true;
+  state.current.cfg.paused = true;
   vi.advanceTimersByTime(1000);
   expect(frame).toHaveBeenCalledTimes(1);
   stop();

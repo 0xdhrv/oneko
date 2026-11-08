@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useOnekoPlayground } from "@/components/oneko-playground-context";
 import { ShikiCode } from "@/components/shiki-code";
-import { createOnekoUsage } from "@/lib/oneko/usage";
+import { abbreviateEmbeddedData, createOnekoUsage } from "@/lib/oneko/usage";
 import {
   createShareURL,
   LONG_SHARE_LINK,
@@ -165,7 +165,11 @@ export function OnekoInstall() {
           </button>
         </div>
         <p>Welcome your cat with its current comforts:</p>
-        <ShikiCode code={usage} language="tsx" label="Your cat’s current code" />
+        <ShikiCode
+          code={abbreviateEmbeddedData(usage)}
+          language="tsx"
+          label="Your cat’s current code"
+        />
         <button type="button" className="oneko-copy-cat" onClick={copyCat}>
           <CopySimple size={14} aria-hidden="true" />
           Copy your cat

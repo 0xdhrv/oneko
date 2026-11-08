@@ -1,18 +1,17 @@
 import { createEffect, onCleanup, onMount } from "solid-js";
-import { createOneko, type OnekoControls, type OnekoOptions } from "./vanilla";
-import { createPropsUpdater } from "./adapter";
+import type { OnekoControls, OnekoOptions } from "./vanilla";
+import { mountWithProps } from "./adapter";
 
 /** Pass ref={(controls) => ...} to get goTo, say, sit, follow, pet, and dropTreat. */
 export default function Oneko(props: OnekoOptions & { ref?: (controls: OnekoControls) => void }) {
-  let update: ReturnType<typeof createPropsUpdater> | undefined;
+  let update: ReturnType<typeof mountWithProps>["update"] | undefined;
   const options = () => {
     const { ref: _ref, ...rest } = props;
     return rest;
   };
   onMount(() => {
-    const cat = createOneko();
-    update = createPropsUpdater(cat);
-    update(options());
+    const { cat, update: next } = mountWithProps(options());
+    update = next;
     props.ref?.(cat);
     onCleanup(() => cat.destroy());
   });

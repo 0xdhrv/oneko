@@ -1,4 +1,4 @@
-import { OBSTACLE_INTERVAL, PATH_RECALC_INTERVAL, TILE } from "./constants";
+import { OBSTACLE_INTERVAL, PATH_RECALC_INTERVAL, TILE, ZONE_INTERVAL } from "./constants";
 import {
   catZoneRadius,
   collectZones,
@@ -18,6 +18,8 @@ export type ZoneRuntimeState = {
   blocked: ObstacleRect[];
   favorites: ResolvedZone[];
   signature: string;
+  /** Frame the zone rects were last read from the DOM; -Infinity forces a re-read. */
+  collectedFrame: number;
   targetId: string | null;
   visitFrames: number;
   cooldownFrames: number;
@@ -32,6 +34,7 @@ export function createZoneState(): ZoneRuntimeState {
     blocked: [],
     favorites: [],
     signature: "",
+    collectedFrame: -Infinity,
     targetId: null,
     visitFrames: 0,
     cooldownFrames: 50,
@@ -41,21 +44,27 @@ export function createZoneState(): ZoneRuntimeState {
   };
 }
 
+/** Read zone rects from the DOM, and rebuild paths only when they moved. */
+function collect(s: CatRuntimeState, radius: number) {
+  const zones = s.zoneState;
+  zones.collectedFrame = s.frameCount;
+  const resolved = collectZones(zones.definitions);
+  const signature = JSON.stringify([resolved, radius]);
+  if (signature === zones.signature) return;
+  zones.signature = signature;
+  zones.blocked = resolved
+    .filter((zone) => zone.type === "avoid")
+    .map((zone) => expandRect(zone.rect, radius));
+  zones.favorites = resolved.filter((zone) => zone.type === "attract");
+  s.lastObstacleRefresh = -OBSTACLE_INTERVAL;
+  s.lastPathRecalcFrame = -PATH_RECALC_INTERVAL;
+}
+
 export function refreshZones(deps: CatAnimationDeps): boolean {
   const s = deps.stateRef.current,
     zones = s.zoneState;
-  const resolved = collectZones(zones.definitions);
-  const radius = catZoneRadius(s.scale);
-  const signature = JSON.stringify([resolved, radius]);
-  if (signature !== zones.signature) {
-    zones.signature = signature;
-    zones.blocked = resolved
-      .filter((zone) => zone.type === "avoid")
-      .map((zone) => expandRect(zone.rect, radius));
-    zones.favorites = resolved.filter((zone) => zone.type === "attract");
-    s.lastObstacleRefresh = -OBSTACLE_INTERVAL;
-    s.lastPathRecalcFrame = -PATH_RECALC_INTERVAL;
-  }
+  const radius = catZoneRadius(s.cfg.scale);
+  if (s.frameCount - zones.collectedFrame >= ZONE_INTERVAL) collect(s, radius);
   if (!zones.blocked.length) {
     deps.el.style.visibility = "";
     deps.bubbleEl.style.visibility = "";
@@ -96,7 +105,7 @@ export function updateZoneTarget(
 ): void {
   const zones = s.zoneState;
   const oldId = zones.targetId;
-  const radius = catZoneRadius(s.scale);
+  const radius = catZoneRadius(s.cfg.scale);
   const favorites = zones.favorites.filter((zone) => {
     const point = {
       x: (zone.rect.left + zone.rect.right) / 2,
@@ -112,8 +121,8 @@ export function updateZoneTarget(
   });
   // The laser toy and explicit debug controls keep priority over occasional visits.
   if (
-    !s.followCursorCfg ||
-    s.laserPointerCfg ||
+    !s.cfg.followCursor ||
+    s.cfg.laserPointer ||
     s.noFollow ||
     s.stateLocked ||
     zones.chance === 0
@@ -137,13 +146,13 @@ export function updateZoneTarget(
   }
   const favorite = favorites.find((zone) => zone.id === zones.targetId);
   // Priority: an API request (goTo, sit), stay put, an errand (treat, box, knockable), a perch the
-  // pointer rests on, a favorite spot, the lead cat, the cursor.
+  // pointer rests on, a favorite spot, the lead cat, the focused element, the cursor.
   const errand = s.errand && errandPoint(s, s.errand);
   const requested = s.errand?.kind === "goTo" || s.errand?.kind === "sit";
   const desired =
     errand && requested
       ? errand
-      : !s.followCursorCfg || s.typingNap || s.held
+      : !s.cfg.followCursor || s.typingNap || s.held
         ? { x: s.nekoPosX, y: s.nekoPosY }
         : (errand ??
           s.perchTarget ??
@@ -152,7 +161,7 @@ export function updateZoneTarget(
                 x: (favorite.rect.left + favorite.rect.right) / 2,
                 y: (favorite.rect.top + favorite.rect.bottom) / 2,
               }
-            : (s.leaderTarget ?? { x: s.mousePosX, y: s.mousePosY })));
+            : (s.leaderTarget ?? s.focusTarget ?? { x: s.mousePosX, y: s.mousePosY })));
   zones.movementTarget = zones.blocked.length
     ? (nearestSafePoint(desired, zones.blocked, width, height, radius) ?? {
         x: s.nekoPosX,

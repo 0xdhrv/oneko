@@ -1,11 +1,17 @@
-import type { OnekoInstance, OnekoOptions } from "./vanilla";
+import { createOneko, type OnekoInstance, type OnekoOptions } from "./vanilla";
 
-/** Removed props return to engine defaults, just like a prop explicitly set to undefined. */
-export function createPropsUpdater(cat: OnekoInstance) {
-  let previous: OnekoOptions = {};
-  return (next: OnekoOptions) => {
+/**
+ * Mount a cat with its first props, so construction-time options (initialPos, storageKey,
+ * persistPosition) apply from the start. The returned update treats removed props as undefined,
+ * which returns them to the engine defaults.
+ */
+export function mountWithProps(initial: OnekoOptions) {
+  const cat: OnekoInstance = createOneko(initial);
+  let previous: OnekoOptions = initial;
+  const update = (next: OnekoOptions) => {
     const reset = Object.fromEntries(Object.keys(previous).map((key) => [key, undefined]));
     cat.update({ ...reset, ...next });
     previous = next;
   };
+  return { cat, update };
 }

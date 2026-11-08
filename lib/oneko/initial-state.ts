@@ -5,11 +5,7 @@ import {
   OBSTACLE_INTERVAL,
   PATH_RECALC_INTERVAL,
 } from "./constants";
-import {
-  applyRuntimeConfig,
-  defaultRuntimeConfigState,
-  type CatRuntimeConfig,
-} from "./runtime-config";
+import { applyRuntimeConfig, resolveCatConfig, type CatRuntimeConfig } from "./runtime-config";
 import type { CatRuntimeState, IdleActivityState } from "./types";
 
 type PlayStateFields = Pick<
@@ -84,7 +80,15 @@ export function createInitialCatState(options: InitialCatStateOptions): CatRunti
     paused: false,
     stateLocked: false,
     noFollow: false,
-    ...defaultRuntimeConfigState(),
+    cfg: resolveCatConfig(options),
+    currentRotation: 0,
+    soundCooldown: 0,
+    bubbleTimer: 0,
+    bubbleCooldown: 0,
+    bubbleVisible: false,
+    lastBubbleMsg: -1,
+    laserCaught: false,
+    handlers: {},
     loopPrevAngle: null,
     mouseCircleWinding: 0,
     freerunMode: false,
@@ -93,6 +97,7 @@ export function createInitialCatState(options: InitialCatStateOptions): CatRunti
     typingNap: false,
     held: false,
     perchTarget: null,
+    focusTarget: null,
     leaderTarget: null,
     ...defaultPlayState(),
   };

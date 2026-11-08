@@ -19,7 +19,7 @@ function visibleRect(el: Element): DOMRect | null {
  * off screen. Element targets are re-read every tick, so they follow scrolling and layout.
  */
 export function errandPoint(s: CatRuntimeState, errand: Errand): PathPoint | null {
-  const half = (TILE * s.scale) / 2;
+  const half = (TILE * s.cfg.scale) / 2;
   const maxX = window.innerWidth - 16;
   const maxY = window.innerHeight - 16;
   switch (errand.kind) {

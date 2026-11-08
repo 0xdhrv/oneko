@@ -9,7 +9,7 @@ import { readOptions } from "./vanilla-entry";
 import { applyRuntimeConfig } from "./runtime-config";
 import { ONEKO_DEFAULTS } from "./defaults";
 import { defaultSpriteSets } from "./constants";
-import { HAT_ANCHORS, hatOffset, hatSVG, resolveSeason, seasonForDate } from "./seasons";
+import { HAT_ANCHORS, hatOffset, resolveSeason, seasonForDate } from "./seasons";
 
 vi.mock("./vanilla", () => ({ createOneko: vi.fn() }));
 // vanilla-entry defines <oneko-cat> on import; give it just enough of a browser.
@@ -57,12 +57,6 @@ describe("seasons", () => {
       new Set(Object.values(defaultSpriteSets).flatMap((frames) => frames.map(String))).size,
     );
     expect(hatOffset(99, 99)).toBeNull();
-  });
-
-  it("draws outlined hats", () => {
-    const svg = hatSVG("halloween");
-    expect(svg).toContain('viewBox="0 0 13 10"');
-    expect(svg).toContain("#1b1b1b");
   });
 });
 
@@ -121,7 +115,7 @@ describe("options", () => {
 
   it("applies new options and event handlers live", () => {
     const state = createInitialCatState(ONEKO_DEFAULTS);
-    expect(state.seasonalCfg).toBe(true);
+    expect(state.cfg.seasonal).toBe(true);
     const onPet = vi.fn();
     applyRuntimeConfig(state, {
       ...ONEKO_DEFAULTS,
@@ -130,17 +124,17 @@ describe("options", () => {
       treats: true,
       onPet,
     });
-    expect(state).toMatchObject({
-      seasonalCfg: "winter",
-      grabbableCfg: true,
-      treatsCfg: true,
+    expect(state.cfg).toMatchObject({
+      seasonal: "winter",
+      grabbable: true,
+      treats: true,
     });
     expect(state.handlers.onPet).toBe(onPet);
     applyRuntimeConfig(state, {
       ...ONEKO_DEFAULTS,
       seasonal: "spring" as never,
     });
-    expect(state.seasonalCfg).toBe(true);
+    expect(state.cfg.seasonal).toBe(true);
   });
 
   it("validates and restores seasonal playground settings", () => {

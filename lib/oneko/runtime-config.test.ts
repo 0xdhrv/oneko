@@ -1,50 +1,12 @@
-import { createZoneState } from "./zone-runtime";
 import { describe, expect, it } from "vitest";
-import { defaultPlayState } from "./initial-state";
-import { applyRuntimeConfig, defaultRuntimeConfigState } from "./runtime-config";
+import { createInitialCatState } from "./initial-state";
+import { applyRuntimeConfig } from "./runtime-config";
 import type { CatRuntimeState } from "./types";
 
 function minimalRuntimeState(): CatRuntimeState {
-  return {
-    zoneState: createZoneState(),
-    nekoPosX: 0,
-    nekoPosY: 0,
-    nekoVelX: 0,
-    nekoVelY: 0,
-    mousePosX: 0,
-    mousePosY: 0,
-    frameCount: 0,
-    idleTime: 0,
-    idleAnimation: null,
-    idleAnimationFrame: 0,
-    obstacleRects: [],
-    lastObstacleRefresh: 0,
-    grid: null,
-    gridCols: 0,
-    gridRows: 0,
-    currentPath: [],
-    pathWaypointIdx: 0,
-    lastPathRecalcFrame: 0,
-    lastPathTargetCol: 0,
-    lastPathTargetRow: 0,
-    debugMode: false,
-    paused: false,
-    stateLocked: false,
-    noFollow: false,
-    ...defaultRuntimeConfigState(),
-    ...defaultPlayState(),
-    laserPointerCfg: true,
-    laserCaught: true,
-    loopPrevAngle: null,
-    mouseCircleWinding: 0,
-    freerunMode: false,
-    freerunTimer: 0,
-    lastFreerunMsg: -1,
-    typingNap: false,
-    held: false,
-    perchTarget: null,
-    leaderTarget: null,
-  };
+  const state = createInitialCatState({ laserPointer: true });
+  state.laserCaught = true;
+  return state;
 }
 
 describe("applyRuntimeConfig", () => {
@@ -70,10 +32,18 @@ describe("applyRuntimeConfig", () => {
       laserPointer: false,
     });
 
-    expect(state.currentSpeed).toBe(22);
-    expect(state.scale).toBe(2);
-    expect(state.customBubbleText).toBe("meow");
-    expect(state.laserPointerCfg).toBe(false);
+    expect(state.cfg.speed).toBe(22);
+    expect(state.cfg.scale).toBe(2);
+    expect(state.cfg.bubbleText).toBe("meow");
+    expect(state.cfg.laserPointer).toBe(false);
     expect(state.laserCaught).toBe(false);
+  });
+
+  it("clamps numbers the browser or engine would reject, and defaults non-finite ones", () => {
+    const state = minimalRuntimeState();
+    applyRuntimeConfig(state, { volume: 2, opacity: -1, scale: Number.NaN, bubbleChance: 5 });
+    expect(state.cfg).toMatchObject({ volume: 1, opacity: 0, scale: 1, bubbleChance: 1 });
+    applyRuntimeConfig(state, { volume: -0.5, speed: Number.POSITIVE_INFINITY });
+    expect(state.cfg).toMatchObject({ volume: 0, speed: 10 });
   });
 });

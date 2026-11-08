@@ -29,10 +29,10 @@ function messageForIdleAnimation(deps: CatAnimationDeps): string | undefined {
   if (s.idleAnimation === "sleeping") {
     return pickFromPool(deps, SLEEPING_MESSAGES);
   }
-  if (typeof s.customBubbleText === "string") {
-    if (s.customBubbleText.trim()) return s.customBubbleText;
+  if (typeof s.cfg.bubbleText === "string") {
+    if (s.cfg.bubbleText.trim()) return s.cfg.bubbleText;
   } else {
-    const thoughts = [...new Set(s.customBubbleText.filter((text) => text.trim()))];
+    const thoughts = [...new Set(s.cfg.bubbleText.filter((text) => text.trim()))];
     if (thoughts.length) return pickFromPool(deps, thoughts);
   }
   if (s.idleAnimation === "tired") {
@@ -73,12 +73,35 @@ function pickBubbleMessage(deps: CatAnimationDeps) {
   return messageForActivity(deps);
 }
 
-export function showBubble(deps: CatAnimationDeps) {
+/**
+ * The one way a bubble appears. Automatic bubbles respect bubbleEnabled and never replace one
+ * asked for with say(); forced bubbles always show. The text is only picked when it will show.
+ */
+export function presentBubble(
+  deps: CatAnimationDeps,
+  text: () => string,
+  frames: number,
+  { forced = false }: { forced?: boolean } = {},
+): boolean {
   const s = deps.stateRef.current;
+  if (!forced && (!s.cfg.bubbleEnabled || (s.bubbleForced && s.bubbleVisible))) return false;
   s.bubbleVisible = true;
-  s.bubbleTimer = s.bubbleDisplayFramesCfg;
-  deps.bubbleTextEl.textContent = pickBubbleMessage(deps);
+  s.bubbleForced = forced;
+  s.bubbleTimer = frames;
+  s.bubbleCooldown = 0;
+  deps.bubbleTextEl.textContent = text();
   deps.bubbleEl.style.opacity = "1";
+  return true;
+}
+
+/** A thought that fits what the cat is doing. */
+export function showBubble(deps: CatAnimationDeps, options?: { forced?: boolean }) {
+  presentBubble(
+    deps,
+    () => pickBubbleMessage(deps),
+    deps.stateRef.current.cfg.bubbleDisplayFrames,
+    options,
+  );
 }
 
 export function hideBubble(deps: CatAnimationDeps) {
@@ -86,7 +109,7 @@ export function hideBubble(deps: CatAnimationDeps) {
   s.bubbleVisible = false;
   s.bubbleForced = false;
   deps.bubbleEl.style.opacity = "0";
-  s.bubbleCooldown = s.bubbleCooldownFramesCfg;
+  s.bubbleCooldown = s.cfg.bubbleCooldown;
 }
 
 function applyBubblePlacement(deps: CatAnimationDeps, showBelow: boolean) {
@@ -105,15 +128,15 @@ function positionBubble(deps: CatAnimationDeps) {
   const vh = window.innerHeight;
   const bubbleW = deps.bubbleEl.offsetWidth || deps.bubbleTextEl.offsetWidth || 100;
   const bubbleH = deps.bubbleEl.offsetHeight || 34;
-  const bubbleScale = s.scale * s.bubbleScaleCfg;
+  const bubbleScale = s.cfg.scale * s.cfg.bubbleScale;
   const margin = 6;
-  const halfCat = (TILE * s.scale) / 2;
+  const halfCat = (TILE * s.cfg.scale) / 2;
 
   const aboveY = Math.floor(catY - halfCat - 8 - bubbleH * bubbleScale);
   const belowY = Math.floor(catY + halfCat + 8);
   const showBelow =
-    s.bubblePlacementCfg === "below" ||
-    (s.bubblePlacementCfg === "auto" && aboveY < margin && catY < vh / 2);
+    s.cfg.bubblePlacement === "below" ||
+    (s.cfg.bubblePlacement === "auto" && aboveY < margin && catY < vh / 2);
   const top = Math.max(
     margin,
     Math.min(vh - margin - bubbleH * bubbleScale, showBelow ? belowY : aboveY),
@@ -148,9 +171,9 @@ function tickBubbleCooldown(deps: CatAnimationDeps) {
 
 function shouldTriggerBubble(deps: CatAnimationDeps): boolean {
   const s = deps.stateRef.current;
-  const idleFrameThreshold = Math.max(1, Math.round(s.idleThresholdMs / 100));
-  const idleRate = s.bubbleChanceCfg * 0.16;
-  const moveRate = s.bubbleChanceCfg * 0.01;
+  const idleFrameThreshold = Math.max(1, Math.round(s.cfg.idleThreshold / 100));
+  const idleRate = s.cfg.bubbleChance * 0.16;
+  const moveRate = s.cfg.bubbleChance * 0.01;
   const loopW = Math.abs(s.mouseCircleWinding);
   const loopComplaining = s.idleTime === 0 && loopW >= MOUSE_LOOP_WINDING_TRIGGER;
   const moveRateBoost = loopComplaining ? 4.2 : 1;
@@ -165,14 +188,11 @@ export function updateBubble(deps: CatAnimationDeps) {
   const s = deps.stateRef.current;
   if (s.sayRequest) {
     // say() and data-oneko-say speak even when automatic bubbles are off.
-    s.bubbleVisible = true;
-    s.bubbleForced = true;
-    s.bubbleTimer = s.sayRequest.frames;
-    deps.bubbleTextEl.textContent = s.sayRequest.text;
-    deps.bubbleEl.style.opacity = "1";
+    const { text, frames } = s.sayRequest;
+    presentBubble(deps, () => text, frames, { forced: true });
     s.sayRequest = null;
   }
-  if (!s.bubbleEnabledCfg && !s.bubbleForced) {
+  if (!s.cfg.bubbleEnabled && !s.bubbleForced) {
     if (s.bubbleVisible) {
       hideBubble(deps);
     }

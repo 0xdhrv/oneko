@@ -31,9 +31,16 @@ export function getSkinSource(skin: OnekoSkin = "classic"): string | undefined {
 export async function loadSkinSource(skin: OnekoSkin = "classic"): Promise<string> {
   const id = isOnekoSkin(skin) ? skin : "classic";
   if (!loaded.has(id)) {
-    pending ??= import("./skin-sheets.json").then(({ default: sheets }) => {
-      for (const [key, source] of Object.entries(sheets)) loaded.set(key, source);
-    });
+    pending ??= import("./skin-sheets.json").then(
+      ({ default: sheets }) => {
+        for (const [key, source] of Object.entries(sheets)) loaded.set(key, source);
+      },
+      (error: unknown) => {
+        // Let the next request try again after a failed chunk load.
+        pending = undefined;
+        throw error;
+      },
+    );
     await pending;
   }
   return loaded.get(id) ?? loaded.get("classic")!;

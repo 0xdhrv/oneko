@@ -12,6 +12,9 @@
   Cache-Control: public, max-age=604800
   Access-Control-Allow-Origin: *
 
+/skins/*
+  Cache-Control: public, max-age=86400
+
 /og.png
   Cache-Control: public, max-age=86400
 

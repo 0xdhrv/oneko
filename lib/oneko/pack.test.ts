@@ -5,6 +5,7 @@ import { createInitialCatState } from "./initial-state";
 import {
   areCatsHidden,
   HIDDEN_STORAGE_KEY,
+  isNearestCat,
   joinPack,
   leaderPosition,
   napmateNearby,
@@ -25,6 +26,21 @@ afterEach(() => {
 });
 
 describe("a pack of cats", () => {
+  it("lets only the nearest cat answer a page event, the earlier one on a tie", () => {
+    const first = cat(100, 100);
+    const second = cat(130, 100);
+    [first, second].forEach(join);
+    expect(isNearestCat(first, { x: 110, y: 100 })).toBe(true);
+    expect(isNearestCat(second, { x: 110, y: 100 })).toBe(false);
+    expect(isNearestCat(first, { x: 125, y: 100 })).toBe(false);
+    expect(isNearestCat(second, { x: 125, y: 100 })).toBe(true);
+    // Equally far: exactly one answers, the one mounted first.
+    expect(isNearestCat(first, { x: 115, y: 100 })).toBe(true);
+    expect(isNearestCat(second, { x: 115, y: 100 })).toBe(false);
+    cleanups.shift()!();
+    expect(isNearestCat(second, { x: 110, y: 100 })).toBe(true);
+  });
+
   it("follows the cat mounted before it, and the first cat leads", () => {
     const first = cat(100, 100);
     const second = cat(200, 200, "cat");
@@ -45,7 +61,7 @@ describe("a pack of cats", () => {
     cleanups.push(joinPack(first));
     expect(leaderPosition(first)).toBeNull();
     expect(leaderPosition(second)).toEqual({ x: 100, y: 100 });
-    second.chaseCfg = "cursor";
+    second.cfg.chase = "cursor";
     expect(leaderPosition(second)).toBeNull();
   });
 
@@ -89,7 +105,7 @@ describe("what the cat pays attention to", () => {
 
     follower.typingNap = false;
     follower.perchTarget = null;
-    follower.chaseCfg = "cursor";
+    follower.cfg.chase = "cursor";
     expect(target(follower)).toEqual({ x: 700, y: 600 });
   });
 
@@ -100,7 +116,7 @@ describe("what the cat pays attention to", () => {
     state.held = true;
     expect(target(state)).toEqual({ x: 300, y: 300 });
     state.held = false;
-    state.sleepEnabledCfg = false;
+    state.cfg.sleepEnabled = false;
     state.typingNap = true;
     expect(target(state)).toEqual({ x: 300, y: 300 });
     expect(state.idleAnimation).toBeNull();

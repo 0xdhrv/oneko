@@ -16,19 +16,26 @@ import {
 } from "./constants";
 import type { OnekoProps } from "./types";
 
+/** A checked default that keeps its option's full type, rather than narrowing to the literal. */
+function option<K extends keyof OnekoProps>(
+  value: NonNullable<OnekoProps[K]>,
+): NonNullable<OnekoProps[K]> {
+  return value;
+}
+
 export const ONEKO_DEFAULTS = {
   paused: false,
   followCursor: true,
   sleepEnabled: true,
-  bubblePlacement: "auto" as NonNullable<OnekoProps["bubblePlacement"]>,
+  bubblePlacement: option<"bubblePlacement">("auto"),
   bubbleScale: 1,
   soundBasePath: "/cat-sounds",
   storageKey: "oneko",
   zoneAttractionChance: 0.3,
   zoneAttractionDuration: 4000,
-  skin: "classic" as NonNullable<OnekoProps["skin"]>,
+  skin: option<"skin">("classic"),
   persistPosition: true,
-  reducedMotion: "hide" as NonNullable<OnekoProps["reducedMotion"]>,
+  reducedMotion: option<"reducedMotion">("hide"),
   zIndex: DEFAULT_Z_INDEX,
   speed: DEFAULT_SPEED,
   scale: DEFAULT_SCALE,
@@ -48,12 +55,12 @@ export const ONEKO_DEFAULTS = {
   bubbleText: "",
   volume: DEFAULT_VOLUME,
   laserPointer: false,
-  chase: "cursor" as NonNullable<OnekoProps["chase"]>,
+  chase: option<"chase">("cursor"),
   napWhileTyping: false,
   followFocus: false,
   perchOnHover: false,
   pettable: false,
-  seasonal: true as NonNullable<OnekoProps["seasonal"]>,
+  seasonal: option<"seasonal">(true),
   grabbable: false,
   treats: false,
   timeOfDay: false,

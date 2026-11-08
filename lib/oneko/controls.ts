@@ -30,7 +30,7 @@ export function createCatControls(stateRef: { current: CatRuntimeState }): Oneko
   };
   return {
     goTo(target) {
-      const resolved = typeof target === "string" ? document.querySelector(target) : target;
+      const resolved = resolveTarget(target);
       release();
       if (!resolved) return Promise.resolve(false);
       return new Promise((resolve) => {
@@ -49,7 +49,7 @@ export function createCatControls(stateRef: { current: CatRuntimeState }): Oneko
       const state = s();
       const frames = Number.isFinite(options.duration)
         ? Math.max(1, Math.round(options.duration! / 100))
-        : state.bubbleDisplayFramesCfg;
+        : state.cfg.bubbleDisplayFrames;
       state.sayRequest = { text: String(text).slice(0, 280), frames };
     },
     sit() {
@@ -65,4 +65,19 @@ export function createCatControls(stateRef: { current: CatRuntimeState }): Oneko
       dropTreat(x ?? state.mousePosX, y ?? state.mousePosY, state.zIndex);
     },
   };
+}
+
+/** An element, or a finite point. Invalid selectors and NaN coordinates find nothing. */
+function resolveTarget(
+  target: Parameters<OnekoControls["goTo"]>[0],
+): Element | { x: number; y: number } | null {
+  if (typeof target === "string") {
+    try {
+      return document.querySelector(target);
+    } catch {
+      return null;
+    }
+  }
+  if ("nodeType" in target) return target;
+  return Number.isFinite(target.x) && Number.isFinite(target.y) ? target : null;
 }

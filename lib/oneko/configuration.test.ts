@@ -37,7 +37,7 @@ describe("portable configuration", () => {
     });
   });
 
-  it("rejects unsupported versions, incomplete states, and unknown keys", () => {
+  it("rejects unsupported versions, damaged states, and unknown keys", () => {
     expect(parseConfiguration("{")).toMatchObject({
       ok: false,
       error: expect.stringContaining("JSON"),
@@ -50,10 +50,6 @@ describe("portable configuration", () => {
     expect(parseConfiguration(JSON.stringify({ ...configuration(), extra: true }))).toMatchObject({
       ok: false,
       error: expect.stringContaining("extra"),
-    });
-    expect(parseConfiguration(JSON.stringify({ version: 1, settings: {} }))).toMatchObject({
-      ok: false,
-      error: expect.stringContaining("Missing"),
     });
     expect(parse({ unknown: true })).toMatchObject({
       ok: false,
@@ -182,7 +178,11 @@ describe("share links", () => {
       .pipeThrough(new CompressionStream("deflate-raw"));
     const bytes = new Uint8Array(await new Response(huge).arrayBuffer());
     const encoded = Buffer.from(bytes).toString("base64url");
-    await expect(parseShareFragment(`#oneko2=${encoded}`)).resolves.toMatchObject({ ok: false });
+    // Stopped while inflating: without the cap the text inflates fully and fails a later check.
+    await expect(parseShareFragment(`#oneko2=${encoded}`)).resolves.toEqual({
+      ok: false,
+      error: "This share link is incomplete or damaged.",
+    });
   });
 
   it("rejects a shared sheet that does not decode", async () => {
@@ -215,7 +215,19 @@ describe("share links", () => {
       expect(parse({ soundClips })).toMatchObject({ ok: false });
   });
 
-  it("shares hosted coats by link", async () => {
+  it("shares hosted coats by link once the sheet checks out", async () => {
+    const stubSheet = (width: number, height: number) =>
+      vi.stubGlobal(
+        "Image",
+        class {
+          naturalWidth = width;
+          naturalHeight = height;
+          decode() {
+            return Promise.resolve();
+          }
+        },
+      );
+    stubSheet(256, 128);
     const settings = {
       ...DEFAULT_ONEKO_PLAYGROUND_STATE,
       spriteSrc: "https://cats.example/ginger.png",
@@ -227,6 +239,11 @@ describe("share links", () => {
     await expect(parseShareFragment(new URL(result.value).hash)).resolves.toEqual({
       ok: true,
       value: { version: 1, settings },
+    });
+    stubSheet(32, 32);
+    await expect(parseShareFragment(new URL(result.value).hash)).resolves.toMatchObject({
+      ok: false,
+      error: expect.stringContaining("256 × 128"),
     });
   });
 
@@ -241,6 +258,15 @@ describe("share links", () => {
       ok: true,
       value: { version: 1, settings: DEFAULT_ONEKO_PLAYGROUND_STATE },
     });
+    // Whichever setting a file predates, it opens with that setting's default.
+    for (const key of Object.keys(DEFAULT_ONEKO_PLAYGROUND_STATE)) {
+      const rest: Record<string, unknown> = { ...DEFAULT_ONEKO_PLAYGROUND_STATE, speed: 12 };
+      delete rest[key];
+      expect(parseConfiguration(JSON.stringify({ version: 1, settings: rest }))).toMatchObject({
+        ok: true,
+        value: { settings: { speed: key === "speed" ? DEFAULT_ONEKO_PLAYGROUND_STATE.speed : 12 } },
+      });
+    }
   });
 
   it("still opens links made before they were compressed", async () => {

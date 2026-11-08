@@ -12,6 +12,7 @@ import { stopDistance } from "./attention";
 import type { CatAnimationDeps } from "./deps";
 import { maybeStartIdleAnimation } from "./idle";
 import { clearRotation, directionFromDelta, setSprite } from "./sprites";
+import { presentBubble } from "./bubbles";
 
 export function recalculatePath(deps: CatAnimationDeps): void {
   const s = deps.stateRef.current;
@@ -68,7 +69,7 @@ function moveToward(deps: CatAnimationDeps, targetX: number, targetY: number) {
     s.nekoVelY *= 0.5;
     return;
   }
-  const currentSpeed = s.currentSpeed * s.mood.speed;
+  const currentSpeed = s.cfg.speed * s.mood.speed;
   s.nekoVelX += ((dx / dist) * currentSpeed - s.nekoVelX) * STEER_LERP;
   s.nekoVelY += ((dy / dist) * currentSpeed - s.nekoVelY) * STEER_LERP;
   const velMag = Math.hypot(s.nekoVelX, s.nekoVelY);
@@ -100,13 +101,13 @@ function moveToward(deps: CatAnimationDeps, targetX: number, targetY: number) {
   deps.el.style.top = `${Math.floor(s.nekoPosY - TILE / 2)}px`;
   const dir = directionFromDelta(s.nekoVelX, s.nekoVelY) ?? "idle";
   setSprite(deps, dir, s.frameCount);
-  if (clampedMag > 0.5 && s.rotationAmount > 0) {
+  if (clampedMag > 0.5 && s.cfg.rotationAmount > 0) {
     const velAngle = Math.atan2(s.nekoVelY, s.nekoVelX) * (180 / Math.PI);
-    s.currentRotation = (velAngle / 180) * s.rotationAmount;
+    s.currentRotation = (velAngle / 180) * s.cfg.rotationAmount;
   } else {
     s.currentRotation = 0;
   }
-  deps.el.style.transform = `scale(${s.scale}) rotate(${s.currentRotation}deg)`;
+  deps.el.style.transform = `scale(${s.cfg.scale}) rotate(${s.currentRotation}deg)`;
   s.idleTime = 0;
 }
 
@@ -123,12 +124,8 @@ function pickFreerunMessage(deps: CatAnimationDeps) {
 function enterFreerun(deps: CatAnimationDeps) {
   const s = deps.stateRef.current;
   s.freerunMode = true;
-  s.freerunTimer = s.freerunDurationCfg;
-  s.bubbleVisible = true;
-  s.bubbleTimer = s.freerunDurationCfg;
-  s.bubbleCooldown = 0;
-  deps.bubbleTextEl.textContent = pickFreerunMessage(deps);
-  deps.bubbleEl.style.opacity = "1";
+  s.freerunTimer = s.cfg.freerunDuration;
+  presentBubble(deps, () => pickFreerunMessage(deps), s.cfg.freerunDuration);
 }
 
 function tickFreerun(deps: CatAnimationDeps) {
@@ -138,7 +135,7 @@ function tickFreerun(deps: CatAnimationDeps) {
     const keepAlive = s.stateLocked;
     s.freerunMode = keepAlive;
     if (keepAlive) {
-      s.freerunTimer = s.freerunDurationCfg;
+      s.freerunTimer = s.cfg.freerunDuration;
     }
   }
   moveToward(deps, s.zoneState.movementTarget.x, s.zoneState.movementTarget.y);
@@ -163,7 +160,7 @@ function chaseCursor(deps: CatAnimationDeps) {
     tickFreerun(deps);
     return;
   }
-  if (!s.noFollow && !s.errand && Math.random() < s.freerunChanceCfg * s.mood.freerun) {
+  if (!s.noFollow && !s.errand && Math.random() < s.cfg.freerunChance * s.mood.freerun) {
     enterFreerun(deps);
     moveToward(deps, s.zoneState.movementTarget.x, s.zoneState.movementTarget.y);
     return;

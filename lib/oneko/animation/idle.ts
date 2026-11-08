@@ -6,7 +6,7 @@ import type { CatAnimationDeps } from "./deps";
 import { clearRotation, setSprite } from "./sprites";
 
 function idleFrameThreshold(s: CatRuntimeState) {
-  return Math.max(1, Math.round((s.idleThresholdMs * s.mood.idle) / 100));
+  return Math.max(1, Math.round((s.cfg.idleThreshold * s.mood.idle) / 100));
 }
 
 function wallScratchAnimations(s: CatRuntimeState): IdleActivityState[] {
@@ -21,7 +21,7 @@ function wallScratchAnimations(s: CatRuntimeState): IdleActivityState[] {
 function pickRandomIdleAnimation(s: CatRuntimeState): IdleActivityState {
   const available: IdleActivityState[] = [
     "scratchSelf",
-    ...(s.sleepEnabledCfg ? ["tired" as const] : []),
+    ...(s.cfg.sleepEnabled ? ["tired" as const] : []),
     ...wallScratchAnimations(s),
   ];
   return available[Math.floor(Math.random() * available.length)];
@@ -44,7 +44,7 @@ export function maybeStartIdleAnimation(deps: CatAnimationDeps) {
 
   s.idleAnimationFrame = 0;
   // Sleep is catching: a cat resting beside a napping friend dozes off without the usual wait.
-  if (s.sleepEnabledCfg && (s.idleTime > threshold * 3 || napmateNearby(s))) {
+  if (s.cfg.sleepEnabled && (s.idleTime > threshold * 3 || napmateNearby(s))) {
     startSleepingAnimation(deps);
     return;
   }
@@ -91,7 +91,7 @@ function resetOrLoopIdleAnimation(
 
 export function updateIdleAnimation(deps: CatAnimationDeps) {
   const s = deps.stateRef.current;
-  if (!s.sleepEnabledCfg && (s.idleAnimation === "sleeping" || s.idleAnimation === "tired")) {
+  if (!s.cfg.sleepEnabled && (s.idleAnimation === "sleeping" || s.idleAnimation === "tired")) {
     s.idleAnimation = null;
     s.idleAnimationFrame = 0;
     s.idleTime = 0;
@@ -101,11 +101,11 @@ export function updateIdleAnimation(deps: CatAnimationDeps) {
   }
 
   const animName = s.idleAnimation;
-  const spriteIndex = computeIdleSpriteIndex(animName, s.idleAnimationFrame, s.animationSpeedCfg);
+  const spriteIndex = computeIdleSpriteIndex(animName, s.idleAnimationFrame, s.cfg.animationSpeed);
   setSprite(deps, animName, spriteIndex);
   clearRotation(deps);
   s.idleAnimationFrame += 1;
-  resetOrLoopIdleAnimation(s, animName, getIdleAnimationDuration(animName, s.animationSpeedCfg));
+  resetOrLoopIdleAnimation(s, animName, getIdleAnimationDuration(animName, s.cfg.animationSpeed));
   return true;
 }
 

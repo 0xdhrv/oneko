@@ -14,6 +14,7 @@ import { SOUND_POOLS } from "@/lib/oneko/constants";
 import { MAX_CLIP_SECONDS, SOUND_MOMENTS, type CustomSound } from "@/lib/oneko/custom-sounds";
 import {
   audioPeaks,
+  checkSourceDuration,
   clipSeconds,
   decodeAudio,
   MAX_SOURCE_BYTES,
@@ -92,7 +93,7 @@ function ClipEditor({
           value={start}
           onChange={(event) =>
             onChange({
-              start: Math.min(Number(event.target.value), end - MIN_SELECTION_SECONDS),
+              start: Math.max(0, Math.min(Number(event.target.value), end - MIN_SELECTION_SECONDS)),
             })
           }
         />
@@ -111,7 +112,10 @@ function ClipEditor({
           value={end}
           onChange={(event) =>
             onChange({
-              end: Math.max(Number(event.target.value), start + MIN_SELECTION_SECONDS),
+              end: Math.min(
+                buffer.duration,
+                Math.max(Number(event.target.value), start + MIN_SELECTION_SECONDS),
+              ),
             })
           }
         />
@@ -231,12 +235,21 @@ export function SoundEditor() {
     setDraft(null);
   };
 
+  /** Render the selection, reporting a failure instead of dropping it. */
+  const render = async (selection: Draft) => {
+    try {
+      return await renderClip(selection.buffer, selection);
+    } catch {
+      setError("That selection couldn’t be turned into a clip. Try a longer one.");
+      return null;
+    }
+  };
+
   const saveDraft = async () => {
     if (!draft) return;
-    setSound(draft.moment, {
-      src: await renderClip(draft.buffer, draft),
-      name: draft.name,
-    });
+    const src = await render(draft);
+    if (src === null) return;
+    setSound(draft.moment, { src, name: draft.name });
     actions.update({ meow: true });
     setNotice("Clip saved. Sound is on.");
     closeDraft();
@@ -289,7 +302,10 @@ export function SoundEditor() {
                           setError("Choose a sound smaller than 8 MB.");
                           return;
                         }
-                        void open(id, file.name, event.target, () => file.arrayBuffer());
+                        void open(id, file.name, event.target, async () => {
+                          await checkSourceDuration(file);
+                          return file.arrayBuffer();
+                        });
                       }}
                     />
                     <UploadSimple size={16} aria-hidden="true" />
@@ -332,7 +348,10 @@ export function SoundEditor() {
                 <ClipEditor
                   draft={draft}
                   onChange={(changes) => setDraft({ ...draft, ...changes })}
-                  onPreview={async () => play(await renderClip(draft.buffer, draft))}
+                  onPreview={async () => {
+                    const src = await render(draft);
+                    if (src !== null) play(src);
+                  }}
                   onSave={saveDraft}
                   onCancel={closeDraft}
                 />

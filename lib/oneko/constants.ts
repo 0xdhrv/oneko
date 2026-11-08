@@ -7,6 +7,10 @@ export const STEER_LERP = 0.3;
 export const MAX_VEL_FACTOR = 1.5;
 
 export const OBSTACLE_INTERVAL = 30;
+/** Ticks between re-reading zone rects; scrolling and resizing also trigger a re-read. */
+export const ZONE_INTERVAL = 5;
+/** Quiet time after the last scroll or resize before the page's obstacles are scanned again. */
+export const SCROLL_SETTLE_MS = 150;
 export const MIN_OBSTACLE_AREA = 500;
 export const OBSTACLE_SELECTOR =
   "h1,h2,h3,h4,h5,h6,p,blockquote,a,button,img,svg,picture,video,nav,header,label,[role='button'],[data-oneko-obstacle]";
@@ -245,7 +249,7 @@ export const PET_SOUND_POOL = [
 export const LASER_CATCH_POOL = ["/cat-sounds/Cat_eat1.ogg", "/cat-sounds/Cat_eat2.ogg"];
 
 // Sound pools keyed by sound moment
-export const HISS_POOL = [
+const HISS_POOL = [
   "/cat-sounds/Cat_hiss1.ogg",
   "/cat-sounds/Cat_hiss2.ogg",
   "/cat-sounds/Cat_hiss3.ogg",

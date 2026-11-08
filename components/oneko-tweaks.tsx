@@ -19,7 +19,7 @@ import { OnekoSettings } from "@/components/oneko-settings";
 import { OnekoInstall } from "@/components/oneko-install";
 import { SoundEditor } from "@/components/studio/sound-editor";
 import { SpriteEditor } from "@/components/studio/sprite-editor";
-import { getBundledSkinSource } from "@/lib/bundled-skins";
+import { skinImageURL } from "@/lib/skin-images";
 import { ONEKO_SKINS } from "@/lib/oneko/skins";
 import { ONEKO_PERSONALITIES, selectedPersonality } from "@/lib/oneko/personalities";
 
@@ -204,7 +204,7 @@ export function OnekoTweaks() {
                           className="oneko-skin-preview"
                           aria-hidden="true"
                           style={{
-                            backgroundImage: `url("${getBundledSkinSource(skin.id)}")`,
+                            backgroundImage: `url("${skinImageURL(skin.id)}")`,
                           }}
                         />
                         <span>{skin.name}</span>

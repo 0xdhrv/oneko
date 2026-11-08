@@ -27,7 +27,7 @@ import {
 } from "react";
 import { useReducedMotion } from "@/hooks/use-motion-allowed";
 import { useOnekoPlayground } from "@/components/oneko-playground-context";
-import { getBundledSkinSource } from "@/lib/bundled-skins";
+import { skinImageURL } from "@/lib/skin-images";
 import { TILE } from "@/lib/oneko/constants";
 import { isSavedSprite } from "@/lib/oneko/custom-assets";
 import { ONEKO_SKINS, type OnekoSkin } from "@/lib/oneko/skins";
@@ -144,7 +144,7 @@ function ToggleButton({
 
 export function SpriteEditor() {
   const { state, actions } = useOnekoPlayground();
-  const source = state.spriteSrc || getBundledSkinSource(state.skin);
+  const source = state.spriteSrc || skinImageURL(state.skin);
 
   const sheetRef = useRef<Uint8ClampedArray | null>(null);
   const undoStack = useRef<Uint8ClampedArray[]>([]);
@@ -215,6 +215,10 @@ export function SpriteEditor() {
   useEffect(() => {
     setDrawing(readDrawing());
     if (source === published.current) return;
+    // The coat changed from outside the editor: pending edits belong to the old sheet.
+    clearTimeout(recolorTimer.current);
+    recolor.current = null;
+    saveRequest.current++;
     let current = true;
     setReady(false);
     decodeSheet(source).then(
@@ -405,7 +409,7 @@ export function SpriteEditor() {
   };
 
   const startFrom = async (skin: OnekoSkin) => {
-    const next = await decodeSheet(getBundledSkinSource(skin));
+    const next = await decodeSheet(skinImageURL(skin));
     if (sheetRef.current) change((sheet) => sheet.set(next));
     else {
       sheetRef.current = next;

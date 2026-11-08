@@ -25,18 +25,22 @@ test("presets preserve artwork and user controls, and manual settings update sel
   const playful = page.getByRole("button", { name: /Playful/ });
   await playful.click();
   await expect(playful).toHaveAttribute("aria-pressed", "true");
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1")!));
-  expect(saved).toMatchObject({
-    skin: initial.skin,
-    spriteSrc: initial.spriteSrc,
-    spriteName: initial.spriteName,
-    bubbleText: initial.bubbleText,
-    meow: false,
-    paused: true,
-    followCursor: false,
-    showCat: false,
-    speed: 18,
-  });
+  // Settings are written once edits settle.
+  await expect
+    .poll(() =>
+      page.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1") ?? "{}")),
+    )
+    .toMatchObject({
+      skin: initial.skin,
+      spriteSrc: initial.spriteSrc,
+      spriteName: initial.spriteName,
+      bubbleText: initial.bubbleText,
+      meow: false,
+      paused: true,
+      followCursor: false,
+      showCat: false,
+      speed: 18,
+    });
   await page.getByRole("slider", { name: /Chase speed/ }).focus();
   await page.keyboard.press("ArrowRight");
   await expect(playful).toHaveAttribute("aria-pressed", "false");
@@ -81,7 +85,9 @@ test("share links restore Unicode thoughts and built-in settings ahead of saved 
     recipient.getByRole("status").filter({ hasText: "Shared cat loaded" }),
   ).toBeVisible();
   await expect
-    .poll(() => recipient.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1")!)))
+    .poll(() =>
+      recipient.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1") ?? "{}")),
+    )
     .toEqual(settings);
   await recipient.getByRole("tab", { name: "Thoughts" }).click();
   await expect(recipient.getByLabel("Your cat’s thoughts")).toHaveValue(settings.bubbleText);
@@ -90,13 +96,15 @@ test("share links restore Unicode thoughts and built-in settings ahead of saved 
   secondURL.hash = `oneko=${Buffer.from(JSON.stringify({ version: 1, settings: second })).toString("base64url")}`;
   await recipient.goto(secondURL.href);
   await expect
-    .poll(() => recipient.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1")!)))
+    .poll(() =>
+      recipient.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1") ?? "{}")),
+    )
     .toEqual(second);
   secondURL.hash = "oneko=broken";
   await recipient.goto(secondURL.href);
   await expect(recipient.getByRole("status").filter({ hasText: "unchanged" })).toBeVisible();
   expect(
-    await recipient.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1")!)),
+    await recipient.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1") ?? "{}")),
   ).toEqual(second);
 });
 
@@ -130,7 +138,9 @@ test("custom artwork round-trips through files and malformed imports leave the c
     page.getByRole("status").filter({ hasText: "Configuration imported" }),
   ).toBeVisible();
   await expect
-    .poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1")!)))
+    .poll(() =>
+      page.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1") ?? "{}")),
+    )
     .toEqual(settings);
   await page.getByLabel("Import configuration", { exact: true }).setInputFiles({
     name: "bad.json",
@@ -141,7 +151,7 @@ test("custom artwork round-trips through files and malformed imports leave the c
     page.getByRole("status").filter({ hasText: "Your cat has not changed" }),
   ).toBeVisible();
   expect(
-    await page.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1")!)),
+    await page.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1") ?? "{}")),
   ).toEqual(settings);
 });
 
@@ -168,7 +178,7 @@ test("invalid share links retain existing preferences on a narrow screen", async
   );
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   expect(
-    await page.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1")!).skin),
+    await page.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1") ?? "{}").skin),
   ).toBe("ginger");
 });
 
@@ -190,8 +200,15 @@ test("a ?sprite= link dresses the cat in a hosted coat after checking its size",
   await expect
     .poll(() => page.locator("#oneko-react").evaluate((el) => el.style.backgroundImage))
     .toContain("https://cats.oneko.test/ginger.png");
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1")!));
-  expect(saved.spriteSrc).toBe("https://cats.oneko.test/ginger.png");
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => JSON.parse(localStorage.getItem("oneko:playground:v1") ?? "{}").spriteSrc,
+      ),
+    )
+    .toBe("https://cats.oneko.test/ginger.png");
+  // The coat applies once; the link no longer carries it.
+  expect(new URL(page.url()).searchParams.has("sprite")).toBe(false);
 
   await page.goto("/studio?sprite=https://cats.oneko.test/tiny.png");
   await expect(page.getByText(/Use a 256 × 128 sprite sheet/)).toBeVisible();
@@ -228,7 +245,7 @@ function toneFile() {
 }
 
 const saved = (page: Page) =>
-  page.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1")!));
+  page.evaluate(() => JSON.parse(localStorage.getItem("oneko:playground:v1") ?? "{}"));
 
 async function drawDot(page: Page, x: number, y: number) {
   await page.getByRole("application").scrollIntoViewIfNeeded();
@@ -320,6 +337,7 @@ test("a sound is trimmed, plays in the browser, and appears in exported code", a
   await expect(page.getByRole("status").filter({ hasText: "Clip saved" })).toBeVisible();
   await expect(page.getByText("chirp.wav")).toBeVisible();
 
+  await expect.poll(async () => (await saved(page)).soundClips?.pet).toBeTruthy();
   const settings = await saved(page);
   expect(settings.meow).toBe(true);
   const { src } = settings.soundClips.pet;
@@ -337,13 +355,13 @@ test("a sound is trimmed, plays in the browser, and appears in exported code", a
 
   await page.getByRole("button", { name: "Silence Chasing" }).click();
   await expect
-    .poll(async () => (await saved(page)).soundClips.moving)
+    .poll(async () => (await saved(page)).soundClips?.moving)
     .toEqual({ src: "", name: "" });
   await page.getByRole("tab", { name: "Share" }).click();
   await expect(page.locator(".oneko-install-section")).toContainText("sounds=");
   await page.getByRole("tab", { name: "Sounds" }).click();
   await page.getByRole("button", { name: "Use the built-in Pets sound" }).click();
-  await expect.poll(async () => (await saved(page)).soundClips.pet).toBeUndefined();
+  await expect.poll(async () => (await saved(page)).soundClips?.pet).toBeUndefined();
 });
 
 test("the cat plays your clip instead of the built-in sound", async ({ page }) => {
@@ -397,6 +415,7 @@ test("a link carries a drawn coat and sounds, and the recipient can go back to t
     "chat apps",
   );
   const url = await page.evaluate(() => navigator.clipboard.readText());
+  await expect.poll(async () => (await saved(page)).soundClips?.pet).toBeTruthy();
   const sent = await saved(page);
 
   const friend = await browser.newContext({ baseURL });

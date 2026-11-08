@@ -1,19 +1,5 @@
-import {
-  isRemoteSprite,
-  isSavedSprite,
-  MAX_SPRITE_BYTES,
-  MAX_THOUGHT_TEXT_LENGTH,
-  validateThoughts,
-} from "./custom-assets";
-import { parseCustomSounds } from "./custom-sounds";
-import {
-  DEFAULT_ONEKO_PLAYGROUND_STATE,
-  LATER_SETTINGS,
-  SETTING_RANGES,
-  type OnekoPlaygroundState,
-} from "./playground-defaults";
-import { isOnekoSkin } from "./skins";
-import { isOnekoSeason } from "./seasons";
+import { isRemoteSprite, isSavedSprite, loadRemoteSprite } from "./custom-assets";
+import { checkPlaygroundSettings, type OnekoPlaygroundState } from "./playground-defaults";
 
 export type ConfigurationV1 = {
   version: 1;
@@ -54,68 +40,9 @@ export function parseConfiguration(raw: string): Result<ConfigurationV1> {
   const extra = Object.keys(parsed).find((key) => key !== "version" && key !== "settings");
   if (extra !== undefined) return fail(`Unknown configuration field: ${JSON.stringify(extra)}.`);
   if (!isRecord(parsed.settings)) return fail("The configuration is missing its settings object.");
-  const settings: Record<string, unknown> = { ...parsed.settings };
-  for (const key of LATER_SETTINGS)
-    if (!Object.hasOwn(settings, key))
-      settings[key] = DEFAULT_ONEKO_PLAYGROUND_STATE[key as keyof OnekoPlaygroundState];
-  const keys = Object.keys(DEFAULT_ONEKO_PLAYGROUND_STATE) as (keyof OnekoPlaygroundState)[];
-  const unknown = Object.keys(settings).find(
-    (key) => !Object.hasOwn(DEFAULT_ONEKO_PLAYGROUND_STATE, key),
-  );
-  if (unknown !== undefined) return fail(`Unknown setting: ${JSON.stringify(unknown)}.`);
-
-  for (const key of keys) {
-    if (!Object.hasOwn(settings, key)) return fail(`Missing setting: ${key}.`);
-    const value = settings[key];
-    if (key === "skin") {
-      if (!isOnekoSkin(value)) return fail("skin must name an available Oneko coat.");
-    } else if (key === "bubblePlacement") {
-      if (value !== "auto" && value !== "above" && value !== "below")
-        return fail("bubblePlacement must be auto, above, or below.");
-    } else if (key === "seasonal") {
-      if (typeof value !== "boolean" && !isOnekoSeason(value))
-        return fail("seasonal must be true, false, halloween, winter, or newYear.");
-    } else if (key === "spriteSrc") {
-      if (value !== "" && !isSavedSprite(value) && !isRemoteSprite(value))
-        return fail(
-          "spriteSrc must be an embedded 256 × 128 PNG smaller than 256 KB, an https link, or empty.",
-        );
-      if (isSavedSprite(value)) {
-        try {
-          if (atob(value.slice(22)).length > MAX_SPRITE_BYTES)
-            return fail("spriteSrc must be smaller than 256 KB.");
-        } catch {
-          return fail("spriteSrc contains invalid PNG data.");
-        }
-      }
-    } else if (key === "spriteName") {
-      if (typeof value !== "string" || value.length > 255 || value.includes("\0"))
-        return fail("spriteName must be text of up to 255 characters.");
-    } else if (key === "soundClips") {
-      if (!parseCustomSounds(value))
-        return fail("soundClips must name known moments with clips made in the studio.");
-    } else if (key === "bubbleText") {
-      if (
-        typeof value !== "string" ||
-        value.length > MAX_THOUGHT_TEXT_LENGTH ||
-        value.includes("\0")
-      )
-        return fail("bubbleText must contain up to 50 thoughts of 120 characters each.");
-      try {
-        validateThoughts(value);
-      } catch (error) {
-        return fail(error instanceof Error ? error.message : "The thoughts could not be read.");
-      }
-    } else if (Object.hasOwn(SETTING_RANGES, key)) {
-      const [min, max] = SETTING_RANGES[key as keyof typeof SETTING_RANGES];
-      if (typeof value !== "number" || !Number.isFinite(value) || value < min || value > max)
-        return fail(`${key} must be a number between ${min} and ${max}.`);
-    } else if (typeof value !== "boolean") {
-      return fail(`${key} must be true or false.`);
-    }
-  }
-
-  return { ok: true, value: { version: 1, settings: settings as OnekoPlaygroundState } };
+  const settings = checkPlaygroundSettings(parsed.settings);
+  if (!settings.ok) return settings;
+  return { ok: true, value: { version: 1, settings: settings.value } };
 }
 
 export function serializeConfiguration(settings: OnekoPlaygroundState): string {
@@ -198,10 +125,22 @@ export async function parseShareFragment(
 }
 
 /** A sheet can pass every check and still fail to decode, which would leave the cat invisible. */
-async function checkArtwork(result: Result<ConfigurationV1> & { ok: true }) {
-  if (!isSavedSprite(result.value.settings.spriteSrc)) return result;
+async function checkArtwork(
+  result: Result<ConfigurationV1> & { ok: true },
+): Promise<Result<ConfigurationV1>> {
+  const { spriteSrc } = result.value.settings;
+  // A hosted coat gets the same size check as /studio?sprite= and "Wear coat".
+  if (isRemoteSprite(spriteSrc)) {
+    try {
+      await loadRemoteSprite(spriteSrc);
+      return result;
+    } catch (error) {
+      return fail(error instanceof Error ? error.message : "The hosted coat could not be opened.");
+    }
+  }
+  if (!isSavedSprite(spriteSrc)) return result;
   const image = new Image();
-  image.src = result.value.settings.spriteSrc;
+  image.src = spriteSrc;
   try {
     await image.decode();
     return result;

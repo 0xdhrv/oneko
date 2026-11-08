@@ -2,7 +2,6 @@
  * Framework-free Oneko: the same engine as the React component, driven by a small imperative API.
  * Built to public/oneko.js by scripts/build-vanilla.mjs; not part of the React registry items.
  */
-import { TILE } from "./constants";
 import { ONEKO_DEFAULTS } from "./defaults";
 import { createCatControls, type OnekoControls } from "./controls";
 import { createInitialCatState } from "./initial-state";
@@ -11,7 +10,8 @@ import { areCatsHidden, onCatsHiddenChange } from "./pack";
 import { readPersistedPosition } from "./persistence";
 import { applyRuntimeConfig } from "./runtime-config";
 import { getSkinSource, loadSkinSource } from "./skins";
-import { startCatAnimation } from "./start-cat-animation";
+import { ENGINE_OPTION_KEYS, laserActive, startCatAnimation } from "./start-cat-animation";
+import { restingCatStyle } from "./resting-cat";
 import type { CatActivityState, OnekoProps } from "./types";
 
 export type OnekoOptions = Omit<OnekoProps, "liveStateRef">;
@@ -108,8 +108,7 @@ export function createOneko(initial: OnekoOptions = {}, base: OnekoOptions = {})
       zIndex: options.zIndex,
       pettable: options.pettable,
     });
-    if (options.laserPointer && options.followCursor && !options.paused)
-      stopLaser = mountLaserCursor(options.zIndex);
+    if (laserActive(options)) stopLaser = mountLaserCursor(options.zIndex);
     paint();
   };
 
@@ -125,19 +124,11 @@ export function createOneko(initial: OnekoOptions = {}, base: OnekoOptions = {})
       options = { ...options, ...resolve(next) };
       onStateChangeRef.current = options.onStateChange;
       applyRuntimeConfig(stateRef.current, runtimeConfig(options));
-      const restart = (
-        [
-          "zIndex",
-          "storageKey",
-          "persistPosition",
-          "reducedMotion",
-          "laserPointer",
-          "pettable",
-        ] as const
-      ).some((key) => previous[key] !== options[key]);
-      const laserChanged =
-        previous.followCursor !== options.followCursor || previous.paused !== options.paused;
-      if (restart || (laserChanged && options.laserPointer)) start();
+      const restart =
+        [...ENGINE_OPTION_KEYS, "reducedMotion" as const].some(
+          (key) => previous[key] !== options[key],
+        ) || laserActive(previous) !== laserActive(options);
+      if (restart) start();
       else paint();
     },
     destroy() {
@@ -153,29 +144,19 @@ export function createOneko(initial: OnekoOptions = {}, base: OnekoOptions = {})
 function runtimeConfig(options: Resolved) {
   return {
     ...options,
-    laserPointer: options.laserPointer && options.followCursor && !options.paused,
+    laserPointer: laserActive(options),
   };
 }
 
-/** Still, sleeping cat for visitors who prefer reduced motion, matching the React component. */
+/** Still, sleeping cat for visitors who prefer reduced motion. */
 function createRestingCat(options: Resolved): HTMLDivElement {
   const position =
     (options.persistPosition && readPersistedPosition(options.storageKey)) || options.initialPos;
-  const inset = (TILE * options.scale) / 2 + 16 - TILE / 2;
   const el = document.createElement("div");
   el.setAttribute("aria-hidden", "true");
-  el.style.cssText = [
-    "position:fixed",
-    position ? `left:${position.x - TILE / 2}px` : `right:${inset}px`,
-    position ? `top:${position.y - TILE / 2}px` : `bottom:${inset}px`,
-    `width:${TILE}px`,
-    `height:${TILE}px`,
-    "pointer-events:none",
-    "image-rendering:pixelated",
-    "background-repeat:no-repeat",
-    "background-size:256px 128px",
-    `background-position:-${2 * TILE}px 0`,
-    `z-index:${options.zIndex}`,
-  ].join(";");
+  Object.assign(
+    el.style,
+    restingCatStyle({ position, scale: options.scale, zIndex: options.zIndex }),
+  );
   return el;
 }

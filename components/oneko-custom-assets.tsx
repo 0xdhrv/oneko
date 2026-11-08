@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useOnekoPlayground } from "./oneko-playground-context";
-import { getBundledSkinSource } from "@/lib/bundled-skins";
+import { skinImageURL } from "@/lib/skin-images";
 import {
   isRemoteSprite,
   loadRemoteSprite,
@@ -118,7 +118,7 @@ export function OnekoCustomAssets({ section }: { section: "sprite" | "thoughts" 
             </div>
           </form>
           <div className="oneko-asset-actions">
-            <a href={getBundledSkinSource("classic")} download="oneko-template.png">
+            <a href={skinImageURL("classic")} download="oneko-template.png">
               Download sprite template
             </a>
             {state.spriteSrc && (

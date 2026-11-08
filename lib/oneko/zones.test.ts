@@ -8,6 +8,7 @@ import {
   nearestSafePoint,
 } from "./zones";
 import { refreshZones, updateZoneTarget } from "./zone-runtime";
+import { ZONE_INTERVAL } from "./constants";
 import { createInitialCatState } from "./initial-state";
 import { DEFAULT_ONEKO_PLAYGROUND_STATE } from "./playground-defaults";
 import { followPath } from "./animation/movement";
@@ -66,7 +67,7 @@ describe("strict keep-out zones", () => {
       s = d.stateRef.current;
     s.zoneState.blocked = [rect];
     s.zoneState.movementTarget = { x: 400, y: 150 };
-    s.currentSpeed = 300;
+    s.cfg.speed = 300;
     s.nekoVelX = 300;
     s.freerunMode = true;
     s.freerunTimer = 100;
@@ -84,6 +85,7 @@ describe("strict keep-out zones", () => {
     expect(refreshZones(d)).toBe(false);
     expect(d.el.style.visibility).toBe("hidden");
     s.zoneState.definitions = [];
+    s.frameCount += ZONE_INTERVAL;
     expect(refreshZones(d)).toBe(true);
     expect(d.el.style.visibility).toBe("");
   });
@@ -100,15 +102,34 @@ describe("strict keep-out zones", () => {
     s.zoneState.definitions = [{ id: "moving", type: "avoid", selector: "#keep-out" }];
     refreshZones(d);
     bounds = { left: 20, top: 100, right: 80, bottom: 200 };
+    s.frameCount += ZONE_INTERVAL;
+    refreshZones(d);
+    expect(s.zoneState.blocked[0].left).toBeLessThan(20);
+    expect(
+      s.zoneState.blocked.some((zone) => containsPoint(zone, { x: s.nekoPosX, y: s.nekoPosY })),
+    ).toBe(false);
+    s.cfg.scale = 3;
+    s.frameCount += ZONE_INTERVAL;
     refreshZones(d);
     expect(
       s.zoneState.blocked.some((zone) => containsPoint(zone, { x: s.nekoPosX, y: s.nekoPosY })),
     ).toBe(false);
-    s.scale = 3;
+  });
+
+  it("reads zone rects from the DOM every few ticks, not every tick", () => {
+    vi.stubGlobal("window", { innerWidth: 500, innerHeight: 500 });
+    const querySelectorAll = vi.fn(() => []);
+    vi.stubGlobal("document", { querySelectorAll });
+    const d = deps(),
+      s = d.stateRef.current;
+    for (let tick = 0; tick < ZONE_INTERVAL * 2; tick++) {
+      refreshZones(d);
+      s.frameCount++;
+    }
+    expect(querySelectorAll).toHaveBeenCalledTimes(2);
+    s.zoneState.collectedFrame = -Infinity;
     refreshZones(d);
-    expect(
-      s.zoneState.blocked.some((zone) => containsPoint(zone, { x: s.nekoPosX, y: s.nekoPosY })),
-    ).toBe(false);
+    expect(querySelectorAll).toHaveBeenCalledTimes(3);
   });
 
   it("reads tiny explicit rectangles and tolerates invalid selectors", () => {
@@ -164,7 +185,7 @@ describe("occasional favorite spots", () => {
     expect(s.zoneState.targetId).toBeNull();
     s.zoneState.favorites = [{ id: "bed", type: "attract", rect }];
     s.zoneState.cooldownFrames = 1;
-    s.laserPointerCfg = true;
+    s.cfg.laserPointer = true;
     updateZoneTarget(s, 500, 500, () => 0);
     expect(s.zoneState.targetId).toBeNull();
   });

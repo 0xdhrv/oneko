@@ -2,9 +2,33 @@ import { CLIP_SAMPLE_RATE, MAX_CLIP_SECONDS } from "./custom-sounds";
 
 /** Longest file or recording to open; trimming brings it down to a clip. */
 export const MAX_SOURCE_BYTES = 8 * 1024 * 1024;
-export const MAX_RECORDING_MS = 4000;
+const MAX_RECORDING_MS = 4000;
 const RENDER_RATE = CLIP_SAMPLE_RATE * 4;
 const FADE_SECONDS = 0.004;
+
+/** Longest source to decode. A small, low-bitrate file can still decode to hundreds of MB. */
+export const MAX_SOURCE_SECONDS = 60;
+
+/** Reject long files from their metadata, before decoding them. Unreadable files pass to the decoder. */
+export async function checkSourceDuration(file: Blob): Promise<void> {
+  const url = URL.createObjectURL(file);
+  try {
+    const audio = new Audio();
+    audio.preload = "metadata";
+    const duration = await new Promise<number>((resolve) => {
+      audio.onloadedmetadata = () => resolve(audio.duration);
+      audio.onerror = () => resolve(Number.NaN);
+      audio.src = url;
+    });
+    // Some recordings report Infinity until played; those are left to the byte limit.
+    if (Number.isFinite(duration) && duration > MAX_SOURCE_SECONDS)
+      throw new Error(
+        `Choose a sound shorter than ${MAX_SOURCE_SECONDS} seconds, or trim it first.`,
+      );
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
 
 export async function decodeAudio(data: ArrayBuffer): Promise<AudioBuffer> {
   try {
@@ -107,6 +131,8 @@ export async function recordAudio(signal: AbortSignal): Promise<ArrayBuffer> {
     throw new Error("The microphone isn’t available. Check this site’s permission and try again.");
   }
   try {
+    // Stopped, or the editor closed, while the permission prompt was open.
+    if (signal.aborted) throw new Error("Recording stopped before it started.");
     const recorder = new MediaRecorder(stream);
     const chunks: Blob[] = [];
     recorder.ondataavailable = (event) => chunks.push(event.data);

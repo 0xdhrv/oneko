@@ -21,16 +21,16 @@ const NOT_TYPED_INPUTS = new Set([
 
 /** How close the cat gets before it settles, depending on what it is after. */
 export function stopDistance(s: CatRuntimeState): number {
-  if (s.errand || s.perchTarget) return Math.min(s.followDistanceCfg, 8);
-  if (s.leaderTarget) return Math.max(s.followDistanceCfg, TILE * s.scale);
-  return s.followDistanceCfg;
+  if (s.errand || s.perchTarget) return Math.min(s.cfg.followDistance, 8);
+  if (s.leaderTarget) return Math.max(s.cfg.followDistance, TILE * s.cfg.scale);
+  return s.cfg.followDistance;
 }
 
 /** Per-frame upkeep for page reactions; runs before the movement target is chosen. */
 export function tickAttention(deps: CatAnimationDeps): void {
   const s = deps.stateRef.current;
   s.leaderTarget = leaderPosition(s);
-  if (s.typingNap && s.sleepEnabledCfg && s.idleAnimation !== "sleeping") {
+  if (s.typingNap && s.cfg.sleepEnabled && s.idleAnimation !== "sleeping") {
     s.freerunMode = false;
     s.idleAnimation = "sleeping";
     s.idleAnimationFrame = 0;
@@ -68,7 +68,7 @@ export function watchPage(deps: CatAnimationDeps): () => void {
 
   const onKeyDown = (event: KeyboardEvent) => {
     const state = s();
-    if (!state.napWhileTypingCfg || !isTypingTarget(event.target) || !isTypingKey(event)) return;
+    if (!state.cfg.napWhileTyping || !isTypingTarget(event.target) || !isTypingKey(event)) return;
     state.typingNap = true;
     state.perchTarget = null;
     napAt = { x: state.mousePosX, y: state.mousePosY };
@@ -84,18 +84,19 @@ export function watchPage(deps: CatAnimationDeps): () => void {
       state.typingNap = false;
     }
     state.perchTarget = null;
+    state.focusTarget = null;
     clearTimeout(perchTimer);
-    if (!state.perchOnHoverCfg) return;
+    if (!state.cfg.perchOnHover) return;
     const { clientX: x, clientY: y } = event;
     perchTimer = setTimeout(() => {
       const current = s();
       const target = document.elementFromPoint(x, y)?.closest(PERCH_SELECTOR);
-      if (!current.perchOnHoverCfg || !target || target === deps.el) return;
+      if (!current.cfg.perchOnHover || !target || target === deps.el) return;
       const rect = target.getBoundingClientRect();
       if (rect.width === 0 || rect.width > window.innerWidth * 0.6) return;
       current.perchTarget = {
         x: rect.left + rect.width / 2,
-        y: Math.max(16, rect.top - (TILE * current.scale) / 2 + 4),
+        y: Math.max(16, rect.top - (TILE * current.cfg.scale) / 2 + 4),
       };
     }, PERCH_DELAY_MS);
   };
@@ -103,13 +104,16 @@ export function watchPage(deps: CatAnimationDeps): () => void {
   const onFocusIn = (event: FocusEvent) => {
     const state = s();
     const target = event.target;
-    if (!state.followFocusCfg || !(target instanceof Element) || target === deps.el) return;
+    if (!state.cfg.followFocus || !(target instanceof Element) || target === deps.el) return;
     if (!matchesFocusVisible(target)) return;
     const rect = target.getBoundingClientRect();
-    const reach = (TILE * state.scale) / 2 + 8;
+    const reach = (TILE * state.cfg.scale) / 2 + 8;
     const below = rect.bottom + reach;
-    state.mousePosX = Math.min(window.innerWidth - 16, Math.max(16, rect.left + rect.width / 2));
-    state.mousePosY = below < window.innerHeight - 16 ? below : Math.max(16, rect.top - reach);
+    // Its own target, so the cursor position (catches, laser, treats) stays the real pointer's.
+    state.focusTarget = {
+      x: Math.min(window.innerWidth - 16, Math.max(16, rect.left + rect.width / 2)),
+      y: below < window.innerHeight - 16 ? below : Math.max(16, rect.top - reach),
+    };
     state.perchTarget = null;
   };
 
@@ -130,6 +134,7 @@ export function watchPage(deps: CatAnimationDeps): () => void {
     const state = s();
     state.typingNap = false;
     state.perchTarget = null;
+    state.focusTarget = null;
     state.held = false;
   };
 }

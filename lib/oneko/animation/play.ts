@@ -23,7 +23,7 @@ import { dropTreat, eatTreat, nearestTreat, type Treat } from "../treats";
 import { constrainZoneMovement, containsPoint } from "../zones";
 import type { CatRuntimeState } from "../types";
 import { playSound } from "./activity";
-import { pickFromPool } from "./bubbles";
+import { pickFromPool, presentBubble } from "./bubbles";
 import type { CatAnimationDeps } from "./deps";
 import { errandPoint } from "./errand-point";
 import { clearRotation, setSprite } from "./sprites";
@@ -45,18 +45,16 @@ const TYPING_TARGETS =
 
 /** Show a bubble now, when automatic bubbles are allowed. */
 function speak(deps: CatAnimationDeps, pool: readonly string[]) {
-  const s = deps.stateRef.current;
-  if (!s.bubbleEnabledCfg) return;
-  s.bubbleVisible = true;
-  s.bubbleTimer = s.bubbleDisplayFramesCfg;
-  s.bubbleCooldown = 0;
-  deps.bubbleTextEl.textContent = pickFromPool(deps, pool);
-  deps.bubbleEl.style.opacity = "1";
+  presentBubble(
+    deps,
+    () => pickFromPool(deps, pool),
+    deps.stateRef.current.cfg.bubbleDisplayFrames,
+  );
 }
 
 function bumpAffection(s: CatRuntimeState): number {
   s.affection = Math.min(MAX_AFFECTION, s.affection + 1);
-  if (s.affectionCfg) writeAffection(s.affectionKey, s.affection);
+  if (s.cfg.affection) writeAffection(s.affectionKey, s.affection);
   return s.affection;
 }
 
@@ -74,12 +72,12 @@ export function petCat(deps: CatAnimationDeps): void {
   const s = deps.stateRef.current;
   rouse(s);
   const affection = bumpAffection(s);
-  speak(deps, s.affectionCfg && affectionTier(affection) >= 2 ? FOND_PET_MESSAGES : PET_MESSAGES);
+  speak(deps, s.cfg.affection && affectionTier(affection) >= 2 ? FOND_PET_MESSAGES : PET_MESSAGES);
   playSound(deps, "pet");
   s.handlers.onPet?.({ affection });
 }
 
-const knocked = new Map<Element, Animation>();
+const knocked = new Map<Element, { animation: Animation; tidy: ReturnType<typeof setTimeout> }>();
 
 /** Push an element off its shelf. It lies at the bottom of the screen for a while, then returns. */
 function knockOver(el: Element, direction: 1 | -1) {
@@ -104,24 +102,27 @@ function knockOver(el: Element, direction: 1 | -1) {
       fill: "forwards",
     },
   );
-  knocked.set(el, animation);
-  setTimeout(() => {
+  const tidy = setTimeout(() => {
     // A hooman tidied up.
     animation.playbackRate = 2;
     animation.reverse();
-    animation.finished.then(
-      () => {
-        animation.cancel();
-        knocked.delete(el);
-      },
-      () => knocked.delete(el),
-    );
+    const forget = () => {
+      if (knocked.get(el)?.animation === animation) knocked.delete(el);
+    };
+    animation.finished.then(() => {
+      animation.cancel();
+      forget();
+    }, forget);
   }, KNOCKED_DOWN_MS);
+  knocked.set(el, { animation, tidy });
 }
 
 /** Put every knocked-over element back, for when the last cat leaves. */
 export function restoreKnocked(): void {
-  for (const animation of knocked.values()) animation.cancel();
+  for (const { animation, tidy } of knocked.values()) {
+    clearTimeout(tidy);
+    animation.cancel();
+  }
   knocked.clear();
 }
 
@@ -164,11 +165,11 @@ export function createPlay(deps: CatAnimationDeps) {
 
   const wearHat = () => {
     const state = s();
-    const key = String(state.seasonalCfg);
+    const key = String(state.cfg.seasonal);
     if (key === seasonKey && state.frameCount - seasonCheckedFrame < CLOCK_CHECK_FRAMES) return;
     seasonKey = key;
     seasonCheckedFrame = state.frameCount;
-    const season = resolveSeason(state.seasonalCfg);
+    const season = resolveSeason(state.cfg.seasonal);
     if (season === state.season && (deps.hat || !season)) return;
     state.season = season;
     deps.hat?.remove();
@@ -184,7 +185,7 @@ export function createPlay(deps: CatAnimationDeps) {
 
   const readClock = () => {
     const state = s();
-    if (!state.timeOfDayCfg) {
+    if (!state.cfg.timeOfDay) {
       state.mood = NEUTRAL_MOOD;
       state.moodCheckedFrame = -Infinity;
     } else if (state.frameCount - state.moodCheckedFrame >= CLOCK_CHECK_FRAMES) {
@@ -195,7 +196,7 @@ export function createPlay(deps: CatAnimationDeps) {
 
   const greet = () => {
     const state = s();
-    if (!state.affectionCfg) {
+    if (!state.cfg.affection) {
       state.affectionLoaded = false;
       return;
     }
@@ -205,15 +206,15 @@ export function createPlay(deps: CatAnimationDeps) {
     state.affection = Math.max(state.affection, saved?.affection ?? 0);
     const greeting = greetingFor(saved);
     writeAffection(state.affectionKey, state.affection);
-    if (greeting && state.bubbleEnabledCfg)
+    if (greeting && state.cfg.bubbleEnabled)
       state.sayRequest = {
         text: greeting,
-        frames: state.bubbleDisplayFramesCfg,
+        frames: state.cfg.bubbleDisplayFrames,
       };
   };
 
   const syncGrabbable = () => {
-    const on = s().grabbableCfg;
+    const on = s().cfg.grabbable;
     if (on === grabbable) return;
     grabbable = on;
     el.style.pointerEvents = on ? "auto" : "none";
@@ -226,7 +227,7 @@ export function createPlay(deps: CatAnimationDeps) {
   /** Look for a treat to eat, or now and then a box to sit in or something to knock over. */
   const chooseErrand = () => {
     const state = s();
-    if (state.grab || !state.followCursorCfg || state.typingNap || state.held) return;
+    if (state.grab || !state.cfg.followCursor || state.typingNap || state.held) return;
     const current = state.errand?.kind;
     if (current === "goTo" || current === "sit") return;
     const treat = nearestTreat(state.nekoPosX, state.nekoPosY, (item) => unreachable.has(item));
@@ -235,12 +236,12 @@ export function createPlay(deps: CatAnimationDeps) {
       state.errand = { kind: "treat", treat, frames: 0 };
       return;
     }
-    if (state.errand || state.laserPointerCfg || state.perchTarget || state.zoneState.targetId)
+    if (state.errand || state.cfg.laserPointer || state.perchTarget || state.zoneState.targetId)
       return;
     if (--state.errandCooldown > 0) return;
     state.errandCooldown = ERRAND_CHECK_FRAMES;
     if (state.idleTime === 0 || Math.random() >= ERRAND_CHANCE) return;
-    const size = TILE * state.scale;
+    const size = TILE * state.cfg.scale;
     const boxes = [...document.querySelectorAll("[data-oneko-box]")].filter((box) => {
       const rect = box.getBoundingClientRect();
       return isVisible(box) && rect.width >= size * 0.75 && rect.height >= size * 0.5;
@@ -293,10 +294,11 @@ export function createPlay(deps: CatAnimationDeps) {
     const errand = state.errand;
     const chasingCursor =
       !errand &&
-      state.followCursorCfg &&
+      state.cfg.followCursor &&
       !state.typingNap &&
       !state.held &&
       !state.perchTarget &&
+      !state.focusTarget &&
       !state.leaderTarget &&
       !state.zoneState.targetId;
     const toCursor = Math.hypot(state.mousePosX - state.nekoPosX, state.mousePosY - state.nekoPosY);
@@ -346,7 +348,7 @@ export function createPlay(deps: CatAnimationDeps) {
             errand.arrived = true;
             errand.frames = 0;
             speak(deps, BOX_MESSAGES);
-            if (state.sleepEnabledCfg) {
+            if (state.cfg.sleepEnabled) {
               state.idleAnimation = "sleeping";
               state.idleAnimationFrame = 0;
             }
@@ -408,7 +410,7 @@ export function createPlay(deps: CatAnimationDeps) {
       if (state.grab?.phase !== "flying") return;
       const dt = Math.min(50, now - last);
       last = now;
-      if (state.pausedCfg) {
+      if (state.cfg.paused) {
         flight = requestAnimationFrame(step);
         return;
       }
@@ -432,7 +434,7 @@ export function createPlay(deps: CatAnimationDeps) {
       vx *= drag;
       vy *= drag;
       spin += vx * dt * 0.9;
-      el.style.transform = `scale(${state.scale}) rotate(${spin}deg)`;
+      el.style.transform = `scale(${state.cfg.scale}) rotate(${spin}deg)`;
       if (Math.hypot(vx, vy) < 0.06) land(hard);
       else flight = requestAnimationFrame(step);
     };
@@ -459,7 +461,7 @@ export function createPlay(deps: CatAnimationDeps) {
 
   const onPointerDown = (event: PointerEvent) => {
     const state = s();
-    if (!state.grabbableCfg || event.button > 0 || state.pausedCfg) return;
+    if (!state.cfg.grabbable || event.button > 0 || state.cfg.paused) return;
     event.preventDefault();
     el.setPointerCapture?.(event.pointerId);
     cancelAnimationFrame(flight);
@@ -537,7 +539,7 @@ export function createPlay(deps: CatAnimationDeps) {
 
   const onDoubleClick = (event: MouseEvent) => {
     const state = s();
-    if (!state.treatsCfg || handledEvents.has(event)) return;
+    if (!state.cfg.treats || handledEvents.has(event)) return;
     if (event.target instanceof Element && event.target.closest(TYPING_TARGETS)) return;
     // Double-clicking text selects a word; leave reading alone.
     if (window.getSelection()?.toString().trim() || isOverText(event.clientX, event.clientY))
@@ -551,7 +553,7 @@ export function createPlay(deps: CatAnimationDeps) {
   const requestSay = (target: Element) => {
     const state = s();
     const text = target.getAttribute("data-oneko-say")?.trim();
-    if (!text || !state.bubbleEnabledCfg || state.pausedCfg) return;
+    if (!text || !state.cfg.bubbleEnabled || state.cfg.paused) return;
     const rect = target.getBoundingClientRect();
     if (
       !isNearestCat(state, {
@@ -562,7 +564,7 @@ export function createPlay(deps: CatAnimationDeps) {
       return;
     state.sayRequest = {
       text: text.slice(0, 200),
-      frames: state.bubbleDisplayFramesCfg,
+      frames: state.cfg.bubbleDisplayFrames,
     };
   };
 
@@ -601,7 +603,7 @@ export function createPlay(deps: CatAnimationDeps) {
     document.removeEventListener("dblclick", onDoubleClick);
     document.removeEventListener("mouseover", onMouseOver);
     document.removeEventListener("focusin", onFocusIn);
-    if (state.affectionCfg && state.affectionLoaded)
+    if (state.cfg.affection && state.affectionLoaded)
       writeAffection(state.affectionKey, state.affection);
     // A remount starts fresh; requests made through the API are told they will not finish.
     if (state.errand?.kind === "goTo") state.errand.resolve?.(false);

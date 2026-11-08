@@ -11,7 +11,7 @@ export function startAnimationLoop(
     timer = undefined;
     if (document.hidden) return;
     timer = setInterval(() => {
-      if (!stateRef.current.paused && !stateRef.current.pausedCfg) frame();
+      if (!stateRef.current.paused && !stateRef.current.cfg.paused) frame();
     }, 100);
   };
   document.addEventListener("visibilitychange", syncVisibility);

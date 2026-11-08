@@ -22,6 +22,7 @@ function makeDot(zIndex: number, size: number, opacity: number, glow: boolean) {
     "image-rendering:pixelated",
     `opacity:${opacity}`,
     "transform:translate(-50%,-50%) translate(-100px,-100px)",
+    "will-change:transform",
     glow
       ? "filter:drop-shadow(0 0 4px var(--destructive)) drop-shadow(0 0 12px color-mix(in srgb, var(--destructive) 55%, transparent))"
       : "",
@@ -78,10 +79,11 @@ export function mountLaserCursor(zIndex: number): () => void {
   let pointerX = window.innerWidth / 2;
   let pointerY = window.innerHeight / 2;
 
-  const history: { x: number; y: number }[] = [];
-  for (let i = 0; i <= TRAIL_LEN; i++) {
-    history.push({ x: pointerX, y: pointerY });
-  }
+  // Ring buffer of recent pointer positions; slot `head` is the newest.
+  const SLOTS = TRAIL_LEN + 1;
+  const historyX = new Float64Array(SLOTS).fill(pointerX);
+  const historyY = new Float64Array(SLOTS).fill(pointerY);
+  let head = 0;
 
   const positionLaser = () => {
     const anchorX = ANCHOR_INSET + LASER_W;
@@ -93,24 +95,30 @@ export function mountLaserCursor(zIndex: number): () => void {
   };
 
   let rafId = 0;
+  /** Frames since the pointer last moved; once the trail has caught up, the loop sleeps. */
+  let stillFrames = 0;
+  const place = (el: HTMLDivElement, slot: number) => {
+    el.style.transform = `translate(-50%,-50%) translate(${historyX[slot]}px, ${historyY[slot]}px)`;
+  };
   const tick = () => {
-    history.unshift({ x: pointerX, y: pointerY });
-    if (history.length > TRAIL_LEN + 1) {
-      history.pop();
-    }
-    const d0 = history[0];
-    dot.style.transform = `translate(-50%,-50%) translate(${d0.x}px, ${d0.y}px)`;
-    for (let i = 0; i < trail.length; i++) {
-      const p = history[i + 1] ?? history[history.length - 1];
-      trail[i].style.transform = `translate(-50%,-50%) translate(${p.x}px, ${p.y}px)`;
-    }
-    rafId = window.requestAnimationFrame(tick);
+    head = (head + SLOTS - 1) % SLOTS;
+    historyX[head] = pointerX;
+    historyY[head] = pointerY;
+    place(dot, head);
+    for (let i = 0; i < trail.length; i++) place(trail[i], (head + i + 1) % SLOTS);
+    stillFrames++;
+    rafId = stillFrames > SLOTS ? 0 : window.requestAnimationFrame(tick);
+  };
+  const wake = () => {
+    stillFrames = 0;
+    if (!rafId) rafId = window.requestAnimationFrame(tick);
   };
 
   const onMove = (e: MouseEvent) => {
     pointerX = e.clientX;
     pointerY = e.clientY;
     positionLaser();
+    wake();
   };
 
   positionLaser();

@@ -199,6 +199,10 @@
           "type": "registry:lib"
         },
         {
+          "path": "lib/oneko/option-values.ts",
+          "type": "registry:lib"
+        },
+        {
           "path": "lib/oneko/pack.ts",
           "type": "registry:lib"
         },
@@ -216,6 +220,10 @@
         },
         {
           "path": "lib/oneko/play-messages.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/resting-cat.ts",
           "type": "registry:lib"
         },
         {
@@ -472,6 +480,10 @@
           "type": "registry:lib"
         },
         {
+          "path": "lib/oneko/option-values.ts",
+          "type": "registry:lib"
+        },
+        {
           "path": "lib/oneko/pack.ts",
           "type": "registry:lib"
         },
@@ -489,6 +501,10 @@
         },
         {
           "path": "lib/oneko/play-messages.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "lib/oneko/resting-cat.ts",
           "type": "registry:lib"
         },
         {

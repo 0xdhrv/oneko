@@ -9,10 +9,10 @@ import { updateZoneTarget } from "./zone-runtime";
 import { followPath } from "./animation/movement";
 import { interruptIdleIfChasing } from "./animation/frame/interrupt-idle";
 import { maybeStartIdleAnimation, updateIdleAnimation } from "./animation/idle";
-import { showBubble, updateBubble } from "./animation/bubbles";
+import { presentBubble, showBubble, updateBubble } from "./animation/bubbles";
 import { playSound } from "./animation/activity";
 import { createPersistHandler, loadPersistedCatState } from "./persistence";
-import { createOnekoUsage } from "./usage";
+import { abbreviateEmbeddedData, createOnekoUsage } from "./usage";
 import type { CatAnimationDeps } from "./animation/deps";
 
 function deps() {
@@ -84,7 +84,7 @@ describe("cat behavior options", () => {
   it("keeps sleeping bubbles sleepy even with custom awake text", () => {
     const d = deps();
     d.stateRef.current.idleAnimation = "sleeping";
-    d.stateRef.current.customBubbleText = "meow";
+    d.stateRef.current.cfg.bubbleText = "meow";
     showBubble(d);
     expect(d.bubbleTextEl.textContent).not.toMatch(/meow/i);
   });
@@ -114,6 +114,21 @@ describe("bubble comforts", () => {
     expect(d.bubbleTextEl.textContent).toBe("<script>alert(1)</script>");
   });
 
+  it("keeps automatic bubbles off when disabled, and never covers a said one", () => {
+    const d = deps(),
+      s = d.stateRef.current;
+    applyRuntimeConfig(s, { ...defaults, bubbleEnabled: false });
+    expect(presentBubble(d, () => "Zoomies!", 40)).toBe(false);
+    expect(s.bubbleVisible).toBe(false);
+    s.sayRequest = { text: "Welcome back", frames: 30 };
+    updateBubble(d);
+    expect(d.bubbleTextEl.textContent).toBe("Welcome back");
+    applyRuntimeConfig(s, { ...defaults, bubbleEnabled: true });
+    expect(presentBubble(d, () => "Zoomies!", 40)).toBe(false);
+    expect(d.bubbleTextEl.textContent).toBe("Welcome back");
+    expect(s.bubbleForced).toBe(true);
+  });
+
   it("changes side and scale live without resizing the cat", () => {
     const d = deps(),
       s = d.stateRef.current;
@@ -122,7 +137,7 @@ describe("bubble comforts", () => {
     updateBubble(d);
     expect(Number.parseFloat(d.bubbleEl.style.top)).toBeLessThan(s.nekoPosY);
     expect(d.bubbleEl.style.transform).toContain("scale(2)");
-    expect(s.scale).toBe(1);
+    expect(s.cfg.scale).toBe(1);
     applyRuntimeConfig(s, { ...defaults, bubblePlacement: "below" });
     updateBubble(d);
     expect(Number.parseFloat(d.bubbleEl.style.top)).toBeGreaterThan(s.nekoPosY);
@@ -147,9 +162,9 @@ describe("bubble comforts", () => {
   it("validates saved settings and clamps invalid bubble scales", () => {
     const s = deps().stateRef.current;
     applyRuntimeConfig(s, { ...defaults, bubbleScale: Number.NaN });
-    expect(s.bubbleScaleCfg).toBe(1);
+    expect(s.cfg.bubbleScale).toBe(1);
     applyRuntimeConfig(s, { ...defaults, bubbleScale: 99 });
-    expect(s.bubbleScaleCfg).toBe(2);
+    expect(s.cfg.bubbleScale).toBe(2);
     const restored = restorePlaygroundState(
       JSON.stringify({
         paused: true,
@@ -253,5 +268,11 @@ describe("installation options", () => {
     expect(usage).not.toContain("meow=");
     expect(usage).not.toContain("showCat");
     expect(usage).not.toContain("speed=");
+  });
+
+  it("shortens embedded art for display without touching other strings", () => {
+    const art = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUg${"A".repeat(400)}==`;
+    const shown = abbreviateEmbeddedData(`spriteSrc={"${art}"} bubbleText={"data:"}`);
+    expect(shown).toBe('spriteSrc={"data:image/png;base64,iVBORw0KGgoA…"} bubbleText={"data:"}');
   });
 });

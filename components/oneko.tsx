@@ -19,7 +19,8 @@ import { useOnekoPropsSync } from "@/hooks/use-oneko-props-sync";
 import { useSkinSource } from "@/hooks/use-skin-source";
 import { ONEKO_DEFAULTS } from "@/lib/oneko/defaults";
 import { useMotionAllowed, useReducedMotion } from "@/hooks/use-motion-allowed";
-import { TILE } from "@/lib/oneko/constants";
+import { restingCatStyle } from "@/lib/oneko/resting-cat";
+import { laserActive } from "@/lib/oneko/start-cat-animation";
 import { createCatControls, type OnekoControls } from "@/lib/oneko/controls";
 import { createInitialCatState } from "@/lib/oneko/initial-state";
 import { areCatsHidden, onCatsHiddenChange, setCatsHidden } from "@/lib/oneko/pack";
@@ -136,7 +137,7 @@ export default function Oneko({
     bubbleText,
     meow,
     volume,
-    laserPointer: laserPointer && followCursor && !paused,
+    laserPointer: laserActive({ laserPointer, followCursor, paused }),
     chase,
     napWhileTyping,
     followFocus,
@@ -208,29 +209,15 @@ function RestingCat({
   hueRotate: number;
   zIndex: number;
 }) {
-  const inset = (TILE * scale) / 2 + 16;
   return (
     <div
       aria-hidden="true"
       style={{
-        position: "fixed",
-        left: position ? position.x - TILE / 2 : undefined,
-        top: position ? position.y - TILE / 2 : undefined,
-        right: position ? undefined : inset - TILE / 2,
-        bottom: position ? undefined : inset - TILE / 2,
-        width: TILE,
-        height: TILE,
-        pointerEvents: "none",
-        imageRendering: "pixelated",
+        ...restingCatStyle({ position, scale, zIndex }),
         backgroundImage: `url(${JSON.stringify(source)})`,
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "256px 128px",
-        // Sleeping frame, matching defaultSpriteSets.sleeping[0].
-        backgroundPosition: `-${2 * TILE}px 0`,
         transform: `scale(${scale})`,
         opacity,
         filter: hueRotate ? `hue-rotate(${hueRotate}deg)` : undefined,
-        zIndex,
       }}
     />
   );

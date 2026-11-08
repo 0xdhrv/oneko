@@ -7,7 +7,12 @@ import { createPlay, restoreKnocked } from "./animation/play";
 import { clearTreats } from "./treats";
 import { createMouseMoveHandler } from "./animation/mouse";
 import { startAnimationLoop } from "./animation-loop";
-import { BUBBLE_DISPLAY_FRAMES, OBSTACLE_INTERVAL, PATH_RECALC_INTERVAL } from "./constants";
+import {
+  BUBBLE_DISPLAY_FRAMES,
+  OBSTACLE_INTERVAL,
+  PATH_RECALC_INTERVAL,
+  SCROLL_SETTLE_MS,
+} from "./constants";
 import { createDebugControls } from "./debug-controls/index";
 import { createBubble, createCatElement, createDebugHUD, createDebugSVG } from "./dom";
 import { createKonamiHandler } from "./konami";
@@ -27,6 +32,29 @@ export interface StartCatAnimationOptions {
   zIndex: number;
   /** Make the cat a keyboard-reachable "Pet the cat" button. */
   pettable?: boolean;
+}
+
+type EngineOptionKey = Exclude<
+  keyof StartCatAnimationOptions,
+  "stateRef" | "elRef" | "lastStateRef" | "onStateChangeRef" | "liveStateRef"
+>;
+
+/** Options fixed for one engine run. Each must be listed, so hosts restart the cat when one changes. */
+const RESTART_OPTIONS = {
+  persistPosition: true,
+  storageKey: true,
+  zIndex: true,
+  pettable: true,
+} satisfies Record<EngineOptionKey, true>;
+export const ENGINE_OPTION_KEYS = Object.keys(RESTART_OPTIONS) as EngineOptionKey[];
+
+/** The laser toy runs only while the cat is chasing. */
+export function laserActive(options: {
+  laserPointer: boolean;
+  followCursor: boolean;
+  paused: boolean;
+}): boolean {
+  return options.laserPointer && options.followCursor && !options.paused;
 }
 
 function createDebugWrapper(
@@ -93,7 +121,7 @@ export function startCatAnimation({
     bubbleEl,
     bubbleTextEl,
     frame,
-    showBubble: () => showBubble(deps),
+    showBubble: () => showBubble(deps, { forced: true }),
     hideBubble: () => hideBubble(deps),
     bubbleDisplayFrames: BUBBLE_DISPLAY_FRAMES,
   });
@@ -125,9 +153,15 @@ export function startCatAnimation({
   };
   document.addEventListener("pointerdown", onPointerDown);
 
+  // Zones are re-read on the next tick; the page-wide obstacle scan waits until scrolling settles.
+  let settle: ReturnType<typeof setTimeout> | undefined;
   const invalidateObstacles = () => {
-    stateRef.current.lastObstacleRefresh = -OBSTACLE_INTERVAL;
-    stateRef.current.lastPathRecalcFrame = -PATH_RECALC_INTERVAL;
+    stateRef.current.zoneState.collectedFrame = -Infinity;
+    clearTimeout(settle);
+    settle = setTimeout(() => {
+      stateRef.current.lastObstacleRefresh = -OBSTACLE_INTERVAL;
+      stateRef.current.lastPathRecalcFrame = -PATH_RECALC_INTERVAL;
+    }, SCROLL_SETTLE_MS);
   };
   window.addEventListener("scroll", invalidateObstacles, { passive: true });
   window.addEventListener("resize", invalidateObstacles, { passive: true });
@@ -159,6 +193,7 @@ export function startCatAnimation({
       restoreKnocked();
     }
     persist?.();
+    clearTimeout(settle);
     teardownCatAnimation(
       { el, debugSVG, debugWrapper, bubbleEl },
       {

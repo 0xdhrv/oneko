@@ -3,6 +3,8 @@ import type { ZoneRuntimeState } from "./zone-runtime";
 import type { OnekoSkin } from "./skins";
 import type { OnekoSeason } from "./seasons";
 import type { Errand, GrabState, Mood } from "./animation/play-types";
+import type { CatConfig } from "./runtime-config";
+import type { BUBBLE_PLACEMENTS, CHASE_TARGETS, REDUCED_MOTION_MODES } from "./option-values";
 
 export type CatActivityState =
   | "idle"
@@ -53,7 +55,7 @@ export interface OnekoProps {
   /** Allow the cat to nap while idle. Default true. */
   sleepEnabled?: boolean;
   /** Preferred bubble side; auto chooses the side with room. Default auto. */
-  bubblePlacement?: "auto" | "above" | "below";
+  bubblePlacement?: (typeof BUBBLE_PLACEMENTS)[number];
   /** Bubble size multiplier, in addition to scale (0.5–2). Default 1. */
   bubbleScale?: number;
   /** Directory URL for the optional .ogg sounds. Default /cat-sounds. */
@@ -110,9 +112,9 @@ export interface OnekoProps {
   /** Show a red laser dot in place of the system cursor. Default false */
   laserPointer?: boolean;
   /** With reduced motion: "hide" the cat, or let it "rest" as a still, sleeping sprite. Default "hide" */
-  reducedMotion?: "hide" | "rest";
+  reducedMotion?: (typeof REDUCED_MOTION_MODES)[number];
   /** What to chase: the cursor, or the cat mounted just before this one. Default "cursor" */
-  chase?: "cursor" | "cat";
+  chase?: (typeof CHASE_TARGETS)[number];
   /** Doze off while the visitor types in a field; wake on the next pointer move. Default false */
   napWhileTyping?: boolean;
   /** Walk over to whatever receives keyboard focus. Default false */
@@ -185,32 +187,11 @@ export interface CatRuntimeState {
   lastPathTargetRow: number;
   debugMode: boolean;
   paused: boolean;
-  pausedCfg: boolean;
-  followCursorCfg: boolean;
-  sleepEnabledCfg: boolean;
-  bubblePlacementCfg: NonNullable<OnekoProps["bubblePlacement"]>;
-  bubbleScaleCfg: number;
-  soundBasePathCfg: string;
-  soundsCfg: OnekoSounds;
+  /** Options as resolved by applyRuntimeConfig; read this, never the props. */
+  cfg: CatConfig;
   stateLocked: boolean;
   noFollow: boolean;
-  currentSpeed: number;
-  scale: number;
-  opacity: number;
-  rotationAmount: number;
-  idleThresholdMs: number;
-  freerunChanceCfg: number;
-  freerunDurationCfg: number;
-  bubbleEnabledCfg: boolean;
-  bubbleDisplayFramesCfg: number;
-  bubbleCooldownFramesCfg: number;
-  bubbleChanceCfg: number;
-  followDistanceCfg: number;
-  animationSpeedCfg: number;
-  customBubbleText: string | readonly string[];
   currentRotation: number;
-  enableMeow: boolean;
-  soundVolumeCfg: number;
   soundCooldown: number;
   bubbleTimer: number;
   bubbleCooldown: number;
@@ -221,25 +202,17 @@ export interface CatRuntimeState {
   freerunMode: boolean;
   freerunTimer: number;
   lastFreerunMsg: number;
-  laserPointerCfg: boolean;
   laserCaught: boolean;
-  chaseCfg: NonNullable<OnekoProps["chase"]>;
-  napWhileTypingCfg: boolean;
-  followFocusCfg: boolean;
-  perchOnHoverCfg: boolean;
   /** Dozing because the visitor is typing; cleared by pointer movement. */
   typingNap: boolean;
   /** Holding still while keyboard focus is on the cat. */
   held: boolean;
   /** Top of the hovered element the cat walks to and sits on. */
   perchTarget: PathPoint | null;
+  /** Spot beside the element with keyboard focus, when followFocus is on; cleared by pointer movement. */
+  focusTarget: PathPoint | null;
   /** Position of the cat this one chases, when chase is "cat" and one exists. */
   leaderTarget: PathPoint | null;
-  seasonalCfg: boolean | OnekoSeason;
-  grabbableCfg: boolean;
-  treatsCfg: boolean;
-  timeOfDayCfg: boolean;
-  affectionCfg: boolean;
   handlers: OnekoEventHandlers;
   /** Season currently worn, re-read from the calendar now and then. */
   season: OnekoSeason | null;

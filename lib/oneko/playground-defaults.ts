@@ -1,4 +1,13 @@
-import { isSpriteSource, normalizeThoughts, MAX_THOUGHT_TEXT_LENGTH } from "./custom-assets";
+import {
+  isRemoteSprite,
+  isSavedSprite,
+  isSpriteSource,
+  MAX_SPRITE_BYTES,
+  MAX_THOUGHT_TEXT_LENGTH,
+  normalizeThoughts,
+  validateThoughts,
+} from "./custom-assets";
+import { BUBBLE_PLACEMENTS, isOneOf } from "./option-values";
 import { parseCustomSounds, type CustomSounds } from "./custom-sounds";
 import { isOnekoSkin } from "./skins";
 import { isOnekoSeason } from "./seasons";
@@ -49,21 +58,6 @@ export const DEFAULT_ONEKO_PLAYGROUND_STATE = {
   friend: false,
 };
 
-/** Settings added after version 1 shipped; older files and links may leave them out. */
-export const LATER_SETTINGS = new Set<string>([
-  "napWhileTyping",
-  "followFocus",
-  "perchOnHover",
-  "pettable",
-  "friend",
-  "seasonal",
-  "grabbable",
-  "treats",
-  "timeOfDay",
-  "affection",
-  "soundClips",
-]);
-
 export type OnekoPlaygroundState = typeof DEFAULT_ONEKO_PLAYGROUND_STATE;
 
 /**
@@ -100,40 +94,179 @@ export const SETTING_RANGES = {
   zoneAttractionDuration: [1000, 10000, 500],
 } as const;
 
+type Rule<T> = {
+  /** Why a value can't be imported, or null when it is valid. */
+  invalid: (value: unknown) => string | null;
+  /** For saved preferences: a usable value from damaged or older data, or undefined for the default. */
+  repair?: (value: unknown) => T | undefined;
+};
+
+const flag = (key: string): Rule<boolean> => ({
+  invalid: (value) => (typeof value === "boolean" ? null : `${key} must be true or false.`),
+});
+
+const ranged = (key: keyof typeof SETTING_RANGES): Rule<number> => {
+  const [min, max] = SETTING_RANGES[key];
+  return {
+    invalid: (value) =>
+      typeof value === "number" && Number.isFinite(value) && value >= min && value <= max
+        ? null
+        : `${key} must be a number between ${min} and ${max}.`,
+    repair: (value) =>
+      typeof value === "number" && Number.isFinite(value)
+        ? Math.min(max, Math.max(min, value))
+        : undefined,
+  };
+};
+
+function spriteProblem(value: unknown): string | null {
+  if (value === "" || isRemoteSprite(value)) return null;
+  if (!isSavedSprite(value))
+    return "spriteSrc must be an embedded 256 × 128 PNG smaller than 256 KB, an https link, or empty.";
+  try {
+    return atob(value.slice(22)).length > MAX_SPRITE_BYTES
+      ? "spriteSrc must be smaller than 256 KB."
+      : null;
+  } catch {
+    return "spriteSrc contains invalid PNG data.";
+  }
+}
+
+function thoughtsProblem(value: unknown): string | null {
+  if (typeof value !== "string" || value.length > MAX_THOUGHT_TEXT_LENGTH || value.includes("\0"))
+    return "bubbleText must contain up to 50 thoughts of 120 characters each.";
+  try {
+    validateThoughts(value);
+    return null;
+  } catch (error) {
+    return error instanceof Error ? error.message : "The thoughts could not be read.";
+  }
+}
+
+/**
+ * How each setting is checked. Every key needs a rule, so a new setting can't be imported or
+ * restored as the wrong type. Imports reject invalid values; saved preferences repair or drop them.
+ */
+export const SETTING_RULES: { [K in keyof OnekoPlaygroundState]: Rule<OnekoPlaygroundState[K]> } = {
+  paused: flag("paused"),
+  followCursor: flag("followCursor"),
+  sleepEnabled: flag("sleepEnabled"),
+  bubblePlacement: {
+    invalid: (value) =>
+      isOneOf(BUBBLE_PLACEMENTS, value) ? null : "bubblePlacement must be auto, above, or below.",
+  },
+  bubbleScale: ranged("bubbleScale"),
+  skin: {
+    invalid: (value) => (isOnekoSkin(value) ? null : "skin must name an available Oneko coat."),
+  },
+  spriteSrc: {
+    invalid: spriteProblem,
+    // Saved preferences never held oversized sheets, so only the format is checked.
+    repair: (value) => (value === "" || isSpriteSource(value) ? value : undefined),
+  },
+  spriteName: {
+    invalid: (value) =>
+      typeof value === "string" && value.length <= 255 && !value.includes("\0")
+        ? null
+        : "spriteName must be text of up to 255 characters.",
+    repair: (value) => (typeof value === "string" ? value.slice(0, 255) : undefined),
+  },
+  soundClips: {
+    invalid: (value) =>
+      parseCustomSounds(value)
+        ? null
+        : "soundClips must name known moments with clips made in the studio.",
+    repair: (value) => parseCustomSounds(value) ?? undefined,
+  },
+  speed: ranged("speed"),
+  persistPosition: flag("persistPosition"),
+  showCat: flag("showCat"),
+  scale: ranged("scale"),
+  opacity: ranged("opacity"),
+  rotationAmount: ranged("rotationAmount"),
+  idleThreshold: ranged("idleThreshold"),
+  meow: flag("meow"),
+  volume: ranged("volume"),
+  laserPointer: flag("laserPointer"),
+  bubbleChance: ranged("bubbleChance"),
+  followDistance: ranged("followDistance"),
+  animationSpeed: ranged("animationSpeed"),
+  bubbleText: {
+    invalid: thoughtsProblem,
+    repair: (value) =>
+      typeof value === "string"
+        ? normalizeThoughts(value.slice(0, MAX_THOUGHT_TEXT_LENGTH))
+        : undefined,
+  },
+  freerunChance: ranged("freerunChance"),
+  freerunDuration: ranged("freerunDuration"),
+  bubbleEnabled: flag("bubbleEnabled"),
+  bubbleDisplayFrames: ranged("bubbleDisplayFrames"),
+  bubbleCooldown: ranged("bubbleCooldown"),
+  hueRotate: ranged("hueRotate"),
+  zoneAttractionChance: ranged("zoneAttractionChance"),
+  zoneAttractionDuration: ranged("zoneAttractionDuration"),
+  napWhileTyping: flag("napWhileTyping"),
+  followFocus: flag("followFocus"),
+  perchOnHover: flag("perchOnHover"),
+  pettable: flag("pettable"),
+  seasonal: {
+    invalid: (value) =>
+      typeof value === "boolean" || isOnekoSeason(value)
+        ? null
+        : "seasonal must be true, false, halloween, winter, or newYear.",
+  },
+  grabbable: flag("grabbable"),
+  treats: flag("treats"),
+  timeOfDay: flag("timeOfDay"),
+  affection: flag("affection"),
+  friend: flag("friend"),
+};
+
+const SETTING_KEYS = Object.keys(DEFAULT_ONEKO_PLAYGROUND_STATE) as (keyof OnekoPlaygroundState)[];
+
+/**
+ * Check imported settings. Unknown keys are rejected; missing ones use the defaults, so files and
+ * links made before a setting existed still open.
+ */
+export function checkPlaygroundSettings(
+  settings: Record<string, unknown>,
+): { ok: true; value: OnekoPlaygroundState } | { ok: false; error: string } {
+  const unknown = Object.keys(settings).find(
+    (key) => !Object.hasOwn(DEFAULT_ONEKO_PLAYGROUND_STATE, key),
+  );
+  if (unknown !== undefined)
+    return { ok: false, error: `Unknown setting: ${JSON.stringify(unknown)}.` };
+  const value: Record<string, unknown> = { ...DEFAULT_ONEKO_PLAYGROUND_STATE };
+  for (const key of SETTING_KEYS) {
+    if (!Object.hasOwn(settings, key)) continue;
+    const error = SETTING_RULES[key].invalid(settings[key]);
+    if (error) return { ok: false, error };
+    value[key] = settings[key];
+  }
+  return { ok: true, value: value as OnekoPlaygroundState };
+}
+
 /** Restore only known, correctly typed values. Old or damaged settings are harmless. */
 export function restorePlaygroundState(raw: string | null): OnekoPlaygroundState {
-  const state = { ...DEFAULT_ONEKO_PLAYGROUND_STATE };
+  const state: Record<string, unknown> = { ...DEFAULT_ONEKO_PLAYGROUND_STATE };
+  let saved: unknown;
   try {
-    const saved: unknown = JSON.parse(raw ?? "null");
-    if (!saved || typeof saved !== "object" || Array.isArray(saved)) return state;
-    for (const key of Object.keys(state) as (keyof OnekoPlaygroundState)[]) {
-      const value = (saved as Record<string, unknown>)[key];
-      if (key === "skin") {
-        if (isOnekoSkin(value)) state.skin = value;
-      } else if (key === "bubblePlacement") {
-        if (value === "auto" || value === "above" || value === "below")
-          state.bubblePlacement = value;
-      } else if (key === "seasonal") {
-        if (typeof value === "boolean" || isOnekoSeason(value)) state.seasonal = value;
-      } else if (key === "bubbleText") {
-        if (typeof value === "string")
-          state.bubbleText = normalizeThoughts(value.slice(0, MAX_THOUGHT_TEXT_LENGTH));
-      } else if (key === "spriteSrc") {
-        if (isSpriteSource(value)) state.spriteSrc = value;
-      } else if (key === "spriteName") {
-        if (typeof value === "string") state.spriteName = value.slice(0, 255);
-      } else if (key === "soundClips") {
-        state.soundClips = parseCustomSounds(value) ?? {};
-      } else if (key in SETTING_RANGES) {
-        if (typeof value !== "number" || !Number.isFinite(value)) continue;
-        const [min, max] = SETTING_RANGES[key as keyof typeof SETTING_RANGES];
-        Object.assign(state, { [key]: Math.min(max, Math.max(min, value)) });
-      } else if (typeof value === "boolean") {
-        Object.assign(state, { [key]: value });
-      }
-    }
+    saved = JSON.parse(raw ?? "null");
   } catch {
-    /* Damaged or older-format JSON restores the defaults. */
+    /* Damaged JSON restores the defaults. */
   }
-  return state;
+  if (!saved || typeof saved !== "object" || Array.isArray(saved))
+    return state as OnekoPlaygroundState;
+  for (const key of SETTING_KEYS) {
+    const value: unknown = (saved as Record<string, unknown>)[key];
+    const rule: Rule<unknown> = SETTING_RULES[key];
+    const restored = rule.repair
+      ? rule.repair(value)
+      : rule.invalid(value) === null
+        ? value
+        : undefined;
+    if (restored !== undefined) state[key] = restored;
+  }
+  return state as OnekoPlaygroundState;
 }

@@ -33,3 +33,14 @@ export function createOnekoUsage(state: OnekoPlaygroundState): string {
     .map((line) => `    ${line}`)
     .join("\n")}\n  );\n}`;
 }
+
+/**
+ * The same code for reading on the page, with embedded art and sounds shortened. Highlighting
+ * hundreds of KB of base64 blocks the main thread; copying still takes the full code.
+ */
+export function abbreviateEmbeddedData(code: string): string {
+  return code.replace(
+    /data:([\w.+-]+\/[\w.+-]+);base64,([A-Za-z0-9+/]{12})[A-Za-z0-9+/]{24,}={0,2}/g,
+    "data:$1;base64,$2…",
+  );
+}

@@ -14,7 +14,7 @@ export function createFrameLoop(deps: CatAnimationDeps, play?: CatPlay) {
 
   const frame = () => {
     const s = deps.stateRef.current;
-    if (s.pausedCfg) return;
+    if (s.cfg.paused) return;
     if (!refreshZones(deps)) return;
     tickPrelude(s);
     play?.upkeep();

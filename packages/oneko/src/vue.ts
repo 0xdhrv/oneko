@@ -1,12 +1,11 @@
 import { defineComponent, onBeforeUnmount, onMounted, watch, type PropType } from "vue";
 import {
-  createOneko,
   type CatActivityState,
   type OnekoControls,
   type OnekoInstance,
   type OnekoOptions,
 } from "./vanilla";
-import { createPropsUpdater } from "./adapter";
+import { mountWithProps } from "./adapter";
 
 export default defineComponent({
   name: "Oneko",
@@ -27,10 +26,10 @@ export default defineComponent({
     followCursor: { type: Boolean, default: undefined },
     sleepEnabled: { type: Boolean, default: undefined },
     laserPointer: { type: Boolean, default: undefined },
-    reducedMotion: String as PropType<"hide" | "rest">,
+    reducedMotion: String as PropType<OnekoOptions["reducedMotion"]>,
     bubbleEnabled: { type: Boolean, default: undefined },
     bubbleText: [String, Array] as PropType<string | string[]>,
-    bubblePlacement: String as PropType<"auto" | "above" | "below">,
+    bubblePlacement: String as PropType<OnekoOptions["bubblePlacement"]>,
     bubbleScale: Number,
     bubbleChance: Number,
     bubbleDisplayFrames: Number,
@@ -46,7 +45,7 @@ export default defineComponent({
     storageKey: String,
     initialPos: Object as PropType<{ x: number; y: number }>,
     zIndex: Number,
-    chase: String as PropType<"cursor" | "cat">,
+    chase: String as PropType<OnekoOptions["chase"]>,
     napWhileTyping: { type: Boolean, default: undefined },
     followFocus: { type: Boolean, default: undefined },
     perchOnHover: { type: Boolean, default: undefined },
@@ -69,7 +68,7 @@ export default defineComponent({
     treat: (_detail: { affection: number }) => true,
   },
   setup(props, { emit, expose }) {
-    let update: ReturnType<typeof createPropsUpdater> | undefined;
+    let update: ReturnType<typeof mountWithProps>["update"] | undefined;
     let destroy: (() => void) | undefined;
     const options = () => ({
       ...props,
@@ -91,11 +90,10 @@ export default defineComponent({
       dropTreat: (x?: number, y?: number) => cat?.dropTreat(x, y),
     } satisfies OnekoControls);
     onMounted(() => {
-      const created = createOneko();
-      cat = created;
-      destroy = () => created.destroy();
-      update = createPropsUpdater(created);
-      update(options());
+      const mounted = mountWithProps(options());
+      cat = mounted.cat;
+      destroy = () => mounted.cat.destroy();
+      update = mounted.update;
     });
     watch(
       () => ({ ...props }),

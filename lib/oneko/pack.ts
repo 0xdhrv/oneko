@@ -22,7 +22,7 @@ export function joinPack(state: CatRuntimeState): () => void {
 
 /** Where the cat ahead of this one is, or null when it leads (or chases the cursor). */
 export function leaderPosition(state: CatRuntimeState): PathPoint | null {
-  if (state.chaseCfg !== "cat") return null;
+  if (state.cfg.chase !== "cat") return null;
   const leader = pack[pack.indexOf(state) - 1];
   return leader ? { x: leader.nekoPosX, y: leader.nekoPosY } : null;
 }
@@ -45,7 +45,7 @@ export function packSize(): number {
 
 /** True when another cat is asleep close enough to curl up next to. */
 export function napmateNearby(state: CatRuntimeState): boolean {
-  const reach = TILE * Math.max(1, state.scale) * 2;
+  const reach = TILE * Math.max(1, state.cfg.scale) * 2;
   return pack.some(
     (cat) =>
       cat !== state &&

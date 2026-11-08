@@ -110,6 +110,25 @@ describe("sprite sheet", () => {
     expect(await sheetOf(encoded)).toEqual(noise);
   });
 
+  it("uses a palette for up to 256 colors and full color beyond, both exact", async () => {
+    // Transparent counts as one palette entry, so 255 opaque colors fill the palette.
+    const withColors = (count: number) => {
+      const sheet = new Uint8ClampedArray(SHEET_WIDTH * SHEET_HEIGHT * 4);
+      for (let i = 0; i < count; i++) sheet.set([i & 255, i >> 8, 7, 255], i * 4);
+      return sheet;
+    };
+    const colorType = (source: string) => Buffer.from(source.split(",")[1], "base64")[25];
+    for (const [opaque, type] of [
+      [255, 3],
+      [256, 6],
+    ]) {
+      const sheet = withColors(opaque);
+      const encoded = await encodeSheet(sheet);
+      expect(colorType(encoded), `${opaque} colors`).toBe(type);
+      expect(await sheetOf(encoded)).toEqual(sheet);
+    }
+  });
+
   it("never makes a built-in coat larger", async () => {
     for (const { id } of ONEKO_SKINS) {
       const source = getBundledSkinSource(id);

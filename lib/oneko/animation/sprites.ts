@@ -43,6 +43,6 @@ export function clearRotation(deps: CatAnimationDeps) {
   const s = deps.stateRef.current;
   if (s.currentRotation !== 0) {
     s.currentRotation = 0;
-    deps.el.style.transform = `scale(${s.scale}) rotate(0deg)`;
+    deps.el.style.transform = `scale(${s.cfg.scale}) rotate(0deg)`;
   }
 }

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { ONEKO_DEFAULTS } from "./defaults";
 import { createInitialCatState } from "./initial-state";
 import { startCatAnimation } from "./start-cat-animation";
+import { packSize } from "./pack";
 import { mountLaserCursor } from "./laser-cursor-dom";
 import type { CatActivityState } from "./types";
 
@@ -10,10 +11,13 @@ vi.mock("./zone-runtime", async (importOriginal) => ({
   refreshZones: vi.fn(),
 }));
 vi.mock("./animation/frame", () => ({ createFrameLoop: () => vi.fn() }));
-vi.mock("./animation/play", () => ({
-  createPlay: () => ({ upkeep: vi.fn(), tickGrab: vi.fn(), tickErrand: vi.fn(), dispose: vi.fn() }),
-  restoreKnocked: vi.fn(),
+const play = vi.hoisted(() => ({
+  upkeep: () => {},
+  tickGrab: () => false,
+  tickErrand: () => {},
+  dispose: () => {},
 }));
+vi.mock("./animation/play", () => ({ createPlay: () => play, restoreKnocked: vi.fn() }));
 vi.mock("./debug-controls/index", () => ({
   createDebugControls: () => ({ wrapper: document.createElement("div") }),
 }));
@@ -67,16 +71,22 @@ function element(): FakeElement {
 }
 
 const storage = { getItem: vi.fn(), setItem: vi.fn() };
+let created: FakeElement[] = [];
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.useFakeTimers();
+  created = [];
   vi.stubGlobal(
     "document",
     Object.assign(new EventTarget(), {
       body: element(),
       hidden: false,
-      createElement: element,
+      createElement: () => {
+        const made = element();
+        created.push(made);
+        return made;
+      },
     }),
   );
   vi.stubGlobal(
@@ -109,8 +119,12 @@ function options(persistPosition = true) {
 }
 
 it("saves current position on hidden/pagehide/unmount and removes listeners and DOM refs", () => {
+  const dispose = vi.spyOn(play, "dispose");
   const opts = options();
   const stop = startCatAnimation(opts);
+  expect(packSize()).toBe(1);
+  const body = (document as unknown as { body: FakeElement }).body;
+  const onPage = created.filter((made) => made.parentNode === body);
   opts.stateRef.current.nekoPosX = 230;
   document.dispatchEvent(new Event("visibilitychange"));
   expect(storage.setItem).not.toHaveBeenCalled();
@@ -129,6 +143,11 @@ it("saves current position on hidden/pagehide/unmount and removes listeners and 
     y: opts.stateRef.current.nekoPosY,
   });
   expect(opts.elRef.current).toBeNull();
+  expect(dispose).toHaveBeenCalledOnce();
+  expect(packSize()).toBe(0);
+  // Everything the cat added to the page is gone; children of removed nodes may keep their parent.
+  expect(onPage.length).toBeGreaterThan(0);
+  expect(onPage.filter((made) => made.parentNode !== null)).toEqual([]);
   expect(opts.stateRef.current.bubbleVisible).toBe(false);
   expect(opts.stateRef.current.bubbleTimer).toBe(0);
   expect(vi.getTimerCount()).toBe(0);

@@ -9,7 +9,7 @@ it("keeps studio/component defaults aligned except the studio's initial thought"
     if (key === "bubbleText" || !(key in ONEKO_DEFAULTS)) continue;
     expect(value).toEqual(ONEKO_DEFAULTS[key as keyof typeof ONEKO_DEFAULTS]);
   }
-  expect(createInitialCatState(ONEKO_DEFAULTS).enableMeow).toBe(false);
+  expect(createInitialCatState(ONEKO_DEFAULTS).cfg.meow).toBe(false);
 });
 
 it("exports a minimal quiet component and explicitly exports opted-in sound and custom artwork", () => {

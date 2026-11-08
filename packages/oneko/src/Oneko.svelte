@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { createOneko, type OnekoControls, type OnekoInstance, type OnekoOptions } from "./vanilla";
-  import { createPropsUpdater } from "./adapter";
+  import type { OnekoControls, OnekoInstance, OnekoOptions } from "./vanilla";
+  import { mountWithProps } from "./adapter";
 
   const props: OnekoOptions = $props();
-  let update = $state.raw<ReturnType<typeof createPropsUpdater>>();
+  let update = $state.raw<ReturnType<typeof mountWithProps>["update"]>();
   let cat: OnekoInstance | undefined;
 
   // bind:this gives the controls: cat.goTo("#pricing"), cat.say("hi").
@@ -16,11 +16,10 @@
   export const dropTreat: OnekoControls["dropTreat"] = (x, y) => cat?.dropTreat(x, y);
 
   onMount(() => {
-    const created = createOneko();
-    cat = created;
-    update = createPropsUpdater(created);
-    update({ ...props });
-    return () => created.destroy();
+    const mounted = mountWithProps({ ...props });
+    cat = mounted.cat;
+    update = mounted.update;
+    return () => mounted.cat.destroy();
   });
 
   $effect(() => update?.({ ...props }));
