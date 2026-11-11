@@ -13,6 +13,9 @@ const meow = $<HTMLInputElement>("meow");
 const thoughts = $<HTMLInputElement>("thoughts");
 const laser = $<HTMLInputElement>("laser");
 const pettable = $<HTMLInputElement>("pettable");
+const offSites = $<HTMLDetailsElement>("off-sites");
+const offSummary = $<HTMLElement>("off-summary");
+const offList = $<HTMLUListElement>("off-list");
 
 for (const entry of ONEKO_SKINS) skin.add(new Option(entry.name, entry.id));
 
@@ -56,7 +59,30 @@ function render() {
   laser.checked = settings.laserPointer;
   pettable.checked = settings.pettable;
   document.body.classList.toggle("off", !settings.enabled);
+  renderOffSites();
   void showPreview(settings.skin);
+}
+
+function renderOffSites() {
+  const hosts = settings.disabledHosts;
+  offSites.hidden = hosts.length === 0;
+  offSummary.textContent = `Off on ${hosts.length} ${hosts.length === 1 ? "site" : "sites"}`;
+  offList.replaceChildren(
+    ...hosts.map((entry) => {
+      const item = document.createElement("li");
+      const name = document.createElement("span");
+      name.textContent = entry || "local files";
+      const turnOn = document.createElement("button");
+      turnOn.type = "button";
+      turnOn.textContent = "Turn on";
+      turnOn.setAttribute("aria-label", `Turn on for ${entry || "local files"}`);
+      turnOn.addEventListener("click", () =>
+        save({ disabledHosts: settings.disabledHosts.filter((other) => other !== entry) }),
+      );
+      item.append(name, turnOn);
+      return item;
+    }),
+  );
 }
 
 function save(patch: Partial<Settings>) {

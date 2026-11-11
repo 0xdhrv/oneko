@@ -115,9 +115,54 @@ input[role="switch"]:disabled {
 }
 
 input[role="switch"]:focus-visible,
-select:focus-visible {
+select:focus-visible,
+summary:focus-visible,
+details button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+details {
+  padding: 4px 12px 8px;
+  border-top: 1px solid var(--line);
+}
+
+summary {
+  min-height: 28px;
+  line-height: 28px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+details ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+details li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 32px;
+}
+
+details li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+details button {
+  flex: none;
+  padding: 2px 8px;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 footer {
