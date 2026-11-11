@@ -64,11 +64,23 @@ export type OnekoPlaygroundState = typeof DEFAULT_ONEKO_PLAYGROUND_STATE;
  * The playground friend: a classic-coat kitten that chases your cat. The classic coat ships in
  * every install, so exported code compiles with either registry item.
  */
-export function friendProps(state: Pick<OnekoPlaygroundState, "scale">) {
+/** The kitten that trails the main cat: quiet, smaller, and paused or settled along with it. */
+export function friendProps(
+  state: Pick<
+    OnekoPlaygroundState,
+    "scale" | "paused" | "followCursor" | "sleepEnabled" | "napWhileTyping" | "persistPosition"
+  >,
+) {
   return {
     chase: "cat" as const,
     scale: Math.max(0.5, state.scale / 2),
     storageKey: "oneko:friend",
+    bubbleEnabled: false,
+    paused: state.paused,
+    followCursor: state.followCursor,
+    sleepEnabled: state.sleepEnabled,
+    napWhileTyping: state.napWhileTyping,
+    persistPosition: state.persistPosition,
   };
 }
 

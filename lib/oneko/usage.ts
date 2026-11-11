@@ -20,6 +20,7 @@ export function createOnekoUsage(state: OnekoPlaygroundState): string {
     });
   const cat = props.length ? `<Oneko\n${props.join("\n")}\n/>` : "<Oneko />";
   const friend = Object.entries(friendProps(state))
+    .filter(([key, value]) => value !== ONEKO_DEFAULTS[key as keyof typeof ONEKO_DEFAULTS])
     .map(([key, value]) => (typeof value === "string" ? `${key}="${value}"` : `${key}={${value}}`))
     .join(" ");
   const component = state.friend

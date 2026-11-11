@@ -270,6 +270,13 @@ describe("installation options", () => {
     expect(usage).not.toContain("speed=");
   });
 
+  it("exports the friend kitten as the playground runs it", () => {
+    const usage = createOnekoUsage({ ...defaults, friend: true, paused: true, scale: 2 });
+    expect(usage).toContain(
+      '<Oneko chase="cat" storageKey="oneko:friend" bubbleEnabled={false} paused={true} />',
+    );
+  });
+
   it("shortens embedded art for display without touching other strings", () => {
     const art = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUg${"A".repeat(400)}==`;
     const shown = abbreviateEmbeddedData(`spriteSrc={"${art}"} bubbleText={"data:"}`);

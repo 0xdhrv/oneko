@@ -26,18 +26,7 @@ function PlaygroundOneko() {
         liveStateRef={liveStateRef}
         reducedMotion="rest"
       />
-      {friend && (
-        <Oneko
-          {...friendProps(state)}
-          paused={state.paused}
-          followCursor={state.followCursor}
-          sleepEnabled={state.sleepEnabled}
-          napWhileTyping={state.napWhileTyping}
-          bubbleEnabled={false}
-          persistPosition={state.persistPosition}
-          reducedMotion="rest"
-        />
-      )}
+      {friend && <Oneko {...friendProps(state)} reducedMotion="rest" />}
     </>
   );
 }
