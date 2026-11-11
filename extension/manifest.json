@@ -29,7 +29,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["content.js", "chunks/*", "cat-sounds/*"],
+      "resources": ["content.js", "chunks/*", "cat-sounds/*", "skins/*"],
       "matches": ["<all_urls>"]
     }
   ]

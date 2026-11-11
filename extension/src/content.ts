@@ -17,8 +17,13 @@ function apply(settings: Settings) {
     cat = undefined;
     return;
   }
-  if (cat) cat.update(toOptions(settings));
-  else cat = createOneko(toOptions(settings), BASE);
+  // The coat comes from the extension, not a data: URL, so strict page CSPs still show it.
+  const options = {
+    ...toOptions(settings),
+    spriteSrc: chrome.runtime.getURL(`skins/${settings.skin}.png`),
+  };
+  if (cat) cat.update(options);
+  else cat = createOneko(options, BASE);
 }
 
 readSettings().then(apply);

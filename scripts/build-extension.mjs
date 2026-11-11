@@ -37,6 +37,8 @@ await build({
 for (const file of ["manifest.json", "loader.js", "popup.html", "popup.css"])
   cpSync(resolve(src, file), resolve(outDir, file));
 cpSync(resolve(root, "public/cat-sounds"), resolve(outDir, "cat-sounds"), { recursive: true });
+// Pages whose CSP blocks data: images still load coats from the extension's own URLs.
+cpSync(resolve(root, "public/skins"), resolve(outDir, "skins"), { recursive: true });
 cpSync(resolve(root, "LICENSE"), resolve(outDir, "LICENSE"));
 
 mkdirSync(resolve(outDir, "icons"));
