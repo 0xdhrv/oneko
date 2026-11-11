@@ -9,6 +9,7 @@ const skin = $<HTMLSelectElement>("skin");
 const preview = $<HTMLDivElement>("preview");
 const scale = $<HTMLSelectElement>("scale");
 const meow = $<HTMLInputElement>("meow");
+const thoughts = $<HTMLInputElement>("thoughts");
 const laser = $<HTMLInputElement>("laser");
 const pettable = $<HTMLInputElement>("pettable");
 
@@ -35,6 +36,7 @@ function render() {
   skin.value = settings.skin;
   scale.value = String(settings.scale);
   meow.checked = settings.meow;
+  thoughts.checked = settings.thoughts;
   laser.checked = settings.laserPointer;
   pettable.checked = settings.pettable;
   document.body.classList.toggle("off", !settings.enabled);
@@ -56,6 +58,7 @@ site.addEventListener("change", () => {
 skin.addEventListener("change", () => save({ skin: skin.value as Settings["skin"] }));
 scale.addEventListener("change", () => save({ scale: Number(scale.value) }));
 meow.addEventListener("change", () => save({ meow: meow.checked }));
+thoughts.addEventListener("change", () => save({ thoughts: thoughts.checked }));
 laser.addEventListener("change", () => save({ laserPointer: laser.checked }));
 pettable.addEventListener("change", () => save({ pettable: pettable.checked }));
 

@@ -6,6 +6,7 @@ export interface Settings {
   skin: OnekoSkin;
   scale: number;
   meow: boolean;
+  thoughts: boolean;
   laserPointer: boolean;
   pettable: boolean;
   disabledHosts: string[];
@@ -16,6 +17,7 @@ export const DEFAULT_SETTINGS: Settings = {
   skin: "classic",
   scale: 1,
   meow: false,
+  thoughts: true,
   laserPointer: false,
   pettable: true,
   disabledHosts: [],
@@ -29,7 +31,7 @@ export function parseSettings(value: unknown): Settings {
     value !== null && typeof value === "object" && !Array.isArray(value)
       ? (value as Record<string, unknown>)
       : {};
-  const flag = (key: "enabled" | "meow" | "laserPointer" | "pettable") =>
+  const flag = (key: "enabled" | "meow" | "thoughts" | "laserPointer" | "pettable") =>
     typeof stored[key] === "boolean" ? stored[key] : DEFAULT_SETTINGS[key];
   const { scale, skin, disabledHosts } = stored;
   return {
@@ -40,6 +42,7 @@ export function parseSettings(value: unknown): Settings {
         ? scale
         : DEFAULT_SETTINGS.scale,
     meow: flag("meow"),
+    thoughts: flag("thoughts"),
     laserPointer: flag("laserPointer"),
     pettable: flag("pettable"),
     disabledHosts: Array.isArray(disabledHosts)
@@ -67,6 +70,13 @@ export function isActiveOn(settings: Settings, host: string): boolean {
   return settings.enabled && !settings.disabledHosts.includes(host);
 }
 
-export function toOptions({ skin, scale, meow, laserPointer, pettable }: Settings): OnekoOptions {
-  return { skin, scale, meow, laserPointer, pettable };
+export function toOptions({
+  skin,
+  scale,
+  meow,
+  thoughts,
+  laserPointer,
+  pettable,
+}: Settings): OnekoOptions {
+  return { skin, scale, meow, bubbleEnabled: thoughts, laserPointer, pettable };
 }
