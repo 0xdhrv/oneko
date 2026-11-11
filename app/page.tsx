@@ -44,7 +44,7 @@ export default function HomePage() {
           }).replace(/</g, "\\u003c"),
         }}
       />
-      <div className="flex-1">
+      <main className="flex-1">
         <OnekoPlayground>
           <OnekoLanding />
         </OnekoPlayground>
@@ -68,7 +68,7 @@ export default function HomePage() {
             Read the install guide <ArrowUpRight size={14} aria-hidden="true" />
           </Link>
         </section>
-      </div>
+      </main>
       <footer className="oneko-footer">
         <a href="https://dhrv.pw">Made by dhrv</a>
         <Link href="/docs">Cat docs</Link>

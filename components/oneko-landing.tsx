@@ -79,7 +79,7 @@ export function OnekoLanding() {
   return (
     // "user" keeps the fades but drops movement for visitors who prefer reduced motion.
     <MotionConfig reducedMotion="user">
-      <motion.main
+      <motion.div
         initial="hidden"
         animate="show"
         variants={landingPage}
@@ -194,7 +194,7 @@ export function OnekoLanding() {
         <motion.div className="oneko-landing-world" variants={landingWorld}>
           <OnekoWorld celebrating={catnipParty} />
         </motion.div>
-      </motion.main>
+      </motion.div>
     </MotionConfig>
   );
 }
