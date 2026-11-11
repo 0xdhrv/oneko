@@ -84,6 +84,7 @@ function ResourceLinks() {
 
 export function DocsSidebar({ sections }: { sections: SidebarSection[] }) {
   const [activeSection, setActiveSection] = useState(sections[0]?.id ?? "overview");
+  const mobileMenu = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {
     let frame = 0;
@@ -145,7 +146,14 @@ export function DocsSidebar({ sections }: { sections: SidebarSection[] }) {
           </Link>
           <ThemeToggle />
         </div>
-        <details>
+        <details
+          ref={mobileMenu}
+          onClick={(event) => {
+            // Tapping a section jumps to it; fold the long list away so the section is in view.
+            if ((event.target as Element).closest('a[href^="#"]') && mobileMenu.current)
+              mobileMenu.current.open = false;
+          }}
+        >
           <summary>
             Browse the cat guide
             <CaretDown className="docs-mobile-nav-icon" size={14} aria-hidden="true" />
