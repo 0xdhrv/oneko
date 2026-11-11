@@ -296,6 +296,22 @@ test("drawing dresses the cat live, undoes, and survives a trip through a coat",
   await page.getByRole("button", { name: "Bring back your drawing" }).click();
   await expect.poll(async () => (await saved(page)).spriteSrc).toBe(drawn);
   expect(before).not.toContain(drawn.slice(0, 80));
+
+  // A new drawing on another coat keeps the first one within reach.
+  await page.getByRole("tab", { name: "Appearance" }).click();
+  await page.getByRole("button", { name: "Calico" }).click();
+  await expect.poll(async () => (await saved(page)).spriteSrc).toBe("");
+  await page.getByRole("tab", { name: "Draw" }).click();
+  await expect(page.getByRole("application")).toHaveAttribute("aria-busy", "false");
+  await drawDot(page, 16, 16);
+  await expect.poll(async () => (await saved(page)).spriteSrc).not.toBe("");
+  const second = (await saved(page)).spriteSrc;
+  expect(second).not.toBe(drawn);
+  // The newest drawing is the one being worn, so only the earlier one is offered.
+  await expect(page.getByRole("button", { name: "Bring back your drawing" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Bring back the one before" }).click();
+  // Settings save on a 300 ms timer, which runs late while parallel workers keep the CPU busy.
+  await expect.poll(async () => (await saved(page)).spriteSrc, { timeout: 15_000 }).toBe(drawn);
 });
 
 test("a right click leaves the coat alone", async ({ page }) => {
@@ -311,6 +327,18 @@ test("a right click leaves the coat alone", async ({ page }) => {
   });
   expect(corner).toBe(0);
   await expect(page.getByRole("button", { name: "Undo" })).toBeDisabled();
+});
+
+test("a drawing saved before recent drawings were kept still comes back", async ({ page }) => {
+  const legacy = getBundledSkinSource("ginger");
+  await page.addInitScript((drawing) => {
+    if (!localStorage.getItem("oneko:studio:drawings"))
+      localStorage.setItem("oneko:studio:drawing", drawing);
+  }, legacy);
+  await page.goto("/studio");
+  await page.getByRole("tab", { name: "Draw" }).click();
+  await page.getByRole("button", { name: "Bring back your drawing" }).click();
+  await expect.poll(async () => (await saved(page)).spriteSrc).toBe(legacy);
 });
 
 test("mirroring and frame tools write to the right frames", async ({ page }) => {

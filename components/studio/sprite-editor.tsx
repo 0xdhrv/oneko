@@ -64,23 +64,39 @@ const MAX_SWATCHES = 24;
 const PREVIEW_INTERVAL_MS = 220;
 const RECOLOR_SETTLE_MS = 300;
 const COAT_NAME = "Hand-drawn coat";
+/** Before recent drawings were kept, the studio saved a single one under this key. */
 const DRAWING_STORAGE_KEY = "oneko:studio:drawing";
+const DRAWINGS_STORAGE_KEY = "oneko:studio:drawings";
+const MAX_DRAWINGS = 3;
+const DRAWING_LABELS = [
+  "Bring back your drawing",
+  "Bring back the one before",
+  "Bring back the oldest one",
+];
 
-function readDrawing(): string {
+function readDrawings(): string[] {
   try {
-    const drawing = localStorage.getItem(DRAWING_STORAGE_KEY);
-    return isSavedSprite(drawing) ? drawing : "";
+    const saved: unknown = JSON.parse(localStorage.getItem(DRAWINGS_STORAGE_KEY) ?? "[]");
+    const drawings = Array.isArray(saved) ? saved.filter(isSavedSprite) : [];
+    const legacy = localStorage.getItem(DRAWING_STORAGE_KEY);
+    if (isSavedSprite(legacy) && !drawings.includes(legacy)) drawings.push(legacy);
+    return drawings.slice(0, MAX_DRAWINGS);
   } catch {
-    return "";
+    return [];
   }
 }
 
-function saveDrawing(drawing: string) {
+/** Put a drawing first, in place of the one it was edited from, and keep the most recent few. */
+function saveDrawing(drawing: string, editedFrom: string | null): string[] {
+  const others = readDrawings().filter((saved) => saved !== drawing && saved !== editedFrom);
+  const drawings = [drawing, ...others].slice(0, MAX_DRAWINGS);
   try {
-    localStorage.setItem(DRAWING_STORAGE_KEY, drawing);
+    localStorage.setItem(DRAWINGS_STORAGE_KEY, JSON.stringify(drawings));
+    localStorage.removeItem(DRAWING_STORAGE_KEY);
   } catch {
     /* Storage can be unavailable or full; the coat still applies to this visit. */
   }
+  return drawings;
 }
 
 function SpriteFrame({ source, frame, size }: { source: string; frame: Frame; size: number }) {
@@ -181,7 +197,9 @@ export function SpriteEditor() {
   const [blankFrames, setBlankFrames] = useState(0);
   const [hasCopy, setHasCopy] = useState(false);
   const [history, setHistory] = useState({ undo: false, redo: false });
-  const [drawing, setDrawing] = useState("");
+  const [drawings, setDrawings] = useState<string[]>([]);
+  // The saved drawing this sheet started from, so edits update it instead of crowding it out.
+  const editedFrom = useRef<string | null>(null);
 
   const animation =
     SPRITE_ANIMATIONS.find((candidate) => candidate.id === animationId) ?? SPRITE_ANIMATIONS[0];
@@ -216,8 +234,9 @@ export function SpriteEditor() {
   }, []);
 
   useEffect(() => {
-    setDrawing(readDrawing());
+    setDrawings(readDrawings());
     if (source === published.current) return;
+    editedFrom.current = source;
     // The coat changed from outside the editor: pending edits belong to the old sheet.
     clearTimeout(recolorTimer.current);
     recolor.current = null;
@@ -264,7 +283,8 @@ export function SpriteEditor() {
     const spriteSrc = await encodeSheet(sheet);
     if (request !== saveRequest.current) return;
     published.current = spriteSrc;
-    saveDrawing(spriteSrc);
+    setDrawings(saveDrawing(spriteSrc, editedFrom.current));
+    editedFrom.current = spriteSrc;
     actions.update({ spriteSrc, spriteName: COAT_NAME, hueRotate: 0 });
   }, [actions, refreshSheetInfo]);
 
@@ -696,19 +716,24 @@ export function SpriteEditor() {
           <button type="button" onClick={download}>
             <DownloadSimple size={14} aria-hidden="true" /> Download PNG
           </button>
-          {drawing && drawing !== source && (
-            <button
-              type="button"
-              onClick={() =>
-                actions.update({
-                  spriteSrc: drawing,
-                  spriteName: COAT_NAME,
-                  hueRotate: 0,
-                })
-              }
-            >
-              Bring back your drawing
-            </button>
+          {drawings.map(
+            (saved, index) =>
+              saved !== source && (
+                <button
+                  key={saved}
+                  type="button"
+                  onClick={() =>
+                    actions.update({
+                      spriteSrc: saved,
+                      spriteName: COAT_NAME,
+                      hueRotate: 0,
+                    })
+                  }
+                >
+                  <SpriteFrame source={saved} frame={SPRITE_ANIMATIONS[0].frames[0]} size={16} />
+                  {DRAWING_LABELS[index]}
+                </button>
+              ),
           )}
         </div>
       </div>
