@@ -118,6 +118,9 @@ export function OnekoTweaks() {
   // The drawing board stays mounted once opened, so undo survives a trip to another tab.
   const [boardOpened, setBoardOpened] = useState(false);
   if (active === "draw" && !boardOpened) setBoardOpened(true);
+  // A trimmed clip that isn't saved yet should outlast a look at another tab.
+  const [soundsOpened, setSoundsOpened] = useState(false);
+  if (active === "sounds" && !soundsOpened) setSoundsOpened(true);
   const [assetsVersion, setAssetsVersion] = useState(0);
   const [notice, setNotice] = useState("");
   const selected = ONEKO_SKINS.find((skin) => skin.id === state.skin) ?? ONEKO_SKINS[0];
@@ -168,7 +171,9 @@ export function OnekoTweaks() {
           tabIndex={0}
           className="studio-panel"
         >
-          {(active === id || (id === "draw" && boardOpened)) && (
+          {(active === id ||
+            (id === "draw" && boardOpened) ||
+            (id === "sounds" && soundsOpened)) && (
             <>
               <header className="studio-panel-heading">
                 <h2>{title}</h2>
@@ -230,7 +235,7 @@ export function OnekoTweaks() {
                   <div className="oneko-toolbar studio-comforts">
                     <Comfort setting="meow" label="Sound" />
                   </div>
-                  <SoundEditor />
+                  <SoundEditor visible={active === "sounds"} />
                   <OnekoSettings group="Sound" />
                 </>
               )}

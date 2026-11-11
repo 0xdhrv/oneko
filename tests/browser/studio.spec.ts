@@ -529,6 +529,17 @@ test("the keyboard draws on the cell the cursor shows", async ({ page }) => {
   await expect(spoken).toHaveText(new RegExp(`^Column ${cell.x + 2}, row ${cell.y + 1}, `));
 });
 
+test("an unsaved clip waits while you visit another tab", async ({ page }) => {
+  await page.goto("/studio");
+  await page.getByRole("tab", { name: "Sounds" }).click();
+  await page.getByLabel("Upload a sound for Pets").setInputFiles(toneFile());
+  await expect(page.getByRole("button", { name: "Use this clip" })).toBeVisible();
+  await page.getByRole("tab", { name: "Thoughts" }).click();
+  await page.getByRole("tab", { name: "Sounds" }).click();
+  await page.getByRole("button", { name: "Use this clip" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Clip saved" })).toBeVisible();
+});
+
 test("the clip editor takes focus and hands it back to what opened it", async ({ page }) => {
   await page.goto("/studio");
   await page.getByRole("tab", { name: "Sounds" }).click();

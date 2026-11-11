@@ -156,7 +156,7 @@ function ClipEditor({
   );
 }
 
-export function SoundEditor() {
+export function SoundEditor({ visible = true }: { visible?: boolean }) {
   const { state, actions } = useOnekoPlayground();
   const [draft, setDraft] = useState<Draft | null>(null);
   const [recording, setRecording] = useState<OnekoSoundEvent | null>(null);
@@ -174,6 +174,13 @@ export function SoundEditor() {
     },
     [],
   );
+
+  // Hidden behind another tab: the draft waits, but the speaker and microphone stop.
+  useEffect(() => {
+    if (visible) return;
+    playing.current?.pause();
+    recorder.current?.abort();
+  }, [visible]);
 
   const play = (url: string) => {
     playing.current?.pause();
