@@ -7,7 +7,12 @@ import { getBundledSkinSource } from "../../lib/bundled-skins";
 const HOSTED = "https://oneko.dhrv.pw";
 const FIXTURE = "http://127.0.0.1:3102/frameworks/";
 
-type Harness = { setSkin(skin?: string): void; unmount(): void; states: string[] };
+type Harness = {
+  setSkin(skin?: string): void;
+  unmount(): void;
+  say(text: string): void;
+  states: string[];
+};
 
 async function open(page: Page, framework: string) {
   await page.route(`${HOSTED}/**`, (route) =>
@@ -30,7 +35,7 @@ const harness = <T>(page: Page, run: (harness: Harness) => T) =>
   );
 
 for (const framework of ["svelte", "vue", "solid"]) {
-  test(`${framework} wrapper mounts, follows props, reports state, and cleans up`, async ({
+  test(`${framework} wrapper mounts, follows props, reports state, speaks, and cleans up`, async ({
     page,
   }) => {
     await open(page, framework);
@@ -47,6 +52,17 @@ for (const framework of ["svelte", "vue", "solid"]) {
     await page.mouse.move(40, 40);
     await page.mouse.move(900, 700, { steps: 10 });
     await expect.poll(() => harness(page, (h) => h.states.length)).toBeGreaterThan(0);
+
+    // The component hands out the same controls as createOneko().
+    await harness(page, (h) => h.say("hello from the wrapper"));
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const bubble = document.querySelector("[data-oneko-cat]")!.nextElementSibling;
+          return (bubble as HTMLElement).style.opacity === "1" ? bubble!.textContent : "";
+        }),
+      )
+      .toBe("hello from the wrapper");
 
     await harness(page, (h) => h.unmount());
     await expect(cat(page)).toHaveCount(0);

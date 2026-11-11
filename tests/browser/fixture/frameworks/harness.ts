@@ -2,6 +2,7 @@
 export interface Harness {
   setSkin(skin: string | undefined): void;
   unmount(): void;
+  say(text: string): void;
   states: string[];
 }
 

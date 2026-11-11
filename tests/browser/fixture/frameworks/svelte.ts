@@ -9,4 +9,11 @@ const props = createProps<Record<string, unknown>>({
   onStateChange: (state: string) => states.push(state),
 });
 const app = mount(Oneko, { target: document.getElementById("app")!, props });
-expose({ setSkin: (skin) => (props.skin = skin), unmount: () => unmount(app) }, states);
+expose(
+  {
+    setSkin: (skin) => (props.skin = skin),
+    unmount: () => unmount(app),
+    say: (text) => (app as { say(text: string): void }).say(text),
+  },
+  states,
+);
