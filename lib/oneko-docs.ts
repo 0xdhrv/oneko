@@ -460,7 +460,7 @@ export const DOC_SECTIONS: DocSection[] = [
     blocks: [
       {
         kind: "text",
-        text: 'Any site can load the hosted build: Astro, Hugo, Jekyll, WordPress, or plain HTML. One script tag brings a cat, configured with data- attributes named after the props in kebab case. Booleans accept a bare attribute or "false"; separate several thoughts with |. Sounds default to the hosted files.',
+        text: 'Any site can load the hosted build: Astro, Hugo, Jekyll, WordPress, or plain HTML. One script tag brings a cat, configured with data- attributes named after the props in kebab case. Booleans accept a bare attribute or "false"; separate several thoughts with |. Sounds default to the hosted files. zones, sounds, and initialPos take objects, so attributes skip them; pass those to createOneko().',
       },
       {
         kind: "code",
@@ -542,7 +542,7 @@ export const DOC_SECTIONS: DocSection[] = [
           "In Nuxt, save the file as components/Oneko.vue and it is auto-imported.",
           "Svelte and Solid take onStateChange as a prop; Vue emits state-change.",
           "Setting a prop to undefined returns that option to its default.",
-          "To self-host, serve public/oneko.js and its oneko/ folder yourself and change ONEKO_URL at the top of the component.",
+          "To self-host, serve public/oneko.js with its oneko/ and cat-sounds/ folders yourself and change ONEKO_URL at the top of the component.",
         ],
       },
       {
@@ -568,7 +568,7 @@ export const DOC_SECTIONS: DocSection[] = [
       },
       {
         kind: "text",
-        text: "Most props update live. initialPos is mount-only; changing persistPosition, storageKey, zIndex, or the liveStateRef object restarts the animation DOM. Suggested playground ranges are guidance, not automatic clamps unless explicitly stated below.",
+        text: "Most props update live. initialPos is mount-only; changing persistPosition, storageKey, zIndex, pettable, or the liveStateRef object restarts the animation DOM. Suggested playground ranges are guidance, not automatic clamps unless explicitly stated below.",
       },
     ],
   },
@@ -715,7 +715,7 @@ export const DOC_SECTIONS: DocSection[] = [
       },
       {
         kind: "text",
-        text: 'createOneko() returns the same controls next to update and destroy. Vue template refs and Svelte bind:this expose them too, and the Solid component takes ref={(controls) => ...}. Add data-oneko-say="text" to any element and the nearest cat comments when the pointer rests on it or keyboard focus lands on it. say() and data-oneko-say speak even when bubbleEnabled is false; data-oneko-say stays quiet when it is off.',
+        text: 'createOneko() returns the same controls next to update and destroy. Vue template refs and Svelte bind:this expose them too, and the Solid component takes ref={(controls) => ...}. Add data-oneko-say="text" to any element and the nearest cat comments when the pointer rests on it or keyboard focus lands on it. say() speaks even when bubbleEnabled is false; data-oneko-say stays quiet when it is off.',
       },
     ],
   },
