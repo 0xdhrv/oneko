@@ -40,6 +40,13 @@ h1 {
   background-position: -96px -96px;
 }
 
+.note {
+  margin: 0;
+  padding: 8px 12px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+
 section {
   padding: 4px 12px;
   transition: opacity 120ms;

@@ -23,3 +23,7 @@ function apply(settings: Settings) {
 
 readSettings().then(apply);
 onSettingsChange(apply);
+// Lets the popup tell a page that was open before install, which has no cat yet.
+chrome.runtime.onMessage.addListener((message, _sender, reply) => {
+  if (message === "oneko:ping") reply(true);
+});

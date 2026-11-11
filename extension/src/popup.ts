@@ -5,6 +5,7 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 const enabled = $<HTMLInputElement>("enabled");
 const site = $<HTMLInputElement>("site");
 const siteLabel = $<HTMLSpanElement>("site-label");
+const reload = $<HTMLParagraphElement>("reload");
 const skin = $<HTMLSelectElement>("skin");
 const preview = $<HTMLDivElement>("preview");
 const scale = $<HTMLSelectElement>("scale");
@@ -20,6 +21,12 @@ const url = tab?.url ? new URL(tab.url) : undefined;
 // Chrome never runs content scripts on its own pages or the Web Store.
 const host = url && /^(https?|file):$/.test(url.protocol) ? url.hostname : undefined;
 
+// Pages opened before the extension was installed or updated run no content script until reloaded.
+const needsReload =
+  host !== undefined &&
+  tab?.id !== undefined &&
+  !(await chrome.tabs.sendMessage(tab.id, "oneko:ping").catch(() => false));
+
 let settings = await readSettings();
 
 async function showPreview(id: Settings["skin"]) {
@@ -33,6 +40,7 @@ function render() {
   site.checked = host !== undefined && isActiveOn(settings, host);
   siteLabel.textContent =
     host !== undefined ? `On ${host || "local files"}` : "Not available on this page";
+  reload.hidden = !needsReload || !isActiveOn(settings, host);
   skin.value = settings.skin;
   scale.value = String(settings.scale);
   meow.checked = settings.meow;
