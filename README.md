@@ -179,7 +179,7 @@ to Cloudflare Workers, run `pnpm preview` locally, then `pnpm deploy`. See the
 | `components/oneko.tsx`    | Installable React component.                |
 | `hooks/` and `lib/oneko/` | Animation hook and engine.                  |
 | `lib/oneko/vanilla*.ts`   | Framework-free build served as `/oneko.js`. |
-| `public/frameworks/`      | Svelte and Vue components.                  |
+| `public/frameworks/`      | Svelte, Vue, and Solid components.          |
 | `packages/oneko/`         | npm package and its framework entries.      |
 | `extension/`              | Chrome extension.                           |
 | `registry.json`           | Source manifest for the shadcn registry.    |
