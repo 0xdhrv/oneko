@@ -124,6 +124,8 @@ export async function renderClip(
 
 /** Record from the microphone until stopped or the limit passes. */
 export async function recordAudio(signal: AbortSignal): Promise<ArrayBuffer> {
+  if (typeof MediaRecorder === "undefined")
+    throw new Error("This browser can’t record sound. Upload a clip instead.");
   let stream: MediaStream;
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -143,7 +145,9 @@ export async function recordAudio(signal: AbortSignal): Promise<ArrayBuffer> {
     signal.addEventListener("abort", stop, { once: true });
     await stopped;
     clearTimeout(limit);
-    return await new Blob(chunks, { type: recorder.mimeType }).arrayBuffer();
+    const recording = new Blob(chunks, { type: recorder.mimeType });
+    if (recording.size === 0) throw new Error("Nothing was recorded. Let it run a moment longer.");
+    return await recording.arrayBuffer();
   } finally {
     stream.getTracks().forEach((track) => track.stop());
   }

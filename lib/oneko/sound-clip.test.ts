@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { CLIP_SAMPLE_RATE, isSoundClip, parseCustomSounds, soundsForProp } from "./custom-sounds";
-import { downsample, encodeWav, shapeClip } from "./sound-clip";
+import { downsample, encodeWav, recordAudio, shapeClip } from "./sound-clip";
 
 const wavBytes = (clip: string) => Buffer.from(clip.split(",")[1], "base64");
 
@@ -50,5 +50,49 @@ describe("sound clips", () => {
       hiss: { src: "", name: "" },
     });
     expect(soundsForProp(sounds!)).toEqual({ pet: clip, hiss: [] });
+  });
+});
+
+describe("recording", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  const stopTrack = vi.fn();
+  const microphone = () =>
+    vi.stubGlobal("navigator", {
+      mediaDevices: { getUserMedia: async () => ({ getTracks: () => [{ stop: stopTrack }] }) },
+    });
+
+  it("says so when the browser cannot record", async () => {
+    microphone();
+    await expect(recordAudio(new AbortController().signal)).rejects.toThrow(
+      "This browser can’t record sound.",
+    );
+  });
+
+  it("explains a recording stopped before any sound arrived", async () => {
+    microphone();
+    vi.stubGlobal(
+      "MediaRecorder",
+      class {
+        state = "inactive";
+        mimeType = "audio/webm";
+        ondataavailable: ((event: { data: Blob }) => void) | null = null;
+        onstop: (() => void) | null = null;
+        start() {
+          this.state = "recording";
+          // Stop pressed at once: the only chunk is empty.
+          queueMicrotask(() => this.stop());
+        }
+        stop() {
+          this.state = "inactive";
+          this.ondataavailable?.({ data: new Blob([]) });
+          this.onstop?.();
+        }
+      },
+    );
+    await expect(recordAudio(new AbortController().signal)).rejects.toThrow(
+      "Nothing was recorded.",
+    );
+    expect(stopTrack).toHaveBeenCalled();
   });
 });
