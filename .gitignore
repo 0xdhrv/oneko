@@ -37,3 +37,6 @@ packages/oneko/LICENSE
 packages/oneko/SKIN-CREDITS.md
 dist/
 *.tgz
+
+# Claude Code per-user settings (may contain approved commands with secrets)
+.claude/settings.local.json
