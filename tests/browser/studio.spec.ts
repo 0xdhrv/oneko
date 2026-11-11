@@ -442,6 +442,8 @@ test("a link carries a drawn coat and sounds, and the recipient can go back to t
   await recipient.reload();
   await recipient.getByRole("tab", { name: "Thoughts" }).click();
   await expect(recipient.getByLabel("Your cat’s thoughts")).toHaveValue("mine now");
+  // The way back to the visitor's own cat survives the reload too.
+  await expect(recipient.getByRole("button", { name: "Back to my cat" })).toBeVisible();
 
   await recipient.goto(url);
   await expect(

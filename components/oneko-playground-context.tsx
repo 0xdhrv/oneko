@@ -55,6 +55,18 @@ type PlaygroundAction =
   | { type: "update"; changes: Partial<OnekoPlaygroundState> }
   | { type: "replace"; state: OnekoPlaygroundState };
 
+/** Session storage, so "Back to my cat" survives a reload after a share link replaced the cat. */
+const PREVIOUS_CAT_KEY = `${PLAYGROUND_STORAGE_KEY}:previous`;
+
+function storePreviousCat(cat: OnekoPlaygroundState | null) {
+  try {
+    if (cat) sessionStorage.setItem(PREVIOUS_CAT_KEY, JSON.stringify(cat));
+    else sessionStorage.removeItem(PREVIOUS_CAT_KEY);
+  } catch {
+    /* Without session storage, the way back lasts until the page reloads. */
+  }
+}
+
 const OnekoPlaygroundContext = createContext<OnekoPlaygroundContextValue | null>(null);
 
 export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
@@ -68,7 +80,11 @@ export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
 
   const [restored, setRestored] = useState(false);
   const [configurationStatus, setConfigurationStatus] = useState("");
-  const [previousCat, setPreviousCat] = useState<OnekoPlaygroundState | null>(null);
+  const [previousCat, setPreviousCatState] = useState<OnekoPlaygroundState | null>(null);
+  const setPreviousCat = (cat: OnekoPlaygroundState | null) => {
+    setPreviousCatState(cat);
+    storePreviousCat(cat);
+  };
   const latestState = useRef(state);
   /** Bumped by every edit or loaded shared cat, so late async results can tell they are stale. */
   const changes = useRef(0);
@@ -82,6 +98,12 @@ export function OnekoPlaygroundProvider({ children }: { children: ReactNode }) {
     }
     dispatch({ type: "replace", state: initial });
     latestState.current = initial;
+    try {
+      const previous = sessionStorage.getItem(PREVIOUS_CAT_KEY);
+      if (previous) setPreviousCatState(restorePlaygroundState(previous));
+    } catch {
+      /* Storage can be unavailable; there is no earlier cat to offer. */
+    }
     let request = 0;
     const applySharedConfiguration = async () => {
       const current = ++request;
