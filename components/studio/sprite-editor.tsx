@@ -563,6 +563,7 @@ export function SpriteEditor() {
             <input
               id="sprite-color"
               type="color"
+              aria-label="Drawing color"
               value={colorToHex(color)}
               onChange={(event) => setColor(hexToColor(event.target.value))}
             />
