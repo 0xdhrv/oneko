@@ -18,8 +18,12 @@ for (const entry of ONEKO_SKINS) skin.add(new Option(entry.name, entry.id));
 
 const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 const url = tab?.url ? new URL(tab.url) : undefined;
-// Chrome never runs content scripts on its own pages or the Web Store.
-const host = url && /^(https?|file):$/.test(url.protocol) ? url.hostname : undefined;
+// Chrome never runs content scripts on its own pages or the Web Store, nor on local files
+// unless "Allow access to file URLs" is on.
+const blockedFile =
+  url?.protocol === "file:" && !(await chrome.extension.isAllowedFileSchemeAccess());
+const host =
+  url && /^(https?|file):$/.test(url.protocol) && !blockedFile ? url.hostname : undefined;
 
 // Pages opened before the extension was installed or updated run no content script until reloaded.
 const needsReload =
@@ -39,7 +43,11 @@ function render() {
   site.disabled = !settings.enabled || host === undefined;
   site.checked = host !== undefined && isActiveOn(settings, host);
   siteLabel.textContent =
-    host !== undefined ? `On ${host || "local files"}` : "Not available on this page";
+    host !== undefined
+      ? `On ${host || "local files"}`
+      : blockedFile
+        ? "Allow file access for local files"
+        : "Not available on this page";
   reload.hidden = !needsReload || !isActiveOn(settings, host);
   skin.value = settings.skin;
   scale.value = String(settings.scale);
