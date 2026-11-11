@@ -522,6 +522,11 @@ test("the keyboard draws on the cell the cursor shows", async ({ page }) => {
   await page.keyboard.press("e");
   await page.keyboard.press("Space");
   expect(await alpha()).toBe(0);
+  // Screen readers hear the cell and what it now holds.
+  const spoken = page.locator('.sprite-editor [aria-live="polite"]');
+  await expect(spoken).toHaveText(`Column ${cell.x + 1}, row ${cell.y + 1}, empty`);
+  await page.keyboard.press("ArrowRight");
+  await expect(spoken).toHaveText(new RegExp(`^Column ${cell.x + 2}, row ${cell.y + 1}, `));
 });
 
 test("the clip editor takes focus and hands it back to what opened it", async ({ page }) => {

@@ -166,6 +166,7 @@ export function SpriteEditor() {
   const recolorTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   // The swatches catch up only when a recolor settles, so keep its picker live until then.
   const [recoloring, setRecoloring] = useState(false);
+  const [cellAnnouncement, setCellAnnouncement] = useState("");
 
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
@@ -345,6 +346,16 @@ export function SpriteEditor() {
     strokeRef.current = null;
   };
 
+  /** Keyboard users hear where the cursor is and what it sits on; pointer moves stay quiet. */
+  const announceCell = (x: number, y: number) => {
+    const sheet = sheetRef.current;
+    if (!sheet) return;
+    const pixel = getPixel(sheet, frame, x, y);
+    setCellAnnouncement(
+      `Column ${x + 1}, row ${y + 1}, ${pixel & 255 ? colorToHex(pixel) : "empty"}`,
+    );
+  };
+
   const onCanvasKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const { x, y } = cursorCell.current;
     const moves: Record<string, [number, number]> = {
@@ -356,14 +367,17 @@ export function SpriteEditor() {
     const move = moves[event.key];
     if (move) {
       event.preventDefault();
-      moveCursor(
-        Math.max(0, Math.min(TILE - 1, x + move[0])),
-        Math.max(0, Math.min(TILE - 1, y + move[1])),
-      );
+      const next = {
+        x: Math.max(0, Math.min(TILE - 1, x + move[0])),
+        y: Math.max(0, Math.min(TILE - 1, y + move[1])),
+      };
+      moveCursor(next.x, next.y);
+      announceCell(next.x, next.y);
     } else if (event.key === " " || event.key === "Enter") {
       event.preventDefault();
       const stroke = beginAt(x, y, false);
       if (stroke) commit(stroke.before);
+      announceCell(x, y);
     }
   };
 
@@ -499,6 +513,9 @@ export function SpriteEditor() {
         </p>
       )}
 
+      <p className="sr-only" aria-live="polite">
+        {cellAnnouncement}
+      </p>
       <div className="sprite-workbench">
         <div
           className="sprite-canvas"
