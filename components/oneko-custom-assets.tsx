@@ -215,7 +215,7 @@ export function OnekoCustomAssets({ section }: { section: "sprite" | "thoughts" 
           <p className="oneko-note" role="status">
             {thoughtLines(state.bubbleText).length}{" "}
             {thoughtLines(state.bubbleText).length === 1 ? "thought" : "thoughts"} ready.{" "}
-            {!state.bubbleEnabled && "Turn on Bubbles above to hear them."}
+            {!state.bubbleEnabled && "Turn on Bubbles above to see them."}
           </p>
         </div>
       )}
