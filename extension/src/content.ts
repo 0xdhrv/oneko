@@ -2,10 +2,12 @@ import { createOneko, type OnekoInstance } from "@/lib/oneko/vanilla";
 import { isActiveOn, onSettingsChange, readSettings, toOptions, type Settings } from "./settings";
 
 // The cat lives on someone else's page, so it keeps its position to itself instead of the site's storage.
+// With reduced motion on, a still, sleeping cat keeps the popup's "on" honest.
 const BASE = {
   soundBasePath: chrome.runtime.getURL("cat-sounds"),
   persistPosition: false,
-};
+  reducedMotion: "rest",
+} as const;
 
 let cat: OnekoInstance | undefined;
 
