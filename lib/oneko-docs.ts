@@ -558,6 +558,37 @@ export const DOC_SECTIONS: DocSection[] = [
     ],
   },
   {
+    id: "npm",
+    label: "npm package",
+    title: "A cat in node_modules",
+    blocks: [
+      {
+        kind: "text",
+        text: "To bundle the engine and all 24 coats instead of loading them from oneko.dhrv.pw, install the oneko package. Every entry mounts one cat on document.body and takes the same props.",
+      },
+      {
+        kind: "code",
+        label: "Install the package",
+        language: "bash",
+        code: "npm install oneko",
+      },
+      {
+        kind: "code",
+        label: "One entry per framework",
+        language: "tsx",
+        code: 'import Oneko from "oneko"; // React\nimport Oneko from "oneko/vue";\nimport Oneko from "oneko/svelte";\nimport Oneko from "oneko/solid";\nimport { createOneko } from "oneko/vanilla";',
+      },
+      {
+        kind: "list",
+        items: [
+          'The React entry is marked "use client", so Next.js App Router can import it from a server component.',
+          "Importing any entry during SSR has no DOM side effects. The cat mounts in the browser.",
+          "Meows are off by default. Copy node_modules/oneko/dist/cat-sounds to a folder your site serves and point soundBasePath at it.",
+        ],
+      },
+    ],
+  },
+  {
     id: "options",
     label: "Props",
     title: "Every cat comfort",

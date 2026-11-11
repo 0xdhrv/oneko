@@ -18,6 +18,7 @@ Use Oneko when a developer wants a decorative cursor-following cat, a quiet stat
 4. Start with meow={false} unless the optional sound files are present. Keep reduced-motion behavior and existing theme tokens. Mount one instance.
    Without React, add <script type="module" src="${DOCS_ORIGIN}/oneko.js"></script> with data- attributes named after the props instead of steps 2–3.
    For Svelte 5, Vue 3, or Solid, download ${DOCS_ORIGIN}/frameworks/Oneko.svelte, Oneko.vue, or Oneko.solid.tsx into the project instead of steps 2–3. Other frameworks (Angular, Lit) can use the <oneko-cat> element.
+   To bundle the engine and coats instead of loading them from ${DOCS_ORIGIN}, run npm install oneko and import from oneko, oneko/vue, oneko/svelte, oneko/solid, or oneko/vanilla.
 5. Apply documented props and validate the integration with the project's existing checks. Do not deploy unless the user requests it.
 
 ## Documentation
