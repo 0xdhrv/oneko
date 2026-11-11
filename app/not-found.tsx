@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LostCat } from "@/components/lost-cat";
 
 export default function NotFound() {
   return (
@@ -10,7 +11,11 @@ export default function NotFound() {
         installation, every option, and examples.
       </p>
       <nav aria-label="Find your cat" className="flex flex-wrap gap-x-6 gap-y-2">
-        <Link className="inline-flex min-h-11 items-center underline underline-offset-4" href="/">
+        <Link
+          id="lost-cat-home"
+          className="inline-flex min-h-11 items-center underline underline-offset-4"
+          href="/"
+        >
           Cat playground
         </Link>
         <Link
@@ -32,6 +37,7 @@ export default function NotFound() {
           Site map
         </a>
       </nav>
+      <LostCat home="#lost-cat-home" />
     </main>
   );
 }
