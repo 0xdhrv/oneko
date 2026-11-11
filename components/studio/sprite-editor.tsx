@@ -164,6 +164,8 @@ export function SpriteEditor() {
   const copiedFrame = useRef<Uint8ClampedArray | null>(null);
   const recolor = useRef<{ before: Uint8ClampedArray; from: Color } | null>(null);
   const recolorTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // The swatches catch up only when a recolor settles, so keep its picker live until then.
+  const [recoloring, setRecoloring] = useState(false);
 
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
@@ -218,6 +220,7 @@ export function SpriteEditor() {
     // The coat changed from outside the editor: pending edits belong to the old sheet.
     clearTimeout(recolorTimer.current);
     recolor.current = null;
+    setRecoloring(false);
     saveRequest.current++;
     let current = true;
     setReady(false);
@@ -400,10 +403,12 @@ export function SpriteEditor() {
     sheet.set(before);
     replaceColor(sheet, from, next);
     setColor(next);
+    setRecoloring(true);
     redraw();
     clearTimeout(recolorTimer.current);
     recolorTimer.current = setTimeout(() => {
       recolor.current = null;
+      setRecoloring(false);
       commit(before);
     }, RECOLOR_SETTLE_MS);
   };
@@ -428,7 +433,7 @@ export function SpriteEditor() {
     link.click();
   };
 
-  const canSwap = swatches.includes(color);
+  const canSwap = recoloring || swatches.includes(color);
   const mirrorName = SPRITE_ANIMATIONS.find((other) => other.id === animation.mirror)?.name;
 
   return (

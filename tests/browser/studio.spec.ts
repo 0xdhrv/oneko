@@ -337,9 +337,23 @@ test("a recolor swaps one color across the whole coat", async ({ page }) => {
   await expect(page.getByRole("application")).toHaveAttribute("aria-busy", "false");
   const swap = page.getByLabel("Swap this color everywhere");
   await expect(swap).toBeEnabled();
-  await swap.fill("#ff0000");
+  // Two quick picks, as while dragging in the picker: the picker stays live in between.
+  const disabledMidDrag = await swap.evaluate(async (input: HTMLInputElement) => {
+    const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+    const pick = (value: string) => {
+      setValue.call(input, value);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    pick("#ff0000");
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const disabled = input.disabled;
+    pick("#00ff00");
+    return disabled;
+  });
+  expect(disabledMidDrag).toBe(false);
   await expect.poll(async () => (await saved(page)).spriteName).toBe("Hand-drawn coat");
-  await expect(page.getByRole("button", { name: "#ff0000" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "#00ff00" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "#ff0000" })).toHaveCount(0);
 });
 
 test("a sound is trimmed, plays in the browser, and appears in exported code", async ({ page }) => {
