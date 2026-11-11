@@ -5,8 +5,8 @@ For the complete maintained prop reference, recipes, and coding-agent prompt, se
 Those two formats share their content source in `lib/oneko-docs.ts`.
 
 `Oneko` is a client-side React component that creates a fixed-position pixel cat on
-`document.body`. It returns `null` from React because the sprite, bubble, debug overlay, and optional
-laser pointer are managed as DOM elements.
+`document.body`. The moving sprite, bubble, and debug overlay are managed as DOM elements, so React
+renders only the laser cursor when it is on, or a still resting cat with `reducedMotion="rest"`.
 
 ## Basic Usage
 
@@ -24,6 +24,9 @@ For SSR-enabled apps, render this from a client-only entry point or lazy-load it
 available.
 
 ## Props
+
+This table covers the core props. [/docs](https://oneko.dhrv.pw/docs#options) lists every prop,
+including zones, sounds, several cats, page reactions, play, seasons, and events.
 
 | Prop                  | Type                                | Default         | Description                                                                                              |
 | --------------------- | ----------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------- |
@@ -91,9 +94,10 @@ available.
   independent saved positions. Changing it restarts the animation DOM and loads that key if present;
   `persistPosition={false}` disables reads and writes. Validated coordinates are saved when the page hides, on pagehide, and on component cleanup. Legacy coordinates are migrated; animation internals are not loaded.
 
-These options, except the storage key, update without restarting the animation. Public types
-`OnekoProps`, `OnekoSkin`, `OnekoZone`, `CatActivityState`, and `CatLiveState` can all be imported
-from `@/components/oneko`.
+These options update without restarting the animation, except `storageKey`, `persistPosition`,
+`zIndex`, and `pettable`. Public types `OnekoProps`, `OnekoControls`, `OnekoSkin`, `OnekoSeason`,
+`OnekoZone`, `OnekoSounds`, `OnekoSoundEvent`, `CatActivityState`, and `CatLiveState` can all be
+imported from `@/components/oneko`.
 
 ## Activity States
 
@@ -147,12 +151,10 @@ Coat changes do not restart the animation. Touch users can tap non-interactive p
 new destination. Hidden tabs stop the animation timer, and reduced-motion preferences keep the cat
 and laser unmounted (or, with `reducedMotion="rest"`, leave a still, sleeping cat; the playground does this). Preference changes apply live, and laser cleanup restores the host cursor. The skin picker remains usable with reduced motion.
 
-The landing page starts with all controls closed. Choose **Customize cat** for coats and settings,
-or **Add a cat to your site** for installation. Customization loads on demand; the install panel is
-included in the initial playground bundle so it opens immediately. Both open panels are keep-out
-areas. The live zone sample spots render below the controls so favorite visits still work.
-Closing customization stops its activity display. Escape or Done closes customization and returns keyboard focus to its button.
-Saved preferences do not reopen panels on the next visit.
+The landing page starts with its install panel closed. **Customize cat** opens the studio at
+`/studio`, and **Add a cat to your site** opens installation, which is a keep-out area while open.
+Escape closes it and returns keyboard focus to its button. Saved preferences do not reopen the
+panel on the next visit.
 
 The playground uses `@web-kits/audio` for short interface sounds on buttons, toggles, selections,
 and sliders. These follow the Sound toggle and volume and stay muted with reduced motion. Empty
@@ -213,5 +215,4 @@ const zones: OnekoZone[] = [
 - Element zones are sampled at the cat's 10fps tick. Visuals moving between those ticks are reconciled
   on the next tick. Bubbles are not constrained to zone boundaries.
 
-Try both behaviors under **Customize cat → Cat zones**. Demo zones exist only while that section is
-open; the landing page still starts with every control closed.
+Try both behaviors in the studio's **Zones** tab. Demo zones exist only while that tab is open.
