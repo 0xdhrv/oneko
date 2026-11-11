@@ -505,6 +505,8 @@ export function SpriteEditor() {
           tabIndex={0}
           onKeyDown={onCanvasKeyDown}
           onPointerDown={(event) => {
+            // A right click opens the context menu rather than painting.
+            if (event.button === 2) return;
             const { x, y } = cellFromEvent(event);
             moveCursor(x, y);
             event.currentTarget.setPointerCapture(event.pointerId);

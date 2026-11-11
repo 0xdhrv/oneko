@@ -298,6 +298,21 @@ test("drawing dresses the cat live, undoes, and survives a trip through a coat",
   expect(before).not.toContain(drawn.slice(0, 80));
 });
 
+test("a right click leaves the coat alone", async ({ page }) => {
+  await page.goto("/studio");
+  await page.getByRole("tab", { name: "Draw" }).click();
+  await expect(page.getByRole("application")).toHaveAttribute("aria-busy", "false");
+  const box = (await page.getByRole("application").boundingBox())!;
+  await page.mouse.click(box.x + 8, box.y + 8, { button: "right" });
+  await page.keyboard.press("Escape");
+  const corner = await page.getByRole("application").evaluate((el) => {
+    const canvas = el.querySelector<HTMLCanvasElement>("canvas:not(.sprite-onion)")!;
+    return canvas.getContext("2d")!.getImageData(0, 0, 1, 1).data[3];
+  });
+  expect(corner).toBe(0);
+  await expect(page.getByRole("button", { name: "Undo" })).toBeDisabled();
+});
+
 test("mirroring and frame tools write to the right frames", async ({ page }) => {
   await page.goto("/studio");
   await page.getByRole("tab", { name: "Draw" }).click();
