@@ -51,11 +51,11 @@ and updates without resetting position. Omit it to return to the selected built-
 
 `ginger`, `sage`, `siamese`, `strawberry-milk`, `blue-frost`, `lavender`, `tuxedo`, `peach`, `honey`, `mocha`, `mint`, and `midnight-blue` were generated with
 the built-in image generation tool using Classic as a reference. Original artwork
-credits still apply. These variants reinterpret some pose details rather than
-preserving the original pixels exactly.
+credits still apply. Each keeps Classic's silhouettes, outlines and frame positions pixel for
+pixel and takes only its colors and markings from the generated concept.
 
 Source artwork and prompts live in `output/skins/`. Run
-`node scripts/prepare-generated-skins.mjs` to prepare 256 × 128 PNGs with nearest-neighbor
-sampling and binary transparency and embed them in the catalog. Then run
+`node scripts/prepare-generated-skins.mjs` to rebuild the 256 × 128 PNGs from those concepts
+and embed them in the catalog. Then run
 `pnpm run registry:build`. Every variant is available in the studio and exported
 React examples through its skin ID.

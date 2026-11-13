@@ -12,7 +12,7 @@ export const SKIN_CATALOG = [
   { id: "valentine", name: "Valentine", description: "Wears a heart on every paw" },
   { id: "maia", name: "Maia", description: "Small paws, big personality" },
   { id: "vaporwave", name: "Vaporwave", description: "Dreaming in pink and purple" },
-  { id: "ginger", name: "Ginger", description: "Golden fur and cream-colored paws" },
+  { id: "ginger", name: "Ginger", description: "Marmalade fur and a cream-colored chest" },
   { id: "sage", name: "Sage", description: "A little garden companion" },
   { id: "siamese", name: "Siamese", description: "Chocolate points and bright blue eyes" },
   {

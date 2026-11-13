@@ -52,8 +52,12 @@ Strawberry Milk requests rose-pink ears; Blue Frost requests periwinkle ears.
 
 All 12 generated variants now have runtime copies named `<skin-id>.png`, embedded in the
 shared skin catalog. Rebuild them with `node scripts/prepare-generated-skins.mjs`.
-This applies nearest-neighbor sizing and binary alpha cleanup. Generated pose
-differences remain; the concept files above are preserved unchanged.
+Each runtime coat keeps the Classic sheet's exact silhouettes and outlines and takes
+only its colors from the concept: the concept is quantized to a few colors, aligned
+to Classic frame by frame, and sampled for each fur pixel. Siamese is the exception:
+its concept poses drift too far for markings to land, so its points are shaded by
+distance from each frame's centroid instead. Pass `--out DIR` to
+preview without touching the catalog. The concept files above are preserved unchanged.
 
 ## Lavender, Tuxedo, and Peach
 
