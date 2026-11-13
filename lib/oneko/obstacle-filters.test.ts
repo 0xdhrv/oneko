@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldIncludeObstacleRect, toObstacleRect } from "./obstacle-filters";
+import { shouldIncludeObstacleRect } from "./obstacle-filters";
 
 describe("shouldIncludeObstacleRect", () => {
   it("rejects tiny obstacles", () => {
@@ -40,16 +40,5 @@ describe("shouldIncludeObstacleRect", () => {
         600,
       ),
     ).toBe(true);
-  });
-});
-
-describe("toObstacleRect", () => {
-  it("copies rect bounds", () => {
-    expect(toObstacleRect({ left: 1, top: 2, right: 3, bottom: 4, width: 2, height: 2 })).toEqual({
-      left: 1,
-      top: 2,
-      right: 3,
-      bottom: 4,
-    });
   });
 });

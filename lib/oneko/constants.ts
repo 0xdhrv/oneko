@@ -232,7 +232,6 @@ export const DEFAULT_BUBBLE_CHANCE = 0.5;
 export const DEFAULT_FOLLOW_DISTANCE = 20;
 export const DEFAULT_ANIMATION_SPEED = 1;
 
-// Played once when the cat catches the laser dot
 export const PET_MESSAGES = [
   "purrrr",
   "right there. yes. there.",
@@ -248,7 +247,6 @@ export const PET_SOUND_POOL = [
 ];
 export const LASER_CATCH_POOL = ["/cat-sounds/Cat_eat1.ogg", "/cat-sounds/Cat_eat2.ogg"];
 
-// Sound pools keyed by sound moment
 const HISS_POOL = [
   "/cat-sounds/Cat_hiss1.ogg",
   "/cat-sounds/Cat_hiss2.ogg",
@@ -291,7 +289,6 @@ export const SOUND_POOLS: Record<OnekoSoundEvent, string[]> = {
   hiss: HISS_POOL,
 };
 
-// Konami code
 export const KONAMI_SEQUENCE = [
   "ArrowUp",
   "ArrowUp",

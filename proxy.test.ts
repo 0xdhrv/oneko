@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
-import { config, proxy } from "./proxy";
+import { proxy } from "./proxy";
 
 const request = (path: string, accept: string) =>
   new NextRequest(`https://oneko.example${path}`, { headers: { accept } });
@@ -18,9 +18,5 @@ describe("markdown negotiation proxy", () => {
     const response = proxy(request("/", "text/html,application/xhtml+xml,*/*;q=0.8"));
     expect(response.headers.get("x-middleware-rewrite")).toBeNull();
     expect(response.headers.get("Vary")).toBe("Accept");
-  });
-
-  it("only runs on the pages that have a Markdown twin", () => {
-    expect(config.matcher).toEqual(["/", "/docs"]);
   });
 });

@@ -1,5 +1,4 @@
 import { MIN_OBSTACLE_AREA } from "./constants";
-import type { ObstacleRect } from "./types";
 
 type RectLike = {
   left: number;
@@ -25,8 +24,4 @@ export function shouldIncludeObstacleRect(
     return false;
   }
   return true;
-}
-
-export function toObstacleRect(rect: RectLike): ObstacleRect {
-  return { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom };
 }

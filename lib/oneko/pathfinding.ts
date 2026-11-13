@@ -1,5 +1,5 @@
 import { CELL_SIZE, NEIGHBOR_OFFSETS, OBSTACLE_SELECTOR, SPRITE_RADIUS } from "./constants";
-import { shouldIncludeObstacleRect, toObstacleRect } from "./obstacle-filters";
+import { shouldIncludeObstacleRect } from "./obstacle-filters";
 import type { ObstacleRect, PathPoint } from "./types";
 
 // Flat index of the neighbor at (r+dr, c+dc), or -1 if it falls outside the grid.
@@ -27,7 +27,7 @@ export function collectObstacles(): ObstacleRect[] {
     if (node.closest('[data-oneko-zone="attract"],[data-oneko-box]')) continue;
     const r = node.getBoundingClientRect();
     if (shouldIncludeObstacleRect(r, vw, vh)) {
-      rects.push(toObstacleRect(r));
+      rects.push({ left: r.left, top: r.top, right: r.right, bottom: r.bottom });
     }
   }
 
